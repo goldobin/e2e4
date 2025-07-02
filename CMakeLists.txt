@@ -15,15 +15,16 @@ set(CC_PARAMS
         -Wpedantic
         -Wformat-security
         -Wstrict-prototypes
+)
 
+set(CC_TEST_PARAMS
+        ${CC_PARAMS}
+        -Wno-gnu-zero-variadic-macro-arguments
 )
 
 file(GLOB_RECURSE FORMAT_SOURCES
         src/*.c
-        src/e2/*.c
-        src/u/*.c
-        include/e2/*.h
-        include/u/*.h
+        include/*.h
         tests/*.c
 )
 
@@ -60,9 +61,10 @@ target_link_libraries(e2e4_cli PRIVATE
 
 # e2e4 LIB
 add_library(e2e4 STATIC
-        src/e2/board.c
-        src/u/slice.c
-        src/u/arena.c
+        src/arena.c
+        src/char_slice.c
+        src/move_slice.c
+        src/board.c
 )
 target_compile_features(e2e4 PRIVATE ${C_STANDARD})
 target_compile_options(e2e4 PRIVATE ${CC_PARAMS})
@@ -72,40 +74,42 @@ add_dependencies(e2e4 format)
 # Testing
 include(CTest)
 
-add_executable(u_slice_test
-        tests/u_slice_test.c
+add_executable(char_slice_test
+        tests/char_slice_test.c
 )
 
-target_compile_features(u_slice_test PRIVATE ${C_STANDARD})
-target_compile_options(u_slice_test PRIVATE ${CC_PARAMS})
-target_link_libraries(u_slice_test PRIVATE
+target_compile_features(char_slice_test PRIVATE ${C_STANDARD})
+target_compile_options(char_slice_test PRIVATE ${CC_TEST_PARAMS})
+target_link_libraries(char_slice_test PRIVATE
         e2e4
         unity
 )
 
-add_executable(u_arena_test
-        tests/u_arena_test.c
+add_executable(arena_test
+        tests/arena_test.c
 )
 
-target_compile_features(u_arena_test PRIVATE ${C_STANDARD})
-target_compile_options(u_arena_test PRIVATE ${CC_PARAMS})
-target_link_libraries(u_arena_test PRIVATE
+target_compile_features(arena_test PRIVATE ${C_STANDARD})
+target_compile_options(arena_test PRIVATE ${CC_TEST_PARAMS})
+target_link_libraries(arena_test PRIVATE
         e2e4
         unity
 )
 
-add_executable(e2e4_board_test
-        tests/e2_board_test.c
+add_executable(board_test
+        tests/board_test.c
 )
 
-target_compile_features(e2e4_board_test PRIVATE ${C_STANDARD})
-target_compile_options(e2e4_board_test PRIVATE ${CC_PARAMS})
-target_link_libraries(e2e4_board_test PRIVATE
+target_compile_features(board_test PRIVATE ${C_STANDARD})
+target_compile_options(board_test PRIVATE ${CC_TEST_PARAMS})
+target_link_libraries(board_test PRIVATE
         e2e4
         unity
 )
 
-add_test(NAME "Board" COMMAND e2e4_board_test)
+add_test(NAME "Arena" COMMAND arena_test)
+add_test(NAME "CharSlice" COMMAND char_slice_test)
+add_test(NAME "Board" COMMAND board_test)
 
 # Adding Deps
 include(FetchContent)
@@ -125,3 +129,5 @@ FetchContent_Declare(
         GIT_PROGRESS TRUE
 )
 FetchContent_MakeAvailable(unity)
+target_compile_definitions(unity PUBLIC UNITY_INCLUDE_PRINT_FORMATTED)
+

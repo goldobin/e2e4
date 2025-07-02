@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "../include/e2/board.h"
+#include "board.h"
 
 #define ANSI_COLOR_RESET       "\x1b[0m"
 #define ANSI_COLOR_RED_LOW     "\x1b[0;31m"
@@ -20,47 +20,86 @@
 #define ANSI_COLOR_CYAN_HIGH    "\x1b[0;96m"
 #define ANSI_COLOR_WHITE_HIGH   "\x1b[0;97m"
 
-void E2_Board_Print(const E2_Board* b) {
+void Board_Print(const Board* b) {
     assert(b != nullptr);
     printf(ANSI_COLOR_YELLOW_LOW "  a b c d e f g h " ANSI_COLOR_RESET "\n");
 
-    for (size_t i = 0; i < E2_SIDE_LEN; ++i) {
-        for (size_t j = 0; j < E2_SIDE_LEN; ++j) {
-            const auto   reverseI = E2_SIDE_LEN - i - 1;
-            const E2_Pos pos      = {.row = reverseI, .col = j};
-            const auto   piece    = E2_Board_At(b, pos);
-            const auto   pieceCh  = E2_PieceType_ToUpperCaseChar(piece.type);
-            auto         color    = ANSI_COLOR_WHITE_HIGH;
+    for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
+        for (size_t j = 0; j < BOARD_SIDE_LEN; ++j) {
+            const Pos   pos       = {.row = i, .col = j};
+            const auto  piece     = Board_At(b, pos);
+            const char  rowChar   = (char)(ROW_CHAR_MIN + (BOARD_SIDE_LEN - i - 1));
+            auto        color     = ANSI_COLOR_WHITE_HIGH;
+            const char* pieceChar = Piece_ToUnicodeChar(piece);
 
-            if (piece.type == E2_PIECE_TYPE_NONE && (i + j) % 2 == 0) {
+            if (piece.type == PIECE_TYPE_NONE && (i + j) % 2 == 0) {
                 color = ANSI_COLOR_WHITE_LOW;
-            } else if (piece.side == E2_SIDE_BLACK) {
+            } else if (piece.side == SIDE_BLACK) {
                 color = ANSI_COLOR_WHITE_LOW;
             }
 
             if (j == 0) {
-                printf(ANSI_COLOR_YELLOW_LOW "%zd " ANSI_COLOR_RESET, reverseI + 1);
+                printf(ANSI_COLOR_YELLOW_LOW "%c " ANSI_COLOR_RESET, rowChar);
             }
-            printf("%s%c" ANSI_COLOR_RESET " ", color, pieceCh);
+            printf("%s%s" ANSI_COLOR_RESET " ", color, pieceChar);
         }
         printf("\n");
     }
 }
 
 int main() {
-    E2_Move    m1              = {};
-    const auto moveParseResult = E2_Move_Parse(&m1, "e2e4");
-    char       buff[32]        = {};
+    Move       m1              = {};
+    const auto moveParseResult = Move_Parse(&m1, CHAR_SLICE("e2e4"));
 
-    if (moveParseResult.err != E2_MOVE_PARSE_OK) {
+    if (moveParseResult.err != MOVE_PARSE_ERR_OK) {
         puts("Error parsing move");
         return 1;
     }
 
-    E2_Move_ToString(buff, 32, m1);
-    puts(buff);
+    Board b    = {};
+    Side  side = SIDE_WHITE;
+    Board_PlacePieces(&b);
 
-    E2_Board b = {};
-    E2_Board_PlacePieces(&b);
-    E2_Board_Print(&b);
+    while (true) {
+        Board_Print(&b);
+
+        const char* sideStr = side == SIDE_WHITE ? "white" : "black";
+        printf("Next turn [%s]: ", sideStr);
+        auto moveInStr = CharSlice_Make(0, 16);
+
+        if (CharSlice_ReadLine(&moveInStr, stdin, '\n') < 4) {
+            printf("No move entered\n");
+            break;
+        };
+
+        Move m = {};
+        Move_Parse(&m, moveInStr);
+        auto moveStr = CharSlice_Make(0, 16);
+        CharSlice_WriteMove(&moveStr, m);
+
+        printf("Parsed move: %s\n", moveStr.arr);
+
+        const Piece p = Board_At(&b, m.from);
+        if (p.type == PIECE_TYPE_NONE) {
+            printf("No piece to move\n");
+            continue;
+        }
+
+        if (p.side != side) {
+            const char* pieceSideStr = p.side == SIDE_WHITE ? "white" : "black";
+            printf("Can't move %s piece\n", pieceSideStr);
+            continue;
+        }
+
+        const auto moveResult    = Board_MakeMove(&b, m);
+        auto       moveResultStr = CharSlice_Make(0, 32);
+        CharSlice_WriteMoveResult(&moveResultStr, &moveResult);
+
+        if (moveResult.err != MOVE_ERR_OK) {
+            printf("Move result: %s\n", moveResultStr.arr);
+            continue;
+        }
+
+        side = side == SIDE_WHITE ? SIDE_BLACK : SIDE_WHITE;
+    }
 }
