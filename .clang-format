@@ -1,0 +1,19 @@
+BasedOnStyle: Google
+IndentWidth: 4
+
+ColumnLimit: 120
+
+AlignAfterOpenBracket: BlockIndent
+AlignArrayOfStructures: None
+AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveMacros: Consecutive
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields: Consecutive
+AlignEscapedNewlines: Left
+AlignOperands: AlignAfterOperator
+AlignTrailingComments: true
+
+AllowShortEnumsOnASingleLine: false
+BracedInitializerIndentWidth: 4
+BreakArrays: false
+InsertNewlineAtEOF: true
