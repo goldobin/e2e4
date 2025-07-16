@@ -9,8 +9,9 @@
 - [ ] Test king move
 - [ ] Implement pawn exchange move
 - [ ] Implement king's castle move
-- [ ] **-> Implement game loop**
-  - [ ] **-> (file_rw) Read and write board to file**
+- [ ] **→ Implement game loop**
+  - [x] Read board from a file 
+  - [ ] **→ Write board to file**
 - [ ] Implement reference initialization for the Arena
 - [x] ~~Implement support for CharSlice in WriteF (PrintF)~~ As soon as I can always access CharSlice.arr field it is no  
       longer necessary 
@@ -19,4 +20,4 @@
       Implement a method to terminate a string at a known length.~~ Decided to use asume that slice is allways 
       initialized with zeros. 
 - [x] Replace CharSlice_Wrap with CharSlice_Make
-- [ ] Check memory got cleaned with 0's in all cases where memory is allocated from arena.
+- [ ] Check memory got cleaned with 0's in all cases where memory is allocated from the arena.

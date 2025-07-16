@@ -47,18 +47,48 @@ void Board_Print(const Board* b) {
     }
 }
 
-int main() {
-    Move       m1              = {};
-    const auto moveParseResult = Move_Parse(&m1, CHAR_SLICE("e2e4"));
-
-    if (moveParseResult.err != MOVE_PARSE_ERR_OK) {
-        puts("Error parsing move");
-        return 1;
-    }
-
+int main(int argc, char* argv[]) {
     Board b    = {};
     Side  side = SIDE_WHITE;
-    Board_PlacePieces(&b);
+
+    switch (argc) {
+        case 0:
+        case 1:
+            Board_PlacePieces(&b);
+            break;
+        case 2:
+            const auto filePath = argv[1];
+            const auto f        = fopen(filePath, "r");
+
+            if (f == nullptr) {
+                printf("Failed to open file %s\n", filePath);
+                return 1;
+            }
+
+            auto       buff = CharSlice_Make(0, 128);
+            const auto read = CharSlice_ReadFile(&buff, f);
+
+            if (read < 1) {
+                printf("Empty file %s\n", filePath);
+                return 1;
+            }
+
+            const auto parseResult = Board_Parse(&b, buff);
+
+            if (parseResult.err != BOARD_PARSE_ERR_OK) {
+                auto parseResultStr = CharSlice_Make(0, 128);
+                CharSlice_WriteBoardParseResult(&parseResultStr, parseResult);
+
+                printf("Failed to parse file %s: %s\n", filePath, parseResultStr.arr);
+                return 1;
+            }
+
+            break;
+
+        default:
+            printf("Usage: %s [file]\n", argv[0]);
+            return 1;
+    }
 
     while (true) {
         Board_Print(&b);
