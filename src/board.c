@@ -775,27 +775,6 @@ void Board_Copy(Board* dst, const Board* src) {
     }
 }
 
-size_t Board_ReadFile(Board* dst, FILE* f) {
-    assert(dst != nullptr);
-    assert(f != nullptr);
-
-    char   buf[BOARD_SIDE_LEN + 2];  // +2 for \n and \0
-    size_t rows = 0;
-
-    while (rows < BOARD_SIDE_LEN && fgets(buf, sizeof(buf), f)) {
-        for (size_t col = 0; col < BOARD_SIDE_LEN; col++) {
-            Piece piece = {};
-            if (!Piece_FromChar(&piece, buf[col])) {
-                return rows;
-            }
-            dst->m[rows][col] = piece;
-        }
-        rows++;
-    }
-
-    return rows;
-}
-
 size_t CharSlice_WriteBoard(CharSlice* dst, const Board* b) {
     size_t written = 0;
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {

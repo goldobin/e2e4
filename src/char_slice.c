@@ -9,6 +9,7 @@
 
 CharSlice CharSlice_New(char* buffer, const size_t len, const size_t cap) {
     assert(buffer != nullptr);
+    assert(cap > 0);
     assert(len <= cap);
 
     return (CharSlice){
@@ -71,6 +72,36 @@ size_t CharSlice_Write(CharSlice* dst, const CharSlice other) {
     return CharSlice_WriteAt(dst, dst->len, other);
 }
 
+size_t CharSlice_WriteStr(CharSlice* dst, const char* src, const size_t srcMaxLen) {
+    assert(dst != nullptr);
+    assert(src != nullptr);
+    assert(CharSlice_IsValid(dst));
+
+    const auto remaining = dst->cap - dst->len;
+    if (remaining < 1) {
+        return 0;
+    }
+
+    const auto srcLen = strnlen(src, srcMaxLen);
+    if (srcLen < 1) {
+        return 0;
+    }
+
+    const auto copyLen = MinSizeT(srcLen, remaining);
+    memcpy(dst->arr + dst->len, src, copyLen);
+    dst->len = dst->len + copyLen;
+    return copyLen;
+}
+
+bool CharSlice_StartsWith(const CharSlice* s, const CharSlice prefix) {
+    assert(s != nullptr);
+    if (prefix.len > s->len) {
+        return false;
+    }
+
+    return memcmp(s->arr, prefix.arr, prefix.len) == 0;
+}
+
 size_t CharSlice_ToString(char* dst, const size_t maxLen, const CharSlice slice) {
     assert(dst != nullptr);
 
@@ -83,14 +114,14 @@ size_t CharSlice_ToString(char* dst, const size_t maxLen, const CharSlice slice)
 size_t CharSlice_ReadLine(CharSlice* dst, FILE* src, const char separator) {
     assert(dst != nullptr);
     assert(src != nullptr);
+    assert(CharSlice_IsValid(dst));
 
-    const auto remaining = dst->cap - dst->len;
-
+    const auto remaining = (int)(dst->cap - dst->len);
     if (remaining < 1) {
         return 0;
     }
 
-    const auto s = fgets(dst->arr + dst->len, sizeof(remaining), src);
+    const auto s = fgets(dst->arr + dst->len, remaining, src);
     if (s == nullptr) {
         return 0;
     }
@@ -123,16 +154,29 @@ size_t CharSlice_ReadFile(CharSlice* dst, FILE* src) {
     return read;
 }
 
-size_t File_WriteCharSlice(FILE* dst, const CharSlice* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+bool CharSlice_IsValid(const CharSlice* s) {
+    assert(s != nullptr);
+    return s->arr != nullptr && s->len <= s->cap;
+}
 
-    return fwrite(src->arr, sizeof(char), src->len, dst);
+bool CharSlice_IsNullTerminated(const CharSlice* s) {
+    assert(CharSlice_IsValid(s));
+    if (s->len == s->cap) {
+        return false;
+    }
+
+    return s->arr[s->len] == '\0';
+}
+
+size_t File_WriteCharSlice(FILE* dst, const CharSlice src) {
+    assert(dst != nullptr);
+    return fwrite(src.arr, sizeof(char), src.len, dst);
 }
 
 size_t CharSlice_WriteF(CharSlice* dst, const char* format, ...) {
     assert(dst != nullptr);
     assert(format != nullptr);
+    assert(CharSlice_IsValid(dst));
 
     const auto remaining = dst->cap - dst->len;
 

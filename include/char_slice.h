@@ -19,16 +19,21 @@ size_t    CharSlice_WriteCharAt(CharSlice* dst, size_t offset, char v);
 size_t    CharSlice_WriteAt(CharSlice* dst, size_t offset, CharSlice other);
 size_t    CharSlice_WriteChar(CharSlice* dst, char v);
 size_t    CharSlice_Write(CharSlice* dst, CharSlice other);
+size_t    CharSlice_WriteStr(CharSlice* dst, const char* src, size_t srcMaxLen);
+bool      CharSlice_StartsWith(const CharSlice* s, CharSlice prefix);
 size_t    CharSlice_NoDiffLen(CharSlice s1, CharSlice s2);
 void      CharSlice_Diff(CharSlice* dst, CharSlice s1, CharSlice s2);
 int       CharSlice_Cmp(CharSlice a, CharSlice b);
 size_t    CharSlice_WriteF(CharSlice* dst, const char* format, ...);
 size_t    CharSlice_ReadLine(CharSlice* dst, FILE* src, char separator);
 size_t    CharSlice_ReadFile(CharSlice* dst, FILE* src);
+bool      CharSlice_IsValid(const CharSlice* s);
+bool      CharSlice_IsNullTerminated(const CharSlice* s);
 
-size_t File_WriteCharSlice(FILE* dst, const CharSlice* src);
+size_t File_WriteCharSlice(FILE* dst, CharSlice src);
 
-#define CharSlice_Make(len, cap) CharSlice_New((char[cap]){}, len, cap)
-#define CHAR_SLICE(buffer)       CharSlice_New(buffer, sizeof(buffer) - 1, sizeof(buffer) - 1)
+#define CharSlice_Make(len, cap) ((cap) > 0 ? CharSlice_New((char[cap]){}, len, cap) : CharSlice_New(nullptr, 0, 0));
+#define CHAR_SLICE(buffer) \
+    (sizeof(buffer) > 1 ? CharSlice_New(buffer, sizeof(buffer) - 1, sizeof(buffer) - 1) : CharSlice_New(nullptr, 0, 0))
 
 #endif  // CHAR_SLICE_H

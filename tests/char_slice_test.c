@@ -206,7 +206,7 @@ void Test_CharSlice_ReadWriteFile(void) {
     CharSlice  out           = CharSlice_Make(0, 64);
     FILE*      f             = fmemopen(fileBuf, sizeof(fileBuf), "w+");
 
-    File_WriteCharSlice(f, &in);
+    File_WriteCharSlice(f, in);
     fseek(f, 0, SEEK_SET);
     CharSlice_ReadFile(&out, f);
 
