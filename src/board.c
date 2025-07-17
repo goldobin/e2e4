@@ -29,7 +29,7 @@ bool Piece_FromChar(Piece* t, const char ch) {
             return true;
         case 'K':
             t->type = PIECE_TYPE_KING;
-            t->side = SIDE_BLACK;
+            t->side = SIDE_WHITE;
             return true;
         case 'p':
             t->type = PIECE_TYPE_PAWN;
@@ -444,33 +444,33 @@ size_t Threats_Append(Threats* ts, const Threat t) {
 void Board_PlacePieces(Board* dst) {
     assert(dst != nullptr);
 
-    dst->m[7][0] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_WHITE};
-    dst->m[7][7] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_WHITE};
-    dst->m[7][1] = (Piece){.type = PIECE_TYPE_KNIGHT, .side = SIDE_WHITE};
-    dst->m[7][6] = (Piece){.type = PIECE_TYPE_KNIGHT, .side = SIDE_WHITE};
-    dst->m[7][2] = (Piece){.type = PIECE_TYPE_BISHOP, .side = SIDE_WHITE};
-    dst->m[7][5] = (Piece){.type = PIECE_TYPE_BISHOP, .side = SIDE_WHITE};
-    dst->m[7][3] = (Piece){.type = PIECE_TYPE_QUEEN, .side = SIDE_WHITE};
-    dst->m[7][4] = (Piece){.type = PIECE_TYPE_KING, .side = SIDE_WHITE};
+    dst->squares[7][0] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_WHITE};
+    dst->squares[7][7] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_WHITE};
+    dst->squares[7][1] = (Piece){.type = PIECE_TYPE_KNIGHT, .side = SIDE_WHITE};
+    dst->squares[7][6] = (Piece){.type = PIECE_TYPE_KNIGHT, .side = SIDE_WHITE};
+    dst->squares[7][2] = (Piece){.type = PIECE_TYPE_BISHOP, .side = SIDE_WHITE};
+    dst->squares[7][5] = (Piece){.type = PIECE_TYPE_BISHOP, .side = SIDE_WHITE};
+    dst->squares[7][3] = (Piece){.type = PIECE_TYPE_QUEEN, .side = SIDE_WHITE};
+    dst->squares[7][4] = (Piece){.type = PIECE_TYPE_KING, .side = SIDE_WHITE};
 
-    dst->m[0][0] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_BLACK};
-    dst->m[0][7] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_BLACK};
-    dst->m[0][1] = (Piece){.type = PIECE_TYPE_KNIGHT, .side = SIDE_BLACK};
-    dst->m[0][6] = (Piece){.type = PIECE_TYPE_KNIGHT, .side = SIDE_BLACK};
-    dst->m[0][2] = (Piece){.type = PIECE_TYPE_BISHOP, .side = SIDE_BLACK};
-    dst->m[0][5] = (Piece){.type = PIECE_TYPE_BISHOP, .side = SIDE_BLACK};
-    dst->m[0][3] = (Piece){.type = PIECE_TYPE_QUEEN, .side = SIDE_BLACK};
-    dst->m[0][4] = (Piece){.type = PIECE_TYPE_KING, .side = SIDE_BLACK};
+    dst->squares[0][0] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_BLACK};
+    dst->squares[0][7] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_BLACK};
+    dst->squares[0][1] = (Piece){.type = PIECE_TYPE_KNIGHT, .side = SIDE_BLACK};
+    dst->squares[0][6] = (Piece){.type = PIECE_TYPE_KNIGHT, .side = SIDE_BLACK};
+    dst->squares[0][2] = (Piece){.type = PIECE_TYPE_BISHOP, .side = SIDE_BLACK};
+    dst->squares[0][5] = (Piece){.type = PIECE_TYPE_BISHOP, .side = SIDE_BLACK};
+    dst->squares[0][3] = (Piece){.type = PIECE_TYPE_QUEEN, .side = SIDE_BLACK};
+    dst->squares[0][4] = (Piece){.type = PIECE_TYPE_KING, .side = SIDE_BLACK};
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
-        dst->m[6][i] = (Piece){.type = PIECE_TYPE_PAWN, .side = SIDE_WHITE};
-        dst->m[1][i] = (Piece){.type = PIECE_TYPE_PAWN, .side = SIDE_BLACK};
+        dst->squares[6][i] = (Piece){.type = PIECE_TYPE_PAWN, .side = SIDE_WHITE};
+        dst->squares[1][i] = (Piece){.type = PIECE_TYPE_PAWN, .side = SIDE_BLACK};
     }
 
     for (size_t i = 2; i < 6; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
-            dst->m[i][j].type = PIECE_TYPE_NONE;
-            dst->m[i][j].side = SIDE_NONE;
+            dst->squares[i][j].type = PIECE_TYPE_NONE;
+            dst->squares[i][j].side = SIDE_NONE;
         }
     }
 }
@@ -480,8 +480,8 @@ bool Board_Equals(const Board* a, const Board* b) {
     assert(b != nullptr);
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
-            const auto pieceA = a->m[i][j];
-            const auto pieceB = b->m[i][j];
+            const auto pieceA = a->squares[i][j];
+            const auto pieceB = b->squares[i][j];
             if (!Piece_Equals(pieceA, pieceB)) {
                 return false;
             }
@@ -529,13 +529,13 @@ BoardParseResult Board_Parse(Board* dst, const CharSlice src) {
 Piece Board_At(const Board* b, const Pos pos) {
     assert(b != nullptr);
     assert(Pos_IsValid(pos));
-    return b->m[pos.row][pos.col];
+    return b->squares[pos.row][pos.col];
 }
 
 void Board_UpdateAt(Board* b, const Pos pos, const Piece p) {
     assert(b != nullptr);
     assert(Pos_IsValid(pos));
-    b->m[pos.row][pos.col] = p;
+    b->squares[pos.row][pos.col] = p;
 }
 
 MoveResult Board_MakeMove(Board* b, const Move m) {
@@ -770,7 +770,7 @@ void Board_Copy(Board* dst, const Board* src) {
     assert(src != nullptr);
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
-            dst->m[i][j] = src->m[i][j];
+            dst->squares[i][j] = src->squares[i][j];
         }
     }
 }

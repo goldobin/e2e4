@@ -246,7 +246,7 @@ void Test_Board_Parse(void) {
             .name      = "case 0.2",
             .str       = CHAR_SLICE(".k"),
             .want      = {.err = BOARD_PARSE_ERR_TOO_SHORT, .offset = 2},
-            .wantBoard = {.m = {[0] = {[1] = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING}}}},
+            .wantBoard = {.squares = {[0] = {[1] = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING}}}},
         },
         {
             .name = "case 0.2",
