@@ -12,6 +12,7 @@ constexpr char   ROW_CHAR_MAX   = ROW_CHAR_MIN + BOARD_SIDE_LEN - 1;
 constexpr size_t POS_STR_LEN    = 2;
 constexpr size_t MOVE_STR_LEN   = 2 * POS_STR_LEN;
 constexpr size_t THREATS_CAP    = 16;
+constexpr size_t TAKEN_CAP      = 20;
 
 // White pieces
 constexpr char UNICODE_WHITE_KING[4]   = "\u2654\0";
@@ -142,9 +143,23 @@ typedef struct {
 bool MoveResult_Equals(const MoveResult* a, const MoveResult* b);
 
 typedef struct {
-    Piece m[BOARD_SIDE_LEN][BOARD_SIDE_LEN];
-    bool  whiteKingCastled;
-    bool  blackKingCastled;
+    Piece  items[TAKEN_CAP];
+    size_t len;
+} TakenPieces;
+
+size_t TakenPieces_Append(TakenPieces* ts, Piece p);
+Piece  TakenPieces_At(const TakenPieces* ts, size_t i);
+
+typedef struct {
+    TakenPieces taken;
+    bool        hasKingCastled;
+} SideState;
+
+typedef struct {
+    Piece     squares[BOARD_SIDE_LEN][BOARD_SIDE_LEN];
+    SideState white;
+    SideState black;
+    Side      nextMoveSide;
 } Board;
 
 void             Board_PlacePieces(Board* dst);
