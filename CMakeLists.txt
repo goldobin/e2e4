@@ -65,6 +65,7 @@ add_library(e2e4 STATIC
         src/char_slice.c
         src/move_slice.c
         src/board.c
+        src/jsw.c
 )
 target_compile_features(e2e4 PRIVATE ${C_STANDARD})
 target_compile_options(e2e4 PRIVATE ${CC_PARAMS})
@@ -107,9 +108,21 @@ target_link_libraries(board_test PRIVATE
         unity
 )
 
+add_executable(json_test
+        tests/json_test.c
+)
+
+target_compile_features(json_test PRIVATE ${C_STANDARD})
+target_compile_options(json_test PRIVATE ${CC_TEST_PARAMS})
+target_link_libraries(json_test PRIVATE
+        e2e4
+        unity
+)
+
 add_test(NAME "Arena" COMMAND arena_test)
 add_test(NAME "CharSlice" COMMAND char_slice_test)
 add_test(NAME "Board" COMMAND board_test)
+add_test(NAME "JSON" COMMAND json_test)
 
 # Adding Deps
 include(FetchContent)
