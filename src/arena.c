@@ -25,10 +25,7 @@ Arena Arena_NewAutoGrow(const size_t cap) {
 
 void* Arena_Alloc(Arena* a, const size_t size) {
     assert(a != nullptr);
-
-    if (size < 1) {
-        return nullptr;
-    }
+    assert(size > 0);
 
     if (!a->autoGrow) {
         if (a->offset + size > a->cap) {

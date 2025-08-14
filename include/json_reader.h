@@ -26,6 +26,8 @@
 
 #include <stddef.h>
 
+#include "char_slice.h"
+
 /**
  * JSON type identifier. Basic types are:
  * 	- Object
@@ -60,9 +62,17 @@ typedef enum {
 typedef struct {
     JsonType type;
     size_t   start;
-    size_t   end;
+    int      end;
     size_t   childrenCount;
 } JsonToken;
+
+typedef struct {
+    JsonToken* arr;
+    size_t     len;
+    size_t     cap;
+} JsonTokens;
+
+JsonToken* JsonTokens_At(const JsonTokens* ts, size_t index);
 
 /**
  * JSON parser. Contains an array of token blocks available. Also stores
@@ -70,20 +80,19 @@ typedef struct {
  */
 typedef struct JsonParser {
     size_t offset;           /* offset in the JSON string */
-    size_t nextTokenIndex;   /* next token to allocate */
     int    parentTokenIndex; /* superior token node, e.g. parent object or array */
 } JsonParser;
 
 /**
  * Create JSON parser over an array of tokens
  */
-void JsonParser_Init(JsonParser *parser);
+void JsonParser_Init(JsonParser* parser);
 
 /**
  * Run JSON parser. It parses a JSON data string into and array of tokens, each
  * describing
  * a single JSON object.
  */
-JsonParseErr JsonParser_Parse(JsonParser *parser, const char *s, size_t jsonLen, JsonToken *tokens, size_t tokensLen);
+JsonParseErr JsonParser_Parse(JsonParser* parser, JsonTokens* dst, const char* s, size_t len);
 
 #endif /* JSMN_H */
