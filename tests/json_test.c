@@ -421,6 +421,18 @@ void test_count(void) {
     }
 }
 
+void test_non_strict(void) {
+    const char *src = "a: 0garbage";
+    TEST_ASSERT(parse(src, 2, JSON_PARSE_ERROR_INVALID, 0));
+
+    src = "Day : 26\nMonth : Sep\n\nYear: 12";
+    TEST_ASSERT(parse(src, 6, JSON_PARSE_ERROR_INVALID, 0));
+
+    /* nested {s don't cause a parse error. */
+    src = "\"key {1\": 1234";
+    TEST_ASSERT(parse(src, 2, JSON_PARSE_ERROR_INVALID, 0));
+}
+
 void test_unmatched_brackets(void) {
     const char *src = "\"key 1\": 1234}";
     TEST_ASSERT(parse(src, 2, JSON_PARSE_ERROR_INVALID, 0));
@@ -587,7 +599,7 @@ int main(void) {
     RUN_TEST(test_issue_27);
     RUN_TEST(test_input_length);
     RUN_TEST(test_count);
-    // // RUN_TEST(test_nonstrict);
+    RUN_TEST(test_non_strict);
     RUN_TEST(test_unmatched_brackets);
     RUN_TEST(test_object_key);
 
