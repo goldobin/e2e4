@@ -38,7 +38,6 @@ JsonParseResult JsonParsePrimitive(JsonTokens *dst, const char *s, const size_t 
     for (; offset < len && s[offset] != '\0'; offset++) {
         const char c = s[offset];
         switch (c) {
-            /* In strict mode primitive must be followed by "," or "}" or "]" */
             case ':':
             case '\t':
             case '\r':
@@ -194,6 +193,10 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
             }
             case '}':
             case ']': {
+                if (parentTokenIndex == -1) {
+                    return (JsonParseResult){.err = JSON_PARSE_ERROR_INVALID};
+                }
+
                 const JsonType type = (c == '}' ? JSON_TYPE_OBJECT : JSON_TYPE_ARRAY);
                 int            i    = (int)dst->len - 1;
                 for (; i >= 0; i--) {
@@ -235,6 +238,10 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                 break;
             }
             case '\"': {
+                if (parentTokenIndex == -1) {
+                    return (JsonParseResult){.err = JSON_PARSE_ERROR_INVALID};
+                }
+
                 const auto r = JsonParseString(dst, s, len, offset);
                 if (r.err != JSON_PARSE_ERROR_OK) {
                     return (JsonParseResult){
@@ -243,10 +250,9 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                     };
                 }
                 offset += r.read;
-                if (parentTokenIndex != -1) {
-                    const auto t = JsonTokens_At(dst, parentTokenIndex);
-                    t->childrenCount++;
-                }
+                const auto parentT = JsonTokens_At(dst, parentTokenIndex);
+                parentT->childrenCount++;
+
                 break;
             }
             case '\t':
@@ -254,9 +260,14 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
             case '\n':
             case ' ':
                 break;
-            case ':':
+            case ':': {
+                if (parentTokenIndex == -1) {
+                    return (JsonParseResult){.err = JSON_PARSE_ERROR_INVALID};
+                }
+
                 parentTokenIndex = (int)dst->len - 1;
                 break;
+            }
             case ',': {
                 if (parentTokenIndex != -1) {
                     const auto parenT = JsonTokens_At(dst, parentTokenIndex);
@@ -291,15 +302,16 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
             case 't':
             case 'f':
             case 'n': {
-                /* And they must not be keys of the object */
-                if (parentTokenIndex != -1) {
-                    const auto t = JsonTokens_At(dst, parentTokenIndex);
-                    if (t->type == JSON_TYPE_OBJECT || (t->type == JSON_TYPE_STRING && t->childrenCount != 0)) {
-                        return (JsonParseResult){
-                            .err  = JSON_PARSE_ERROR_INVALID,
-                            .read = offset,
-                        };
-                    }
+                if (parentTokenIndex == -1) {
+                    return (JsonParseResult){.err = JSON_PARSE_ERROR_INVALID};
+                }
+
+                const auto t = JsonTokens_At(dst, parentTokenIndex);
+                if (t->type == JSON_TYPE_OBJECT || (t->type == JSON_TYPE_STRING && t->childrenCount != 0)) {
+                    return (JsonParseResult){
+                        .err  = JSON_PARSE_ERROR_INVALID,
+                        .read = offset,
+                    };
                 }
 
                 const auto r = JsonParsePrimitive(dst, s, len, offset);
@@ -310,10 +322,10 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                     };
                 }
                 offset += r.read;
-                if (parentTokenIndex != -1) {
-                    const auto t = JsonTokens_At(dst, parentTokenIndex);
-                    t->childrenCount++;
-                }
+
+                const auto parenT = JsonTokens_At(dst, parentTokenIndex);
+                parenT->childrenCount++;
+
                 break;
             }
 
