@@ -332,7 +332,10 @@ void test_issue_22(void) {
 
 void test_issue_27(void) {
     const char *src = "{ \"name\" : \"Jack\", \"age\" : 27 } { \"name\" : \"Anna\", ";
-    TEST_ASSERT(parse(src, 8, JSON_PARSE_ERROR_PARTIAL, 0));
+    TEST_ASSERT(parse(
+        src, 8, JSON_PARSE_ERROR_OK, 5, JSON_TYPE_OBJECT, 0, 31, 2, JSON_TYPE_STRING, "name", 1, JSON_TYPE_STRING,
+        "Jack", 0, JSON_TYPE_STRING, "age", 1, JSON_TYPE_PRIMITIVE, "27"
+    ));
 }
 
 void test_input_length(void) {
@@ -345,8 +348,7 @@ void test_input_length(void) {
     };
 
     const auto r = JsonParse(&dst, src, strlen(src));
-    // TODO: Make it a valid case
-    TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_INVALID, r.err);
+    TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r.err);
     TEST_ASSERT_EQUAL(8, r.read);
     TEST_ASSERT_EQUAL(3, dst.len);
     TEST_ASSERT(tokeq(src, &dst, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "a", 1, JSON_TYPE_PRIMITIVE, "0"));
@@ -419,29 +421,16 @@ void test_count(void) {
     }
 }
 
-void test_nonstrict(void) {
-    const char *js;
-    js = "a: 0garbage";
-    TEST_ASSERT(parse(js, 2, 2, JSON_TYPE_PRIMITIVE, "a", JSON_TYPE_PRIMITIVE, "0garbage"));
-
-    js = "Day : 26\nMonth : Sep\n\nYear: 12";
-    TEST_ASSERT(parse(
-        js, 6, 6, JSON_TYPE_PRIMITIVE, "Day", JSON_TYPE_PRIMITIVE, "26", JSON_TYPE_PRIMITIVE, "Month",
-        JSON_TYPE_PRIMITIVE, "Sep", JSON_TYPE_PRIMITIVE, "Year", JSON_TYPE_PRIMITIVE, "12"
-    ));
-
-    /* nested {s don't cause a parse error. */
-    js = "\"key {1\": 1234";
-    TEST_ASSERT(parse(js, 2, 2, JSON_TYPE_STRING, "key {1", 1, JSON_TYPE_PRIMITIVE, "1234"));
-}
-
 void test_unmatched_brackets(void) {
     const char *src = "\"key 1\": 1234}";
     TEST_ASSERT(parse(src, 2, JSON_PARSE_ERROR_INVALID, 0));
     src = "{\"key 1\": 1234";
     TEST_ASSERT(parse(src, 3, JSON_PARSE_ERROR_PARTIAL, 0));
     src = "{\"key 1\": 1234}}";
-    TEST_ASSERT(parse(src, 3, JSON_PARSE_ERROR_INVALID, 0));
+    TEST_ASSERT(parse(
+        src, 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, 0, 15, 1, JSON_TYPE_STRING, "key 1", 1, JSON_TYPE_PRIMITIVE,
+        "1234"
+    ));
     src = "\"key 1\"}: 1234";
     TEST_ASSERT(parse(src, 3, JSON_PARSE_ERROR_INVALID, 0));
     src = "{\"key {1\": 1234}";

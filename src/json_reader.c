@@ -104,7 +104,6 @@ JsonParseResult JsonParseString(JsonTokens *dst, const char *s, const size_t len
             };
 
             return (JsonParseResult){
-
                 .err  = JSON_PARSE_ERROR_OK,
                 .read = offset - start,
             };
@@ -163,7 +162,6 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                 const auto t = JsonTokens_Grow(dst, 1);
                 if (t == nullptr) {
                     return (JsonParseResult){
-
                         .err  = JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED,
                         .read = offset,
                     };
@@ -207,7 +205,6 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                         return (JsonParseResult){
                             .err  = JSON_PARSE_ERROR_INVALID,
                             .read = offset,
-
                         };
                     }
                     parentTokenIndex = -1;
@@ -220,7 +217,6 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                     return (JsonParseResult){
                         .err  = JSON_PARSE_ERROR_INVALID,
                         .read = offset,
-
                     };
                 }
                 for (; i >= 0; i--) {
@@ -231,12 +227,10 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                     }
                 }
 
-                // if (parentTokenIndex == -1) {
-                //     return (JsonParseResult){
-                //         .err  = JSON_PARSE_ERROR_OK,
-                //         .read = offset,
-                //     };
-                // }
+                if (parentTokenIndex == -1) {
+                    offset++;
+                    goto finished;
+                }
 
                 break;
             }
@@ -246,7 +240,6 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                     return (JsonParseResult){
                         .err  = r.err,
                         .read = offset,
-
                     };
                 }
                 offset += r.read;
@@ -312,7 +305,6 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                 const auto r = JsonParsePrimitive(dst, s, len, offset);
                 if (r.err != JSON_PARSE_ERROR_OK) {
                     return (JsonParseResult){
-
                         .err  = r.err,
                         .read = offset,
                     };
@@ -328,19 +320,18 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
             /* Unexpected char in strict mode */
             default:
                 return (JsonParseResult){
-
                     .err  = JSON_PARSE_ERROR_INVALID,
                     .read = offset,
                 };
         }
     }
 
+finished:
     for (int i = (int)dst->len - 1; i >= 0; i--) {
         /* Unmatched opened object or array */
         const auto t = JsonTokens_At(dst, i);
         if (!t->finished) {
             return (JsonParseResult){
-
                 .err  = JSON_PARSE_ERROR_PARTIAL,
                 .read = offset,
             };
