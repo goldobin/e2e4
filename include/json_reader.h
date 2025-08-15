@@ -56,23 +56,24 @@ typedef enum {
 /**
  * JSON token description.
  * type		type (object, array, string etc.)
- * start	start position in JSON data string
+ * offset	offset position in JSON data string
  * end		end position in JSON data string
  */
 typedef struct {
     JsonType type;
-    size_t   start;
-    int      end;
+    size_t   offset;
+    size_t   len;
     size_t   childrenCount;
+    bool     finished;
 } JsonToken;
 
 typedef struct {
-    JsonToken* arr;
+    JsonToken *arr;
     size_t     len;
     size_t     cap;
 } JsonTokens;
 
-JsonToken* JsonTokens_At(const JsonTokens* ts, size_t index);
+JsonToken *JsonTokens_At(const JsonTokens *ts, size_t index);
 
 /**
  * JSON parser. Contains an array of token blocks available. Also stores
@@ -86,13 +87,13 @@ typedef struct JsonParser {
 /**
  * Create JSON parser over an array of tokens
  */
-void JsonParser_Init(JsonParser* parser);
+void JsonParser_Init(JsonParser *parser);
 
 /**
  * Run JSON parser. It parses a JSON data string into and array of tokens, each
  * describing
  * a single JSON object.
  */
-JsonParseErr JsonParser_Parse(JsonParser* parser, JsonTokens* dst, const char* s, size_t len);
+JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s, size_t len);
 
 #endif /* JSMN_H */
