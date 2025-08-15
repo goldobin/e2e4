@@ -53,6 +53,11 @@ typedef enum {
     JSON_PARSE_ERROR_PARTIAL = -3
 } JsonParseErr;
 
+typedef struct {
+    JsonParseErr err;
+    size_t       read;
+} JsonParseResult;
+
 /**
  * JSON token description.
  * type		type (object, array, string etc.)
@@ -76,24 +81,10 @@ typedef struct {
 JsonToken *JsonTokens_At(const JsonTokens *ts, size_t index);
 
 /**
- * JSON parser. Contains an array of token blocks available. Also stores
- * the string being parsed now and current position in that string.
- */
-typedef struct JsonParser {
-    size_t offset;           /* offset in the JSON string */
-    int    parentTokenIndex; /* superior token node, e.g. parent object or array */
-} JsonParser;
-
-/**
- * Create JSON parser over an array of tokens
- */
-void JsonParser_Init(JsonParser *parser);
-
-/**
  * Run JSON parser. It parses a JSON data string into and array of tokens, each
  * describing
  * a single JSON object.
  */
-JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s, size_t len);
+JsonParseResult JsonParse(JsonTokens *dst, const char *s, size_t len);
 
 #endif /* JSMN_H */
