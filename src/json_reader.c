@@ -29,25 +29,15 @@ JsonToken *JsonTokens_Grow(JsonTokens *ts, const size_t len) {
 }
 
 /**
- * Creates a new parser based over a given buffer with an array of tokens
- * available.
- */
-void JsonParser_Init(JsonParser *parser) {
-    parser->offset           = 0;
-    parser->parentTokenIndex = -1;
-}
-
-/**
  * Fills next available token with JSON primitive.
  */
-JsonParseErr JsonParser_ParsePrimitive(JsonParser *parser, JsonTokens *dst, const char *s, const size_t len) {
-    assert(parser != nullptr);
+JsonParseResult JsonParsePrimitive(JsonTokens *dst, const char *s, const size_t len, size_t offset) {
     assert(dst != nullptr);
 
-    const size_t start = parser->offset;
-
-    for (; parser->offset < len && s[parser->offset] != '\0'; parser->offset++) {
-        switch (s[parser->offset]) {
+    const size_t start = offset;
+    for (; offset < len && s[offset] != '\0'; offset++) {
+        const char c = s[offset];
+        switch (c) {
             /* In strict mode primitive must be followed by "," or "}" or "]" */
             case ':':
             case '\t':
@@ -59,71 +49,71 @@ JsonParseErr JsonParser_ParsePrimitive(JsonParser *parser, JsonTokens *dst, cons
             case '}':
                 const auto t = JsonTokens_Grow(dst, 1);
                 if (t == nullptr) {
-                    parser->offset = start;
-                    return JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED;
+                    return (JsonParseResult){.err = JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED};
                 }
 
                 *t = (JsonToken){
                     .type     = JSON_TYPE_PRIMITIVE,
                     .offset   = start,
-                    .len      = parser->offset - start,
+                    .len      = offset - start,
                     .finished = true,
                 };
 
-                parser->offset--;
-                return JSON_PARSE_ERROR_OK;
+                offset--;
+                return (JsonParseResult){
+                    .read = offset - start,
+                };
             default:
                 /* to quiet a warning from gcc*/
                 break;
         }
-        const auto ch = s[parser->offset];
-        if (!isVisibleChar(ch)) {
-            parser->offset = start;
-            return JSON_PARSE_ERROR_INVALID;
+        if (!isVisibleChar(c)) {
+            return (JsonParseResult){.err = JSON_PARSE_ERROR_INVALID};
         }
     }
 
     /* In strict mode primitive must be followed by a comma/object/array */
-    parser->offset = start;
-    return JSON_PARSE_ERROR_PARTIAL;
+    return (JsonParseResult){.err = JSON_PARSE_ERROR_PARTIAL};
 }
 
 /**
  * Fills next token with JSON string.
  */
-JsonParseErr JsonParser_ParseString(JsonParser *parser, JsonTokens *dst, const char *s, const size_t len) {
-    assert(parser != nullptr);
+JsonParseResult JsonParseString(JsonTokens *dst, const char *s, const size_t len, size_t offset) {
     assert(dst != nullptr);
 
-    const auto start = parser->offset;
+    const auto start = offset;
     /* Skip starting quote */
-    parser->offset++;
+    offset++;
 
-    for (; parser->offset < len && s[parser->offset] != '\0'; parser->offset++) {
-        const char c = s[parser->offset];
+    for (; offset < len && s[offset] != '\0'; offset++) {
+        const char c = s[offset];
 
         /* Quote: end of string */
         if (c == '\"') {
             const auto t = JsonTokens_Grow(dst, 1);
             if (t == nullptr) {
-                parser->offset = start;
-                return JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED;
+                return (JsonParseResult){.err = JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED};
             }
 
             *t = (JsonToken){
                 .type     = JSON_TYPE_STRING,
                 .offset   = start + 1,
-                .len      = parser->offset - (start + 1),
+                .len      = offset - (start + 1),
                 .finished = true,
             };
 
-            return JSON_PARSE_ERROR_OK;
+            return (JsonParseResult){
+
+                .err  = JSON_PARSE_ERROR_OK,
+                .read = offset - start,
+            };
         }
 
         /* Backslash: Quoted symbol expected */
-        if (c == '\\' && parser->offset + 1 < len) {
-            parser->offset++;
-            switch (s[parser->offset]) {
+        if (c == '\\' && offset + 1 < len) {
+            offset++;
+            switch (s[offset]) {
                 /* Allowed escaped symbols */
                 case '\"':
                 case '/':
@@ -136,53 +126,59 @@ JsonParseErr JsonParser_ParseString(JsonParser *parser, JsonTokens *dst, const c
                     break;
                 /* Allows escaped symbol \uXXXX */
                 case 'u':
-                    parser->offset++;
-                    for (size_t i = 0; i < 4 && parser->offset < len && s[parser->offset] != '\0'; i++) {
+                    offset++;
+                    for (size_t i = 0; i < 4 && offset < len && s[offset] != '\0'; i++) {
                         /* If it isn't a hex character we have an error */
-                        const auto ch = s[parser->offset];
+                        const auto ch = s[offset];
                         if (!isHexChar(ch)) {
-                            parser->offset = start;
-                            return JSON_PARSE_ERROR_INVALID;
+                            return (JsonParseResult){.err = JSON_PARSE_ERROR_INVALID};
                         }
-                        parser->offset++;
+                        offset++;
                     }
-                    parser->offset--;
+                    offset--;
                     break;
                 /* Unexpected symbol */
                 default:
-                    parser->offset = start;
-                    return JSON_PARSE_ERROR_INVALID;
+                    return (JsonParseResult){.err = JSON_PARSE_ERROR_INVALID};
             }
         }
     }
-    parser->offset = start;
-    return JSON_PARSE_ERROR_PARTIAL;
+
+    return (JsonParseResult){.err = JSON_PARSE_ERROR_PARTIAL};
 }
 
 /**
  * Parse JSON string and fill tokens.
  */
-JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s, const size_t len) {
-    assert(parser != nullptr);
+JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
     assert(dst != nullptr);
 
-    // int r;
-    for (; parser->offset < len && s[parser->offset] != '\0'; parser->offset++) {
-        const char c = s[parser->offset];
+    int    parentTokenIndex = -1;
+    size_t offset           = 0;
+    for (; offset < len && s[offset] != '\0'; offset++) {
+        const char c = s[offset];
         switch (c) {
             case '{':
             case '[': {
                 const auto t = JsonTokens_Grow(dst, 1);
                 if (t == nullptr) {
-                    return JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED;
+                    return (JsonParseResult){
+
+                        .err  = JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED,
+                        .read = offset,
+                    };
                 }
 
-                if (parser->parentTokenIndex != -1) {
-                    JsonToken *parentT = JsonTokens_At(dst, parser->parentTokenIndex);
+                if (parentTokenIndex != -1) {
+                    JsonToken *parentT = JsonTokens_At(dst, parentTokenIndex);
 
                     /* In strict mode an object or array can't become a key */
                     if (parentT->type == JSON_TYPE_OBJECT) {
-                        return JSON_PARSE_ERROR_INVALID;
+                        return (JsonParseResult){
+
+                            .err  = JSON_PARSE_ERROR_INVALID,
+                            .read = offset,
+                        };
                     }
 
                     parentT->childrenCount++;
@@ -190,12 +186,12 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
 
                 *t = (JsonToken){
                     .type     = (c == '{' ? JSON_TYPE_OBJECT : JSON_TYPE_ARRAY),
-                    .offset   = parser->offset,
+                    .offset   = offset,
                     .len      = 0,
                     .finished = false,
                 };
 
-                parser->parentTokenIndex = (int)dst->len - 1;
+                parentTokenIndex = (int)dst->len - 1;
                 break;
             }
             case '}':
@@ -204,36 +200,58 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
                 int            i    = (int)dst->len - 1;
                 for (; i >= 0; i--) {
                     const auto t = JsonTokens_At(dst, i);
-                    if (!t->finished) {
-                        if (t->type != type) {
-                            return JSON_PARSE_ERROR_INVALID;
-                        }
-                        parser->parentTokenIndex = -1;
-                        t->len                   = parser->offset - t->offset + 1;
-                        t->finished              = true;
-                        break;
+                    if (t->finished) {
+                        continue;
                     }
+                    if (t->type != type) {
+                        return (JsonParseResult){
+                            .err  = JSON_PARSE_ERROR_INVALID,
+                            .read = offset,
+
+                        };
+                    }
+                    parentTokenIndex = -1;
+                    t->len           = offset - t->offset + 1;
+                    t->finished      = true;
+                    break;
                 }
                 /* Error if unmatched closing bracket */
                 if (i == -1) {
-                    return JSON_PARSE_ERROR_INVALID;
+                    return (JsonParseResult){
+                        .err  = JSON_PARSE_ERROR_INVALID,
+                        .read = offset,
+
+                    };
                 }
                 for (; i >= 0; i--) {
                     const auto t = JsonTokens_At(dst, i);
                     if (!t->finished) {
-                        parser->parentTokenIndex = i;
+                        parentTokenIndex = i;
                         break;
                     }
                 }
+
+                // if (parentTokenIndex == -1) {
+                //     return (JsonParseResult){
+                //         .err  = JSON_PARSE_ERROR_OK,
+                //         .read = offset,
+                //     };
+                // }
+
                 break;
             }
             case '\"': {
-                const auto err = JsonParser_ParseString(parser, dst, s, len);
-                if (err != JSON_PARSE_ERROR_OK) {
-                    return err;
+                const auto r = JsonParseString(dst, s, len, offset);
+                if (r.err != JSON_PARSE_ERROR_OK) {
+                    return (JsonParseResult){
+                        .err  = r.err,
+                        .read = offset,
+
+                    };
                 }
-                if (parser->parentTokenIndex != -1) {
-                    const auto t = JsonTokens_At(dst, parser->parentTokenIndex);
+                offset += r.read;
+                if (parentTokenIndex != -1) {
+                    const auto t = JsonTokens_At(dst, parentTokenIndex);
                     t->childrenCount++;
                 }
                 break;
@@ -244,11 +262,11 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
             case ' ':
                 break;
             case ':':
-                parser->parentTokenIndex = (int)dst->len - 1;
+                parentTokenIndex = (int)dst->len - 1;
                 break;
             case ',': {
-                if (parser->parentTokenIndex != -1) {
-                    const auto parenT = JsonTokens_At(dst, parser->parentTokenIndex);
+                if (parentTokenIndex != -1) {
+                    const auto parenT = JsonTokens_At(dst, parentTokenIndex);
                     if (parenT->type == JSON_TYPE_ARRAY || parenT->type == JSON_TYPE_OBJECT) {
                         break;
                     }
@@ -256,7 +274,7 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
                         const auto t = JsonTokens_At(dst, i);
                         if (t->type == JSON_TYPE_ARRAY || t->type == JSON_TYPE_OBJECT) {
                             if (!t->finished) {
-                                parser->parentTokenIndex = i;
+                                parentTokenIndex = i;
                                 break;
                             }
                         }
@@ -281,19 +299,27 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
             case 'f':
             case 'n': {
                 /* And they must not be keys of the object */
-                if (parser->parentTokenIndex != -1) {
-                    const auto t = JsonTokens_At(dst, parser->parentTokenIndex);
+                if (parentTokenIndex != -1) {
+                    const auto t = JsonTokens_At(dst, parentTokenIndex);
                     if (t->type == JSON_TYPE_OBJECT || (t->type == JSON_TYPE_STRING && t->childrenCount != 0)) {
-                        return JSON_PARSE_ERROR_INVALID;
+                        return (JsonParseResult){
+                            .err  = JSON_PARSE_ERROR_INVALID,
+                            .read = offset,
+                        };
                     }
                 }
 
-                const auto err = JsonParser_ParsePrimitive(parser, dst, s, len);
-                if (err != JSON_PARSE_ERROR_OK) {
-                    return err;
+                const auto r = JsonParsePrimitive(dst, s, len, offset);
+                if (r.err != JSON_PARSE_ERROR_OK) {
+                    return (JsonParseResult){
+
+                        .err  = r.err,
+                        .read = offset,
+                    };
                 }
-                if (parser->parentTokenIndex != -1) {
-                    const auto t = JsonTokens_At(dst, parser->parentTokenIndex);
+                offset += r.read;
+                if (parentTokenIndex != -1) {
+                    const auto t = JsonTokens_At(dst, parentTokenIndex);
                     t->childrenCount++;
                 }
                 break;
@@ -301,7 +327,11 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
 
             /* Unexpected char in strict mode */
             default:
-                return JSON_PARSE_ERROR_INVALID;
+                return (JsonParseResult){
+
+                    .err  = JSON_PARSE_ERROR_INVALID,
+                    .read = offset,
+                };
         }
     }
 
@@ -309,9 +339,13 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
         /* Unmatched opened object or array */
         const auto t = JsonTokens_At(dst, i);
         if (!t->finished) {
-            return JSON_PARSE_ERROR_PARTIAL;
+            return (JsonParseResult){
+
+                .err  = JSON_PARSE_ERROR_PARTIAL,
+                .read = offset,
+            };
         }
     }
 
-    return JSON_PARSE_ERROR_OK;
+    return (JsonParseResult){.read = offset};
 }
