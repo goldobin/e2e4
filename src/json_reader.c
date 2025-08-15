@@ -8,16 +8,6 @@ bool isHexChar(const char ch) {
     return (ch >= 48 && ch <= 57) /* 0-9 */ || (ch >= 65 && ch <= 70) /* A-F */ || (ch >= 97 && ch <= 102); /* a-f */
 }
 
-/**
- * Fills token type and boundaries.
- */
-void JsonToken_Init(JsonToken *token, const JsonType type, const size_t start, const int end) {
-    token->type          = type;
-    token->start         = start;
-    token->end           = end;
-    token->childrenCount = 0;
-}
-
 JsonToken *JsonTokens_At(const JsonTokens *ts, const size_t index) {
     assert(ts != nullptr);
     assert(index < ts->len);
@@ -35,7 +25,6 @@ JsonToken *JsonTokens_Grow(JsonTokens *ts, const size_t len) {
     JsonToken *t = &ts->arr[ts->len];
     ts->len += len;
 
-    JsonToken_Init(t, JSON_TYPE_UNDEFINED, 0, -1);
     return t;
 }
 
@@ -73,7 +62,13 @@ JsonParseErr JsonParser_ParsePrimitive(JsonParser *parser, JsonTokens *dst, cons
                     parser->offset = start;
                     return JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED;
                 }
-                JsonToken_Init(t, JSON_TYPE_PRIMITIVE, start, (int)parser->offset);
+
+                *t = (JsonToken){
+                    .type     = JSON_TYPE_PRIMITIVE,
+                    .offset   = start,
+                    .len      = parser->offset - start,
+                    .finished = true,
+                };
 
                 parser->offset--;
                 return JSON_PARSE_ERROR_OK;
@@ -115,13 +110,18 @@ JsonParseErr JsonParser_ParseString(JsonParser *parser, JsonTokens *dst, const c
                 return JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED;
             }
 
-            JsonToken_Init(t, JSON_TYPE_STRING, start + 1, (int)parser->offset);
+            *t = (JsonToken){
+                .type     = JSON_TYPE_STRING,
+                .offset   = start + 1,
+                .len      = parser->offset - (start + 1),
+                .finished = true,
+            };
+
             return JSON_PARSE_ERROR_OK;
         }
 
         /* Backslash: Quoted symbol expected */
         if (c == '\\' && parser->offset + 1 < len) {
-            int i;
             parser->offset++;
             switch (s[parser->offset]) {
                 /* Allowed escaped symbols */
@@ -137,7 +137,7 @@ JsonParseErr JsonParser_ParseString(JsonParser *parser, JsonTokens *dst, const c
                 /* Allows escaped symbol \uXXXX */
                 case 'u':
                     parser->offset++;
-                    for (i = 0; i < 4 && parser->offset < len && s[parser->offset] != '\0'; i++) {
+                    for (size_t i = 0; i < 4 && parser->offset < len && s[parser->offset] != '\0'; i++) {
                         /* If it isn't a hex character we have an error */
                         const auto ch = s[parser->offset];
                         if (!isHexChar(ch)) {
@@ -188,7 +188,13 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
                     parentT->childrenCount++;
                 }
 
-                JsonToken_Init(t, (c == '{' ? JSON_TYPE_OBJECT : JSON_TYPE_ARRAY), parser->offset, -1);
+                *t = (JsonToken){
+                    .type     = (c == '{' ? JSON_TYPE_OBJECT : JSON_TYPE_ARRAY),
+                    .offset   = parser->offset,
+                    .len      = 0,
+                    .finished = false,
+                };
+
                 parser->parentTokenIndex = (int)dst->len - 1;
                 break;
             }
@@ -198,12 +204,13 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
                 int            i    = (int)dst->len - 1;
                 for (; i >= 0; i--) {
                     const auto t = JsonTokens_At(dst, i);
-                    if (t->end == -1) {
+                    if (!t->finished) {
                         if (t->type != type) {
                             return JSON_PARSE_ERROR_INVALID;
                         }
                         parser->parentTokenIndex = -1;
-                        t->end                   = (int)parser->offset + 1;
+                        t->len                   = parser->offset - t->offset + 1;
+                        t->finished              = true;
                         break;
                     }
                 }
@@ -213,7 +220,7 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
                 }
                 for (; i >= 0; i--) {
                     const auto t = JsonTokens_At(dst, i);
-                    if (t->end == -1) {
+                    if (!t->finished) {
                         parser->parentTokenIndex = i;
                         break;
                     }
@@ -248,7 +255,7 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
                     for (int i = (int)dst->len - 1; i >= 0; i--) {
                         const auto t = JsonTokens_At(dst, i);
                         if (t->type == JSON_TYPE_ARRAY || t->type == JSON_TYPE_OBJECT) {
-                            if (t->end == -1) {
+                            if (!t->finished) {
                                 parser->parentTokenIndex = i;
                                 break;
                             }
@@ -301,7 +308,7 @@ JsonParseErr JsonParser_Parse(JsonParser *parser, JsonTokens *dst, const char *s
     for (int i = (int)dst->len - 1; i >= 0; i--) {
         /* Unmatched opened object or array */
         const auto t = JsonTokens_At(dst, i);
-        if (t->end == -1) {
+        if (!t->finished) {
             return JSON_PARSE_ERROR_PARTIAL;
         }
     }
