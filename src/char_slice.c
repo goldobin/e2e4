@@ -31,9 +31,9 @@ CharSlice CharSlice_View(const CharSlice* s, const size_t start, const size_t en
     assert(end <= s->len);
     const auto len = end - start;
     return (CharSlice){
-        .arr = &s->arr[start],
-        .cap = len,
+        .arr = s->arr + start,
         .len = len,
+        .cap = s->cap - start,
     };
 }
 
@@ -72,7 +72,7 @@ size_t CharSlice_Write(CharSlice* dst, const CharSlice other) {
     return CharSlice_WriteAt(dst, dst->len, other);
 }
 
-size_t CharSlice_WriteStr(CharSlice* dst, const char* src, const size_t srcMaxLen) {
+size_t CharSlice_WriteString(CharSlice* dst, const char* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
     assert(CharSlice_IsValid(dst));
@@ -82,15 +82,14 @@ size_t CharSlice_WriteStr(CharSlice* dst, const char* src, const size_t srcMaxLe
         return 0;
     }
 
-    const auto srcLen = strnlen(src, srcMaxLen);
-    if (srcLen < 1) {
+    const auto len = strnlen(src, remaining);
+    if (len < 1) {
         return 0;
     }
 
-    const auto copyLen = MinSizeT(srcLen, remaining);
-    memcpy(dst->arr + dst->len, src, copyLen);
-    dst->len = dst->len + copyLen;
-    return copyLen;
+    memcpy(dst->arr + dst->len, src, len);
+    dst->len = dst->len + len;
+    return len;
 }
 
 bool CharSlice_StartsWith(const CharSlice* s, const CharSlice prefix) {

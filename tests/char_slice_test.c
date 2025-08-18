@@ -92,7 +92,7 @@ void Test_CharSlice_View(void) {
     const CharSlice view1 = CharSlice_View(&slice, 0, 5);
     TEST_ASSERT_EQUAL_PTR(slice.arr, view1.arr);
     TEST_ASSERT_EQUAL(5, view1.len);
-    TEST_ASSERT_EQUAL(5, view1.cap);
+    TEST_ASSERT_EQUAL(11, view1.cap);
 
     // Test substring view
     const CharSlice view2 = CharSlice_View(&slice, 6, 11);
@@ -104,13 +104,13 @@ void Test_CharSlice_View(void) {
     const CharSlice view3 = CharSlice_View(&slice, 0, 1);
     TEST_ASSERT_EQUAL_PTR(slice.arr, view3.arr);
     TEST_ASSERT_EQUAL(1, view3.len);
-    TEST_ASSERT_EQUAL(1, view3.cap);
+    TEST_ASSERT_EQUAL(11, view3.cap);
 
     // Test empty view
     const CharSlice view4 = CharSlice_View(&slice, 5, 5);
     TEST_ASSERT_EQUAL_PTR(slice.arr + 5, view4.arr);
     TEST_ASSERT_EQUAL(0, view4.len);
-    TEST_ASSERT_EQUAL(0, view4.cap);
+    TEST_ASSERT_EQUAL(6, view4.cap);
 }
 
 void Test_CharSlice_EdgeCases(void) {

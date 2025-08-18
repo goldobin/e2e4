@@ -31,12 +31,9 @@ void printBoard(const Board* b) {
             const Pos   pos       = {.row = i, .col = j};
             const auto  piece     = Board_At(b, pos);
             const char  rowChar   = (char)(ROW_CHAR_MIN + (BOARD_SIDE_LEN - i - 1));
-            auto        color     = ANSI_COLOR_WHITE_HIGH;
             const char* pieceChar = Piece_ToUnicodeChar(piece);
-
-            if (piece.type == PIECE_TYPE_NONE && (i + j) % 2 == 0) {
-                color = ANSI_COLOR_WHITE_LOW;
-            } else if (piece.side == SIDE_BLACK) {
+            auto        color     = ANSI_COLOR_WHITE_HIGH;
+            if ((piece.type == PIECE_TYPE_NONE && (i + j) % 2 == 0) || piece.side == SIDE_BLACK) {
                 color = ANSI_COLOR_WHITE_LOW;
             }
 
@@ -128,7 +125,7 @@ int main(const int argc, char* argv[]) {
             break;
         case 2:
             auto filePath = CharSlice_Make(0, 256);
-            CharSlice_WriteStr(&filePath, argv[1], 256);
+            CharSlice_WriteString(&filePath, argv[1]);
             if (!readBoardFromFile(&b, filePath)) {
                 return 1;
             }

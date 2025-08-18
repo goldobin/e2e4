@@ -89,7 +89,7 @@ typedef struct {
  * describing
  * a single JSON object.
  */
-JsonParseResult JsonParse(JsonTokens *dst, const char *s, size_t len);
+JsonParseResult JsonTokens_Parse(JsonTokens *dst, CharSlice src);
 
 /**
  * JSON Write Functions

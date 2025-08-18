@@ -31,12 +31,16 @@ JsonToken *JsonTokens_Grow(JsonTokens *ts, const size_t len) {
 /**
  * Fills next available token with JSON primitive.
  */
-static JsonParseResult JsonParsePrimitive(JsonTokens *dst, const char *s, const size_t len, size_t offset) {
+static JsonParseResult JsonTokens_ParsePrimitive(JsonTokens *dst, const CharSlice src, size_t offset) {
     assert(dst != nullptr);
 
     const size_t start = offset;
-    for (; offset < len && s[offset] != '\0'; offset++) {
-        const char c = s[offset];
+    for (; offset < src.len; offset++) {
+        const char c = CharSlice_At(&src, offset);
+        if (c == '\0') {
+            break;
+        }
+
         switch (c) {
             case ':':
             case '\t':
@@ -78,15 +82,18 @@ static JsonParseResult JsonParsePrimitive(JsonTokens *dst, const char *s, const 
 /**
  * Fills next token with JSON string.
  */
-static JsonParseResult JsonParseString(JsonTokens *dst, const char *s, const size_t len, size_t offset) {
+static JsonParseResult JsonTokens_ParseString(JsonTokens *dst, const CharSlice src, size_t offset) {
     assert(dst != nullptr);
 
     const auto start = offset;
     /* Skip starting quote */
     offset++;
 
-    for (; offset < len && s[offset] != '\0'; offset++) {
-        const char c = s[offset];
+    for (; offset < src.len; offset++) {
+        const char c = CharSlice_At(&src, offset);
+        if (c == '\0') {
+            break;
+        }
 
         /* Quote: end of string */
         if (c == '\"') {
@@ -109,9 +116,10 @@ static JsonParseResult JsonParseString(JsonTokens *dst, const char *s, const siz
         }
 
         /* Backslash: Quoted symbol expected */
-        if (c == '\\' && offset + 1 < len) {
+        if (c == '\\' && offset + 1 < src.len) {
             offset++;
-            switch (s[offset]) {
+            const char secondCh = CharSlice_At(&src, offset);
+            switch (secondCh) {
                 /* Allowed escaped symbols */
                 case '\"':
                 case '/':
@@ -125,10 +133,15 @@ static JsonParseResult JsonParseString(JsonTokens *dst, const char *s, const siz
                 /* Allows escaped symbol \uXXXX */
                 case 'u':
                     offset++;
-                    for (size_t i = 0; i < 4 && offset < len && s[offset] != '\0'; i++) {
+
+                    for (size_t i = 0; i < 4 && offset < src.len; i++) {
+                        const char thirdCh = CharSlice_At(&src, offset);
+                        if (thirdCh == '\0') {
+                            break;
+                        }
+
                         /* If it isn't a hex character we have an error */
-                        const auto ch = s[offset];
-                        if (!isHexChar(ch)) {
+                        if (!isHexChar(thirdCh)) {
                             return (JsonParseResult){.err = JSON_PARSE_ERROR_INVALID};
                         }
                         offset++;
@@ -148,13 +161,16 @@ static JsonParseResult JsonParseString(JsonTokens *dst, const char *s, const siz
 /**
  * Parse JSON string and fill tokens.
  */
-JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
+JsonParseResult JsonTokens_Parse(JsonTokens *dst, CharSlice src) {
     assert(dst != nullptr);
 
     int    parentTokenIndex = -1;
     size_t offset           = 0;
-    for (; offset < len && s[offset] != '\0'; offset++) {
-        const char c = s[offset];
+    for (; offset < src.len; offset++) {
+        const char c = CharSlice_At(&src, offset);
+        if (c == '\0') {
+            break;
+        }
         switch (c) {
             case '{':
             case '[': {
@@ -241,7 +257,7 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                     return (JsonParseResult){.err = JSON_PARSE_ERROR_INVALID};
                 }
 
-                const auto r = JsonParseString(dst, s, len, offset);
+                const auto r = JsonTokens_ParseString(dst, src, offset);
                 if (r.err != JSON_PARSE_ERROR_OK) {
                     return (JsonParseResult){
                         .err  = r.err,
@@ -312,7 +328,7 @@ JsonParseResult JsonParse(JsonTokens *dst, const char *s, const size_t len) {
                     };
                 }
 
-                const auto r = JsonParsePrimitive(dst, s, len, offset);
+                const auto r = JsonTokens_ParsePrimitive(dst, src, offset);
                 if (r.err != JSON_PARSE_ERROR_OK) {
                     return (JsonParseResult){
                         .err  = r.err,
