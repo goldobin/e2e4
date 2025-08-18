@@ -19,7 +19,7 @@ size_t    CharSlice_WriteCharAt(CharSlice* dst, size_t offset, char v);
 size_t    CharSlice_WriteAt(CharSlice* dst, size_t offset, CharSlice other);
 size_t    CharSlice_WriteChar(CharSlice* dst, char v);
 size_t    CharSlice_Write(CharSlice* dst, CharSlice other);
-size_t    CharSlice_WriteStr(CharSlice* dst, const char* src, size_t srcMaxLen);
+size_t    CharSlice_WriteString(CharSlice* dst, const char* src);
 bool      CharSlice_StartsWith(const CharSlice* s, CharSlice prefix);
 size_t    CharSlice_NoDiffLen(CharSlice s1, CharSlice s2);
 void      CharSlice_Diff(CharSlice* dst, CharSlice s1, CharSlice s2);
