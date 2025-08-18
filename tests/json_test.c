@@ -1,11 +1,11 @@
+#include "json.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unity.h>
 
 #include "arena.h"
-#include "json_reader.h"
-#include "json_writer.h"
 
 uint8_t buffer[1024 * 1024] = {};
 Arena   mem                 = {};
@@ -27,11 +27,11 @@ int vtokeq(const char *s, const JsonTokens *ts, va_list ap) {
         size_t childrenCount = 0;
         char  *value         = nullptr;
 
-        const JsonType type = va_arg(ap, JsonType);
-        if (type == JSON_TYPE_STRING) {
+        const JsonTokenType type = va_arg(ap, JsonTokenType);
+        if (type == JSON_TOKEN_TYPE_STRING) {
             value         = va_arg(ap, char *);
             childrenCount = va_arg(ap, int);
-        } else if (type == JSON_TYPE_PRIMITIVE) {
+        } else if (type == JSON_TOKEN_TYPE_PRIMITIVE) {
             value = va_arg(ap, char *);
         } else {
             offset        = va_arg(ap, int);
@@ -117,35 +117,36 @@ int parse(const char *s, const size_t poolSize, const JsonParseErr wantErr, cons
 }
 
 void test_empty() {
-    TEST_ASSERT(parse("{}", 1, JSON_PARSE_ERROR_OK, 1, JSON_TYPE_OBJECT, 0, 2, 0));
-    TEST_ASSERT(parse("[]", 1, JSON_PARSE_ERROR_OK, 1, JSON_TYPE_ARRAY, 0, 2, 0));
+    TEST_ASSERT(parse("{}", 1, JSON_PARSE_ERROR_OK, 1, JSON_TOKEN_TYPE_OBJECT, 0, 2, 0));
+    TEST_ASSERT(parse("[]", 1, JSON_PARSE_ERROR_OK, 1, JSON_TOKEN_TYPE_ARRAY, 0, 2, 0));
     TEST_ASSERT(parse(
-        "[{},{}]", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_ARRAY, 0, 7, 2, JSON_TYPE_OBJECT, 1, 3, 0, JSON_TYPE_OBJECT, 4,
-        6, 0
+        "[{},{}]", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_ARRAY, 0, 7, 2, JSON_TOKEN_TYPE_OBJECT, 1, 3, 0,
+        JSON_TOKEN_TYPE_OBJECT, 4, 6, 0
     ));
 }
 
 void test_object() {
     TEST_ASSERT(parse(
-        "{\"a\":0}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, 0, 7, 1, JSON_TYPE_STRING, "a", 1,
-        JSON_TYPE_PRIMITIVE, "0"
+        "{\"a\":0}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, 0, 7, 1, JSON_TOKEN_TYPE_STRING, "a", 1,
+        JSON_TOKEN_TYPE_PRIMITIVE, "0"
     ));
     TEST_ASSERT(parse(
-        "{\"a\":[]}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, 0, 8, 1, JSON_TYPE_STRING, "a", 1, JSON_TYPE_ARRAY,
-        5, 7, 0
+        "{\"a\":[]}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, 0, 8, 1, JSON_TOKEN_TYPE_STRING, "a", 1,
+        JSON_TOKEN_TYPE_ARRAY, 5, 7, 0
     ));
     TEST_ASSERT(parse(
-        "{\"a\":{},\"b\":{}}", 5, JSON_PARSE_ERROR_OK, 5, JSON_TYPE_OBJECT, -1, -1, 2, JSON_TYPE_STRING, "a", 1,
-        JSON_TYPE_OBJECT, -1, -1, 0, JSON_TYPE_STRING, "b", 1, JSON_TYPE_OBJECT, -1, -1, 0
+        "{\"a\":{},\"b\":{}}", 5, JSON_PARSE_ERROR_OK, 5, JSON_TOKEN_TYPE_OBJECT, -1, -1, 2, JSON_TOKEN_TYPE_STRING,
+        "a", 1, JSON_TOKEN_TYPE_OBJECT, -1, -1, 0, JSON_TOKEN_TYPE_STRING, "b", 1, JSON_TOKEN_TYPE_OBJECT, -1, -1, 0
     ));
     TEST_ASSERT(parse(
-        "{\n \"Day\": 26,\n \"Month\": 9,\n \"Year\": 12\n }", 7, JSON_PARSE_ERROR_OK, 7, JSON_TYPE_OBJECT, -1, -1, 3,
-        JSON_TYPE_STRING, "Day", 1, JSON_TYPE_PRIMITIVE, "26", JSON_TYPE_STRING, "Month", 1, JSON_TYPE_PRIMITIVE, "9",
-        JSON_TYPE_STRING, "Year", 1, JSON_TYPE_PRIMITIVE, "12"
+        "{\n \"Day\": 26,\n \"Month\": 9,\n \"Year\": 12\n }", 7, JSON_PARSE_ERROR_OK, 7, JSON_TOKEN_TYPE_OBJECT, -1,
+        -1, 3, JSON_TOKEN_TYPE_STRING, "Day", 1, JSON_TOKEN_TYPE_PRIMITIVE, "26", JSON_TOKEN_TYPE_STRING, "Month", 1,
+        JSON_TOKEN_TYPE_PRIMITIVE, "9", JSON_TOKEN_TYPE_STRING, "Year", 1, JSON_TOKEN_TYPE_PRIMITIVE, "12"
     ));
     TEST_ASSERT(parse(
-        "{\"a\": 0, \"b\": \"c\"}", 5, JSON_PARSE_ERROR_OK, 5, JSON_TYPE_OBJECT, -1, -1, 2, JSON_TYPE_STRING, "a", 1,
-        JSON_TYPE_PRIMITIVE, "0", JSON_TYPE_STRING, "b", 1, JSON_TYPE_STRING, "c", 0
+        "{\"a\": 0, \"b\": \"c\"}", 5, JSON_PARSE_ERROR_OK, 5, JSON_TOKEN_TYPE_OBJECT, -1, -1, 2,
+        JSON_TOKEN_TYPE_STRING, "a", 1, JSON_TOKEN_TYPE_PRIMITIVE, "0", JSON_TOKEN_TYPE_STRING, "b", 1,
+        JSON_TOKEN_TYPE_STRING, "c", 0
     ));
 
     TEST_ASSERT(parse("{\"a\"\n0}", 3, JSON_PARSE_ERROR_INVALID, 0));
@@ -166,7 +167,9 @@ void test_array(void) {
     /* FIXME */
     /*TEST_ASSERT(parse("[10}", JSON_PARSE_ERROR_INVALID, 3));*/
     /*TEST_ASSERT(parse("[1,,3]", JSON_PARSE_ERROR_INVALID, 3)*/
-    TEST_ASSERT(parse("[10]", 2, JSON_PARSE_ERROR_OK, 2, JSON_TYPE_ARRAY, -1, -1, 1, JSON_TYPE_PRIMITIVE, "10"));
+    TEST_ASSERT(
+        parse("[10]", 2, JSON_PARSE_ERROR_OK, 2, JSON_TOKEN_TYPE_ARRAY, -1, -1, 1, JSON_TOKEN_TYPE_PRIMITIVE, "10")
+    );
     TEST_ASSERT(parse("{\"a\": 1]", 3, JSON_PARSE_ERROR_INVALID, 0));
     /* FIXME */
     /*TEST_ASSERT(parse("[\"a\": 1]", JSON_PARSE_ERROR_INVALID, 3));*/
@@ -174,55 +177,56 @@ void test_array(void) {
 
 void test_primitive() {
     TEST_ASSERT(parse(
-        "{\"boolVar\" : true }", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "boolVar", 1,
-        JSON_TYPE_PRIMITIVE, "true"
+        "{\"boolVar\" : true }", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1, JSON_TOKEN_TYPE_STRING,
+        "boolVar", 1, JSON_TOKEN_TYPE_PRIMITIVE, "true"
     ));
     TEST_ASSERT(parse(
-        "{\"boolVar\" : false }", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "boolVar",
-        1, JSON_TYPE_PRIMITIVE, "false"
+        "{\"boolVar\" : false }", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1, JSON_TOKEN_TYPE_STRING,
+        "boolVar", 1, JSON_TOKEN_TYPE_PRIMITIVE, "false"
     ));
     TEST_ASSERT(parse(
-        "{\"nullVar\" : null }", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "nullVar", 1,
-        JSON_TYPE_PRIMITIVE, "null"
+        "{\"nullVar\" : null }", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1, JSON_TOKEN_TYPE_STRING,
+        "nullVar", 1, JSON_TOKEN_TYPE_PRIMITIVE, "null"
     ));
     TEST_ASSERT(parse(
-        "{\"intVar\" : 12}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "intVar", 1,
-        JSON_TYPE_PRIMITIVE, "12"
+        "{\"intVar\" : 12}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1, JSON_TOKEN_TYPE_STRING,
+        "intVar", 1, JSON_TOKEN_TYPE_PRIMITIVE, "12"
     ));
     TEST_ASSERT(parse(
-        "{\"floatVar\" : 12.345}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "floatVar",
-        1, JSON_TYPE_PRIMITIVE, "12.345"
+        "{\"floatVar\" : 12.345}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1, JSON_TOKEN_TYPE_STRING,
+        "floatVar", 1, JSON_TOKEN_TYPE_PRIMITIVE, "12.345"
     ));
 }
 
 void test_string(void) {
     // TEST_ASSERT(parse(
-    //     "{\"strVar\" : \"hello world\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING,
-    //     "strVar", 1, JSON_TYPE_STRING, "hello world", 0
+    //     "{\"strVar\" : \"hello world\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1,
+    //     JSON_TOKEN_TYPE_STRING, "strVar", 1, JSON_TOKEN_TYPE_STRING, "hello world", 0
     // ));
     // TEST_ASSERT(parse(
-    //     "{\"strVar\" : \"escapes: \\/\\r\\n\\t\\b\\f\\\"\\\\\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1,
-    //     -1, 1, JSON_TYPE_STRING, "strVar", 1, JSON_TYPE_STRING, "escapes: \\/\\r\\n\\t\\b\\f\\\"\\\\", 0
+    //     "{\"strVar\" : \"escapes: \\/\\r\\n\\t\\b\\f\\\"\\\\\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT,
+    //     -1, -1, 1, JSON_TOKEN_TYPE_STRING, "strVar", 1, JSON_TOKEN_TYPE_STRING, "escapes:
+    //     \\/\\r\\n\\t\\b\\f\\\"\\\\", 0
     // ));
     TEST_ASSERT(parse(
-        "{\"strVar\": \"\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "strVar", 1,
-        JSON_TYPE_STRING, "", 0
+        "{\"strVar\": \"\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1, JSON_TOKEN_TYPE_STRING,
+        "strVar", 1, JSON_TOKEN_TYPE_STRING, "", 0
     ));
     // TEST_ASSERT(parse(
-    //     "{\"a\":\"\\uAbcD\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "a", 1,
-    //     JSON_TYPE_STRING, "\\uAbcD", 0
+    //     "{\"a\":\"\\uAbcD\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1, JSON_TOKEN_TYPE_STRING,
+    //     "a", 1, JSON_TOKEN_TYPE_STRING, "\\uAbcD", 0
     // ));
     // TEST_ASSERT(parse(
-    //     "{\"a\":\"str\\u0000\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "a", 1,
-    //     JSON_TYPE_STRING, "str\\u0000", 0
+    //     "{\"a\":\"str\\u0000\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1,
+    //     JSON_TOKEN_TYPE_STRING, "a", 1, JSON_TOKEN_TYPE_STRING, "str\\u0000", 0
     // ));
     // TEST_ASSERT(parse(
-    //     "{\"a\":\"\\uFFFFstr\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "a", 1,
-    //     JSON_TYPE_STRING, "\\uFFFFstr", 0
+    //     "{\"a\":\"\\uFFFFstr\"}", 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1,
+    //     JSON_TOKEN_TYPE_STRING, "a", 1, JSON_TOKEN_TYPE_STRING, "\\uFFFFstr", 0
     // ));
     // TEST_ASSERT(parse(
-    //     "{\"a\":[\"\\u0280\"]}", 4, JSON_PARSE_ERROR_OK, 4, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "a", 1,
-    //     JSON_TYPE_ARRAY, -1, -1, 1, JSON_TYPE_STRING, "\\u0280", 0
+    //     "{\"a\":[\"\\u0280\"]}", 4, JSON_PARSE_ERROR_OK, 4, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1,
+    //     JSON_TOKEN_TYPE_STRING, "a", 1, JSON_TOKEN_TYPE_ARRAY, -1, -1, 1, JSON_TOKEN_TYPE_STRING, "\\u0280", 0
     // ));
 
     // TEST_ASSERT(parse("{\"a\":\"str\\uFFGFstr\"}", 3, JSON_PARSE_ERROR_INVALID, 0));
@@ -248,8 +252,8 @@ void test_partial_string(void) {
         TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r.err);
         TEST_ASSERT_EQUAL(5, dst.len);
         TEST_ASSERT(tokeq(
-            src, &dst, JSON_TYPE_OBJECT, -1, -1, 2, JSON_TYPE_STRING, "x", 1, JSON_TYPE_STRING, "va\\\\ue", 0,
-            JSON_TYPE_STRING, "y", 1, JSON_TYPE_STRING, "value y", 0
+            src, &dst, JSON_TOKEN_TYPE_OBJECT, -1, -1, 2, JSON_TOKEN_TYPE_STRING, "x", 1, JSON_TOKEN_TYPE_STRING,
+            "va\\\\ue", 0, JSON_TOKEN_TYPE_STRING, "y", 1, JSON_TOKEN_TYPE_STRING, "value y", 0
         ));
     }
 }
@@ -273,8 +277,9 @@ void test_partial_array(void) {
         TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r.err);
         TEST_ASSERT_EQUAL(6, dst.len);
         TEST_ASSERT(tokeq(
-            src, &dst, JSON_TYPE_ARRAY, -1, -1, 3, JSON_TYPE_PRIMITIVE, "1", JSON_TYPE_PRIMITIVE, "true",
-            JSON_TYPE_ARRAY, -1, -1, 2, JSON_TYPE_PRIMITIVE, "123", JSON_TYPE_STRING, "hello", 0
+            src, &dst, JSON_TOKEN_TYPE_ARRAY, -1, -1, 3, JSON_TOKEN_TYPE_PRIMITIVE, "1", JSON_TOKEN_TYPE_PRIMITIVE,
+            "true", JSON_TOKEN_TYPE_ARRAY, -1, -1, 2, JSON_TOKEN_TYPE_PRIMITIVE, "123", JSON_TOKEN_TYPE_STRING, "hello",
+            0
         ));
     }
 }
@@ -292,8 +297,9 @@ void test_array_nomem(void) {
         // const auto r2       = JsonParse(&dstLarge, src, strlen(src));
         // TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r2.err);
         // TEST_ASSERT(tokeq(
-        //     src, &dstLarge, JSON_TYPE_ARRAY, -1, -1, 3, JSON_TYPE_PRIMITIVE, "1", JSON_TYPE_PRIMITIVE, "true",
-        //     JSON_TYPE_ARRAY, -1, -1, 2, JSON_TYPE_PRIMITIVE, "123", JSON_TYPE_STRING, "hello", 0
+        //     src, &dstLarge, JSON_TOKEN_TYPE_ARRAY, -1, -1, 3, JSON_TOKEN_TYPE_PRIMITIVE, "1",
+        //     JSON_TOKEN_TYPE_PRIMITIVE, "true", JSON_TOKEN_TYPE_ARRAY, -1, -1, 2, JSON_TOKEN_TYPE_PRIMITIVE, "123",
+        //     JSON_TOKEN_TYPE_STRING, "hello", 0
         // ));
     }
 }
@@ -307,8 +313,8 @@ void test_unquoted_keys(void) {
     const auto r = JsonParse(&dst, src, strlen(src));
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_INVALID, r.err);
     TEST_ASSERT(tokeq(
-        src, &dst, JSON_TYPE_PRIMITIVE, "key1", JSON_TYPE_STRING, "value", 0, JSON_TYPE_PRIMITIVE, "key2",
-        JSON_TYPE_PRIMITIVE, "123"
+        src, &dst, JSON_TOKEN_TYPE_PRIMITIVE, "key1", JSON_TOKEN_TYPE_STRING, "value", 0, JSON_TOKEN_TYPE_PRIMITIVE,
+        "key2", JSON_TOKEN_TYPE_PRIMITIVE, "123"
     ));
 }
 
@@ -333,8 +339,8 @@ void test_issue_22(void) {
 void test_issue_27(void) {
     const char *src = "{ \"name\" : \"Jack\", \"age\" : 27 } { \"name\" : \"Anna\", ";
     TEST_ASSERT(parse(
-        src, 8, JSON_PARSE_ERROR_OK, 5, JSON_TYPE_OBJECT, 0, 31, 2, JSON_TYPE_STRING, "name", 1, JSON_TYPE_STRING,
-        "Jack", 0, JSON_TYPE_STRING, "age", 1, JSON_TYPE_PRIMITIVE, "27"
+        src, 8, JSON_PARSE_ERROR_OK, 5, JSON_TOKEN_TYPE_OBJECT, 0, 31, 2, JSON_TOKEN_TYPE_STRING, "name", 1,
+        JSON_TOKEN_TYPE_STRING, "Jack", 0, JSON_TOKEN_TYPE_STRING, "age", 1, JSON_TOKEN_TYPE_PRIMITIVE, "27"
     ));
 }
 
@@ -351,7 +357,9 @@ void test_input_length(void) {
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r.err);
     TEST_ASSERT_EQUAL(8, r.read);
     TEST_ASSERT_EQUAL(3, dst.len);
-    TEST_ASSERT(tokeq(src, &dst, JSON_TYPE_OBJECT, -1, -1, 1, JSON_TYPE_STRING, "a", 1, JSON_TYPE_PRIMITIVE, "0"));
+    TEST_ASSERT(tokeq(
+        src, &dst, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1, JSON_TOKEN_TYPE_STRING, "a", 1, JSON_TOKEN_TYPE_PRIMITIVE, "0"
+    ));
 }
 
 void test_count(void) {
@@ -440,15 +448,15 @@ void test_unmatched_brackets(void) {
     TEST_ASSERT(parse(src, 3, JSON_PARSE_ERROR_PARTIAL, 0));
     src = "{\"key 1\": 1234}}";
     TEST_ASSERT(parse(
-        src, 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, 0, 15, 1, JSON_TYPE_STRING, "key 1", 1, JSON_TYPE_PRIMITIVE,
-        "1234"
+        src, 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, 0, 15, 1, JSON_TOKEN_TYPE_STRING, "key 1", 1,
+        JSON_TOKEN_TYPE_PRIMITIVE, "1234"
     ));
     src = "\"key 1\"}: 1234";
     TEST_ASSERT(parse(src, 3, JSON_PARSE_ERROR_INVALID, 0));
     src = "{\"key {1\": 1234}";
     TEST_ASSERT(parse(
-        src, 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, 0, 16, 1, JSON_TYPE_STRING, "key {1", 1, JSON_TYPE_PRIMITIVE,
-        "1234"
+        src, 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, 0, 16, 1, JSON_TOKEN_TYPE_STRING, "key {1", 1,
+        JSON_TOKEN_TYPE_PRIMITIVE, "1234"
     ));
     src = "{\"key 1\":{\"key 2\": 1234}";
     TEST_ASSERT(parse(src, 5, JSON_PARSE_ERROR_PARTIAL, 5));
@@ -457,7 +465,8 @@ void test_unmatched_brackets(void) {
 void test_object_key(void) {
     const char *src = "{\"key\": 1}";
     TEST_ASSERT(parse(
-        src, 3, JSON_PARSE_ERROR_OK, 3, JSON_TYPE_OBJECT, 0, 10, 1, JSON_TYPE_STRING, "key", 1, JSON_TYPE_PRIMITIVE, "1"
+        src, 3, JSON_PARSE_ERROR_OK, 3, JSON_TOKEN_TYPE_OBJECT, 0, 10, 1, JSON_TOKEN_TYPE_STRING, "key", 1,
+        JSON_TOKEN_TYPE_PRIMITIVE, "1"
     ));
     src = "{true: 1}";
     TEST_ASSERT(parse(src, 3, JSON_PARSE_ERROR_INVALID, 0));
@@ -512,25 +521,25 @@ void Test_JsonParse() {
 
     for (size_t i = 0; i < sizeof(tokens) / sizeof(tokens[0]); i++) {
         const auto t = tokens[i];
-        if (t.type == JSON_TYPE_UNDEFINED) {
+        if (t.type == JSON_TOKEN_TYPE_UNDEFINED) {
             break;
         }
 
         char *typeStr;
         switch (t.type) {
-            case JSON_TYPE_UNDEFINED:
+            case JSON_TOKEN_TYPE_UNDEFINED:
                 typeStr = "Undefined";
                 break;
-            case JSON_TYPE_OBJECT:
+            case JSON_TOKEN_TYPE_OBJECT:
                 typeStr = "Object";
                 break;
-            case JSON_TYPE_ARRAY:
+            case JSON_TOKEN_TYPE_ARRAY:
                 typeStr = "Array";
                 break;
-            case JSON_TYPE_STRING:
+            case JSON_TOKEN_TYPE_STRING:
                 typeStr = "String";
                 break;
-            case JSON_TYPE_PRIMITIVE:
+            case JSON_TOKEN_TYPE_PRIMITIVE:
                 typeStr = "Primitive";
                 break;
             default:
@@ -544,40 +553,33 @@ void Test_JsonParse() {
 }
 
 void Test_JsonWrite() {
-    const auto dst = CharSlice_Make(0, 1024);
-
-    Jsw jsw = {
-        .stack =
-            {
-                .cap = 16,
-                .len = 0,
-                .arr = (JswState[16]){},
-            },
-        .dst = dst
+    auto      dst = CharSlice_Make(0, 1024);
+    JsonStack s   = {
+          .cap = 16,
+          .len = 0,
+          .arr = (JsonNode[16]){},
     };
 
-    Jsw_Object(&jsw);
+    CharSlice_WriteJsonStart(&dst, &s, '{');
+    CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("objField"));
+    CharSlice_WriteJsonStart(&dst, &s, '{');
+    CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("numericField"));
+    CharSlice_WriteJsonValue(&dst, &s, false, CHAR_SLICE("123"));
+    CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("strField"));
+    CharSlice_WriteJsonValue(&dst, &s, true, CHAR_SLICE("Foo"));
+    CharSlice_WriteJsonEnd(&dst, &s);
 
-    Jsw_Field(&jsw, CHAR_SLICE("objField"));
-    Jsw_Object(&jsw);
-    Jsw_Field(&jsw, CHAR_SLICE("numericField"));
-    Jsw_Numeric(&jsw, 123);
-    Jsw_Field(&jsw, CHAR_SLICE("strField"));
-    Jsw_String(&jsw, CHAR_SLICE("Foo"));
-    Jsw_End(&jsw);
+    CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("arrField"));
+    CharSlice_WriteJsonStart(&dst, &s, '[');
+    CharSlice_WriteJsonValue(&dst, &s, false, CHAR_SLICE("true"));
+    CharSlice_WriteJsonValue(&dst, &s, false, CHAR_SLICE("456"));
+    CharSlice_WriteJsonValue(&dst, &s, true, CHAR_SLICE("Bar"));
+    CharSlice_WriteJsonEnd(&dst, &s);
 
-    Jsw_Field(&jsw, CHAR_SLICE("arrField"));
-    Jsw_Array(&jsw);
-    Jsw_Bool(&jsw, true);
-    Jsw_Numeric(&jsw, 123);
-    Jsw_String(&jsw, CHAR_SLICE("Bar"));
-    Jsw_End(&jsw);
-
-    Jsw_End(&jsw);
+    CharSlice_WriteJsonEnd(&dst, &s);
 
     TEST_ASSERT_EQUAL_STRING(
-        "{\"objField\":{\"numericField\":123.000000,\"strField\":\"Foo\"},\"arrField\":[true,123.000000,\"Bar\"]}",
-        dst.arr
+        "{\"objField\":{\"numericField\":123,\"strField\":\"Foo\"},\"arrField\":[true,456,\"Bar\"]}", dst.arr
     );
 }
 

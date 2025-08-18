@@ -65,8 +65,7 @@ add_library(e2e4 STATIC
         src/char_slice.c
         src/move_slice.c
         src/board.c
-        src/json_writer.c
-        src/json_reader.c
+        src/json.c
 )
 target_compile_features(e2e4 PRIVATE ${C_STANDARD})
 target_compile_options(e2e4 PRIVATE ${CC_PARAMS})
