@@ -13,6 +13,7 @@ typedef struct {
 } CharSlice;
 
 CharSlice CharSlice_New(char* buffer, size_t len, size_t cap);
+bool      CharSlice_Equals(CharSlice a, CharSlice b);
 char      CharSlice_At(const CharSlice* s, size_t i);
 CharSlice CharSlice_View(const CharSlice* s, size_t start, size_t end);
 size_t    CharSlice_WriteCharAt(CharSlice* dst, size_t offset, char v);

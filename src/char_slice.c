@@ -18,6 +18,21 @@ CharSlice CharSlice_New(char* buffer, const size_t len, const size_t cap) {
         .cap = cap,
     };
 }
+bool CharSlice_Equals(CharSlice a, CharSlice b) {
+    assert(CharSlice_IsValid(&a));
+    assert(CharSlice_IsValid(&b));
+
+    if (a.len != b.len) {
+        return false;
+    }
+    for (size_t i = 0; i < a.len; i++) {
+        if (a.arr[i] != b.arr[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 char CharSlice_At(const CharSlice* s, const size_t i) {
     assert(s != nullptr);

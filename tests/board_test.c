@@ -935,11 +935,58 @@ void Test_Board_MakeMove(void) {
     }
 }
 
+void Test_WriteAsJson() {
+    auto src = parseBoard(CHAR_SLICE(
+        "........"
+        "........"
+        "........"
+        "........"
+        "........"
+        "........"
+        "....P..."
+        "........"
+    ));
+
+    src.nextMoveSide = SIDE_BLACK;
+    src.white.taken  = (PieceTypes){.arr = {[0] = PIECE_TYPE_KNIGHT}, .len = 1};
+
+    auto       dst     = CharSlice_Make(0, 1024);
+    auto       js      = JsonStack_Make(0, 128);
+    const auto written = CharSlice_WriteBoardAsJson(&dst, &js, &src);
+
+    TEST_ASSERT_GREATER_THAN(0, written);
+}
+
+void Test_InterpretJson() {
+    const auto src = CHAR_SLICE(
+        "{"
+        "\"next_move_side\":\"BLACK\","
+        "\"squares\":{\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}},"
+        "\"black\":{\"king_castled\":false,\"taken\":[]},"
+        "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
+        "}"
+    );
+    Board      dst              = {};
+    JsonTokens tokens           = JsonTokens_Make(0, 128);
+    const auto jsonaParseResult = JsonTokens_Parse(&tokens, src);
+    TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, jsonaParseResult.err);
+
+    JsonSource jsonSrc = {
+        .charSlice = src,
+        .tokens    = &tokens,
+    };
+
+    const auto boardParseResult = Board_InterpretJson(&dst, &jsonSrc);
+    TEST_ASSERT_TRUE(boardParseResult);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(Test_Pos_Parse);
     RUN_TEST(Test_Move_Parse);
     RUN_TEST(Test_Board_Parse);
     RUN_TEST(Test_Board_MakeMove);
+    RUN_TEST(Test_WriteAsJson);
+    RUN_TEST(Test_InterpretJson);
     return UNITY_END();
 }

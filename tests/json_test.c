@@ -319,7 +319,7 @@ void test_input_length(void) {
     const auto src = CHAR_SLICE("{\"a\": 0}garbage");
     const auto r   = JsonTokens_Parse(&dst, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r.err);
-    TEST_ASSERT_EQUAL(8, r.read);
+    TEST_ASSERT_EQUAL(8, r.offset);
     TEST_ASSERT_EQUAL(3, dst.len);
     tokeq(&dst, src, JSON_TOKEN_TYPE_OBJECT, -1, -1, 1, JSON_TOKEN_TYPE_STRING, "a", 1, JSON_TOKEN_TYPE_PRIMITIVE, "0");
 }
@@ -485,13 +485,13 @@ void Test_JsonParse() {
 
     for (size_t i = 0; i < sizeof(tokens) / sizeof(tokens[0]); i++) {
         const auto t = tokens[i];
-        if (t.type == JSON_TOKEN_TYPE_UNDEFINED) {
+        if (t.type == JSON_TOKEN_TYPE_NONE) {
             break;
         }
 
         char *typeStr;
         switch (t.type) {
-            case JSON_TOKEN_TYPE_UNDEFINED:
+            case JSON_TOKEN_TYPE_NONE:
                 typeStr = "Undefined";
                 break;
             case JSON_TOKEN_TYPE_OBJECT:
@@ -523,23 +523,23 @@ void Test_JsonWrite() {
     JsonStack s   = {
           .cap = 16,
           .len = 0,
-          .arr = (JsonNode[16]){},
+          .arr = (JsonStackEntry[16]){},
     };
 
     CharSlice_WriteJsonStart(&dst, &s, '{');
     CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("objField"));
     CharSlice_WriteJsonStart(&dst, &s, '{');
     CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("numericField"));
-    CharSlice_WriteJsonValue(&dst, &s, false, CHAR_SLICE("123"));
+    CharSlice_WriteJsonNumeric(&dst, &s, CHAR_SLICE("123"));
     CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("strField"));
-    CharSlice_WriteJsonValue(&dst, &s, true, CHAR_SLICE("Foo"));
+    CharSlice_WriteJsonString(&dst, &s, CHAR_SLICE("Foo"));
     CharSlice_WriteJsonEnd(&dst, &s);
 
     CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("arrField"));
     CharSlice_WriteJsonStart(&dst, &s, '[');
-    CharSlice_WriteJsonValue(&dst, &s, false, CHAR_SLICE("true"));
-    CharSlice_WriteJsonValue(&dst, &s, false, CHAR_SLICE("456"));
-    CharSlice_WriteJsonValue(&dst, &s, true, CHAR_SLICE("Bar"));
+    CharSlice_WriteJsonBool(&dst, &s, true);
+    CharSlice_WriteJsonNumeric(&dst, &s, CHAR_SLICE("456"));
+    CharSlice_WriteJsonString(&dst, &s, CHAR_SLICE("Bar"));
     CharSlice_WriteJsonEnd(&dst, &s);
 
     CharSlice_WriteJsonEnd(&dst, &s);
