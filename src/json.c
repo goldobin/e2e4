@@ -8,46 +8,46 @@ static bool isHexChar(const char ch) {
     return (ch >= 48 && ch <= 57) /* 0-9 */ || (ch >= 65 && ch <= 70) /* A-F */ || (ch >= 97 && ch <= 102); /* a-f */
 }
 
-CharSlice JsonToken_View(const JsonToken *t, CharSlice src) {
-    return CharSlice_View(&src, t->offset, t->offset + t->len);
+CharSlice JsonNode_View(const JsonNode *n, const CharSlice src) {
+    return CharSlice_View(&src, n->offset, n->offset + n->len);
 }
 
-JsonToken *JsonTokens_At(const JsonTokens *ts, const size_t index) {
-    assert(ts != nullptr);
-    assert(index < ts->len);
-    return &ts->arr[index];
+JsonNode *JsonNodes_At(const JsonNodes *ns, const size_t index) {
+    assert(ns != nullptr);
+    assert(index < ns->len);
+    return &ns->arr[index];
 }
 
 /**
- * Allocates a fresh unused token from the token pool.
+ * Allocates a fresh unused node from the node pool.
  */
-JsonToken *JsonTokens_Push(JsonTokens *ts) {
-    if (ts->len + 1 > ts->cap) {
+JsonNode *JsonNodes_Push(JsonNodes *dst) {
+    if (dst->len + 1 > dst->cap) {
         return nullptr;
     }
 
-    JsonToken *t = &ts->arr[ts->len];
-    ts->len += 1;
+    JsonNode *t = &dst->arr[dst->len];
+    dst->len += 1;
 
     return t;
 }
 
-size_t JsonTokens_Skip(const JsonTokens *ts, size_t index) {
-    assert(ts != nullptr);
-    assert(index < ts->len);
-    const auto t = JsonTokens_At(ts, index);
+size_t JsonNodes_Skip(const JsonNodes *ns, size_t index) {
+    assert(ns != nullptr);
+    assert(index < ns->len);
+    const auto n = JsonNodes_At(ns, index);
 
-    for (size_t i = 0; i < t->childrenCount; i++) {
-        index = JsonTokens_Skip(ts, ++index);
+    for (size_t i = 0; i < n->childrenCount; i++) {
+        index = JsonNodes_Skip(ns, ++index);
     }
 
     return index;
 }
 
 /**
- * Fills next available token with JSON primitive.
+ * Fills next available node with JSON primitive.
  */
-static JsonParseResult JsonTokens_ParsePrimitive(JsonTokens *dst, const CharSlice src, size_t offset) {
+static JsonParseResult JsonNodes_ParsePrimitive(JsonNodes *dst, const CharSlice src, size_t offset) {
     // TODO: Consider to make offset a shared varaible
     assert(dst != nullptr);
 
@@ -67,16 +67,16 @@ static JsonParseResult JsonTokens_ParsePrimitive(JsonTokens *dst, const CharSlic
             case ',':
             case ']':
             case '}':
-                const auto t = JsonTokens_Push(dst);
-                if (t == nullptr) {
+                const auto n = JsonNodes_Push(dst);
+                if (n == nullptr) {
                     return (JsonParseResult){
-                        .err    = JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED,
+                        .err    = JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
                         .offset = offset - start,
                     };
                 }
 
-                *t = (JsonToken){
-                    .type     = JSON_TOKEN_TYPE_PRIMITIVE,
+                *n = (JsonNode){
+                    .type     = JSON_NODE_TYPE_PRIMITIVE,
                     .offset   = start,
                     .len      = offset - start,  // TODO: Do not perform this arithmetic
                     .finished = true,
@@ -106,9 +106,9 @@ static JsonParseResult JsonTokens_ParsePrimitive(JsonTokens *dst, const CharSlic
 }
 
 /**
- * Fills next token with JSON string.
+ * Fills next node with JSON string.
  */
-static JsonParseResult JsonTokens_ParseString(JsonTokens *dst, const CharSlice src, size_t offset) {
+static JsonParseResult JsonNodes_ParseString(JsonNodes *dst, const CharSlice src, size_t offset) {
     assert(dst != nullptr);
 
     const auto start = offset;
@@ -123,16 +123,16 @@ static JsonParseResult JsonTokens_ParseString(JsonTokens *dst, const CharSlice s
 
         /* Quote: end of string */
         if (c == '\"') {
-            const auto t = JsonTokens_Push(dst);
-            if (t == nullptr) {
+            const auto n = JsonNodes_Push(dst);
+            if (n == nullptr) {
                 return (JsonParseResult){
-                    .err    = JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED,
+                    .err    = JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
                     .offset = offset - start,
                 };
             }
 
-            *t = (JsonToken){
-                .type     = JSON_TOKEN_TYPE_STRING,
+            *n = (JsonNode){
+                .type     = JSON_NODE_TYPE_STRING,
                 .offset   = start + 1,
                 .len      = offset - (start + 1),
                 .finished = true,
@@ -197,13 +197,13 @@ static JsonParseResult JsonTokens_ParseString(JsonTokens *dst, const CharSlice s
 }
 
 /**
- * Parse JSON string and fill tokens.
+ * Parse JSON string and fill nodes.
  */
-JsonParseResult JsonTokens_Parse(JsonTokens *dst, const CharSlice src) {
+JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
     assert(dst != nullptr);
 
-    int    parentTokenIndex = -1;
-    size_t offset           = 0;
+    int    parentNodeIndex = -1;
+    size_t offset          = 0;
     for (; offset < src.len; offset++) {
         const char c = CharSlice_At(&src, offset);
         if (c == '\0') {
@@ -212,19 +212,19 @@ JsonParseResult JsonTokens_Parse(JsonTokens *dst, const CharSlice src) {
         switch (c) {
             case '{':
             case '[': {
-                const auto t = JsonTokens_Push(dst);
-                if (t == nullptr) {
+                const auto n = JsonNodes_Push(dst);
+                if (n == nullptr) {
                     return (JsonParseResult){
-                        .err    = JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED,
+                        .err    = JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
                         .offset = offset,
                     };
                 }
 
-                if (parentTokenIndex != -1) {
-                    JsonToken *parentT = JsonTokens_At(dst, parentTokenIndex);
+                if (parentNodeIndex != -1) {
+                    JsonNode *parentT = JsonNodes_At(dst, parentNodeIndex);
 
                     /* In strict mode an object or array can't become a key */
-                    if (parentT->type == JSON_TOKEN_TYPE_OBJECT) {
+                    if (parentT->type == JSON_NODE_TYPE_OBJECT) {
                         return (JsonParseResult){
 
                             .err    = JSON_PARSE_ERROR_INVALID,
@@ -235,41 +235,41 @@ JsonParseResult JsonTokens_Parse(JsonTokens *dst, const CharSlice src) {
                     parentT->childrenCount++;
                 }
 
-                *t = (JsonToken){
-                    .type     = (c == '{' ? JSON_TOKEN_TYPE_OBJECT : JSON_TOKEN_TYPE_ARRAY),
+                *n = (JsonNode){
+                    .type     = (c == '{' ? JSON_NODE_TYPE_OBJECT : JSON_NODE_TYPE_ARRAY),
                     .offset   = offset,
                     .len      = 0,
                     .finished = false,
                 };
 
-                parentTokenIndex = (int)dst->len - 1;
+                parentNodeIndex = (int)dst->len - 1;
                 break;
             }
             case '}':
             case ']': {
-                if (parentTokenIndex == -1) {
+                if (parentNodeIndex == -1) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_INVALID,
                         .offset = offset,
                     };
                 }
 
-                const JsonTokenType type = (c == '}' ? JSON_TOKEN_TYPE_OBJECT : JSON_TOKEN_TYPE_ARRAY);
-                int                 i    = (int)dst->len - 1;
+                const JsonNodeType type = (c == '}' ? JSON_NODE_TYPE_OBJECT : JSON_NODE_TYPE_ARRAY);
+                int                i    = (int)dst->len - 1;
                 for (; i >= 0; i--) {
-                    const auto t = JsonTokens_At(dst, i);
-                    if (t->finished) {
+                    const auto n = JsonNodes_At(dst, i);
+                    if (n->finished) {
                         continue;
                     }
-                    if (t->type != type) {
+                    if (n->type != type) {
                         return (JsonParseResult){
                             .err    = JSON_PARSE_ERROR_INVALID,
                             .offset = offset,
                         };
                     }
-                    parentTokenIndex = -1;
-                    t->len           = offset - t->offset + 1;
-                    t->finished      = true;
+                    parentNodeIndex = -1;
+                    n->len          = offset - n->offset + 1;
+                    n->finished     = true;
                     break;
                 }
                 /* Error if unmatched closing bracket */
@@ -280,28 +280,28 @@ JsonParseResult JsonTokens_Parse(JsonTokens *dst, const CharSlice src) {
                     };
                 }
                 for (; i >= 0; i--) {
-                    const auto t = JsonTokens_At(dst, i);
-                    if (!t->finished) {
-                        parentTokenIndex = i;
+                    const auto n = JsonNodes_At(dst, i);
+                    if (!n->finished) {
+                        parentNodeIndex = i;
                         break;
                     }
                 }
 
-                if (parentTokenIndex == -1) {
+                if (parentNodeIndex == -1) {
                     offset++;
                     goto finished;
                 }
                 break;
             }
             case '\"': {
-                if (parentTokenIndex == -1) {
+                if (parentNodeIndex == -1) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_INVALID,
                         .offset = offset,
                     };
                 }
 
-                const auto r = JsonTokens_ParseString(dst, src, offset);
+                const auto r = JsonNodes_ParseString(dst, src, offset);
                 offset += r.offset;
                 if (r.err != JSON_PARSE_ERROR_OK) {
                     return (JsonParseResult){
@@ -310,7 +310,7 @@ JsonParseResult JsonTokens_Parse(JsonTokens *dst, const CharSlice src) {
                     };
                 }
 
-                const auto parentT = JsonTokens_At(dst, parentTokenIndex);
+                const auto parentT = JsonNodes_At(dst, parentNodeIndex);
                 parentT->childrenCount++;
                 break;
             }
@@ -320,27 +320,27 @@ JsonParseResult JsonTokens_Parse(JsonTokens *dst, const CharSlice src) {
             case ' ':
                 break;
             case ':': {
-                if (parentTokenIndex == -1) {
+                if (parentNodeIndex == -1) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_INVALID,
                         .offset = offset,
                     };
                 }
 
-                parentTokenIndex = (int)dst->len - 1;
+                parentNodeIndex = (int)dst->len - 1;
                 break;
             }
             case ',': {
-                if (parentTokenIndex != -1) {
-                    const auto parenT = JsonTokens_At(dst, parentTokenIndex);
-                    if (parenT->type == JSON_TOKEN_TYPE_ARRAY || parenT->type == JSON_TOKEN_TYPE_OBJECT) {
+                if (parentNodeIndex != -1) {
+                    const auto parenT = JsonNodes_At(dst, parentNodeIndex);
+                    if (parenT->type == JSON_NODE_TYPE_ARRAY || parenT->type == JSON_NODE_TYPE_OBJECT) {
                         break;
                     }
                     for (int i = (int)dst->len - 1; i >= 0; i--) {
-                        const auto t = JsonTokens_At(dst, i);
-                        if (t->type == JSON_TOKEN_TYPE_ARRAY || t->type == JSON_TOKEN_TYPE_OBJECT) {
-                            if (!t->finished) {
-                                parentTokenIndex = i;
+                        const auto n = JsonNodes_At(dst, i);
+                        if (n->type == JSON_NODE_TYPE_ARRAY || n->type == JSON_NODE_TYPE_OBJECT) {
+                            if (!n->finished) {
+                                parentNodeIndex = i;
                                 break;
                             }
                         }
@@ -364,22 +364,22 @@ JsonParseResult JsonTokens_Parse(JsonTokens *dst, const CharSlice src) {
             case 't':
             case 'f':
             case 'n': {
-                if (parentTokenIndex == -1) {
+                if (parentNodeIndex == -1) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_INVALID,
                         .offset = offset,
                     };
                 }
 
-                const auto t = JsonTokens_At(dst, parentTokenIndex);
-                if (t->type == JSON_TOKEN_TYPE_OBJECT || (t->type == JSON_TOKEN_TYPE_STRING && t->childrenCount != 0)) {
+                const auto n = JsonNodes_At(dst, parentNodeIndex);
+                if (n->type == JSON_NODE_TYPE_OBJECT || (n->type == JSON_NODE_TYPE_STRING && n->childrenCount != 0)) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_INVALID,
                         .offset = offset,
                     };
                 }
 
-                const auto r = JsonTokens_ParsePrimitive(dst, src, offset);
+                const auto r = JsonNodes_ParsePrimitive(dst, src, offset);
                 offset += r.offset;
                 if (r.err != JSON_PARSE_ERROR_OK) {
                     return (JsonParseResult){
@@ -387,7 +387,7 @@ JsonParseResult JsonTokens_Parse(JsonTokens *dst, const CharSlice src) {
                         .offset = offset,
                     };
                 }
-                const auto parenT = JsonTokens_At(dst, parentTokenIndex);
+                const auto parenT = JsonNodes_At(dst, parentNodeIndex);
                 parenT->childrenCount++;
 
                 break;
@@ -405,8 +405,8 @@ JsonParseResult JsonTokens_Parse(JsonTokens *dst, const CharSlice src) {
 finished:
     for (int i = (int)dst->len - 1; i >= 0; i--) {
         /* Unmatched opened object or array */
-        const auto t = JsonTokens_At(dst, i);
-        if (!t->finished) {
+        const auto n = JsonNodes_At(dst, i);
+        if (!n->finished) {
             return (JsonParseResult){
                 .err    = JSON_PARSE_ERROR_PARTIAL,
                 .offset = offset,

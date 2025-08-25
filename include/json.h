@@ -39,39 +39,39 @@
  * 	- Other primitive: number, boolean (true/false) or null
  */
 typedef enum {
-    JSON_TOKEN_TYPE_NONE = 0,
-    JSON_TOKEN_TYPE_OBJECT,
-    JSON_TOKEN_TYPE_ARRAY,
-    JSON_TOKEN_TYPE_STRING,
-    JSON_TOKEN_TYPE_PRIMITIVE
-} JsonTokenType;
+    JSON_NODE_TYPE_NONE = 0,
+    JSON_NODE_TYPE_OBJECT,
+    JSON_NODE_TYPE_ARRAY,
+    JSON_NODE_TYPE_STRING,
+    JSON_NODE_TYPE_PRIMITIVE
+} JsonNodeType;
 
 /**
- * JSON token description.
- * type		type (object, array, string etc.)
- * offset	offset position in JSON data string
- * end		end position in JSON data string
+ * JSON node description.
+ * type		object, array, string etc
+ * offset	position in JSON string
+ * len		length in JSON string
  */
 typedef struct {
-    size_t        offset;
-    size_t        len;
-    JsonTokenType type;
-    size_t        childrenCount;
-    bool          finished;
-} JsonToken;
+    JsonNodeType type;
+    size_t       childrenCount;
+    bool         finished;
+    size_t       offset;
+    size_t       len;
+} JsonNode;
 
-CharSlice JsonToken_View(const JsonToken *t, CharSlice src);
+CharSlice JsonNode_View(const JsonNode *n, CharSlice src);
 
 typedef struct {
-    JsonToken *arr;
-    size_t     len;
-    size_t     cap;
-} JsonTokens;
+    JsonNode *arr;
+    size_t    len;
+    size_t    cap;
+} JsonNodes;
 
 typedef enum {
     JSON_PARSE_ERROR_OK = 0,
-    /* Not enough tokens were provided */
-    JSON_PARSE_ERROR_TOKEN_POOL_EXHAUSTED = -1,
+    /* Not enough nodes were provided */
+    JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED = -1,
     /* Invalid character inside JSON string */
     JSON_PARSE_ERROR_INVALID = -2,
     /* The string is not a full JSON packet, more bytes expected */
@@ -83,13 +83,13 @@ typedef struct {
     size_t       offset;
 } JsonParseResult;
 
-#define JsonTokens_Make(len1, cap1) \
-    (((cap1) > 0) ? (JsonTokens){.arr = (JsonToken[cap1]){}, .len = (len1), .cap = (cap1)} : (JsonTokens){})
+#define JsonNodes_Make(len1, cap1) \
+    (((cap1) > 0) ? (JsonNodes){.arr = (JsonNode[cap1]){}, .len = (len1), .cap = (cap1)} : (JsonNodes){})
 
-JsonToken      *JsonTokens_At(const JsonTokens *ts, size_t index);
-JsonToken      *JsonTokens_Push(JsonTokens *ts);
-size_t          JsonTokens_Skip(const JsonTokens *ts, size_t index);
-JsonParseResult JsonTokens_Parse(JsonTokens *dst, CharSlice src);
+JsonNode       *JsonNodes_At(const JsonNodes *ns, size_t index);
+JsonNode       *JsonNodes_Push(JsonNodes *dst);
+size_t          JsonNodes_Skip(const JsonNodes *ns, size_t index);  // TODO: Move to JsonSource
+JsonParseResult JsonNodes_Parse(JsonNodes *dst, CharSlice src);
 
 /**
  * JSON Write Functions
@@ -129,18 +129,18 @@ typedef enum {
 
 typedef struct {
     JsonInterpretErr err;
-    size_t           tokenOffset;
+    size_t           offset;
 } JsonInterpretResult;
 
 typedef struct {
-    const CharSlice   charSlice;
-    const JsonTokens *tokens;
-    size_t            index;
+    const CharSlice  charSlice;
+    const JsonNodes *nodes;
+    size_t           index;
 } JsonSource;
 
-void             JsonSource_Reset(JsonSource *s);
-bool             JsonSource_Skip(JsonSource *s);
-const JsonToken *JsonSource_Token(const JsonSource *s);
-CharSlice        JsonSource_Value(const JsonSource *s);
+void            JsonSource_Reset(JsonSource *s);
+bool            JsonSource_Skip(JsonSource *s);
+const JsonNode *JsonSource_Node(const JsonSource *s);
+CharSlice       JsonSource_Value(const JsonSource *s);
 
 #endif /* JSON_H */

@@ -156,40 +156,40 @@ bool Piece_InterpretJson(Piece* dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto t = JsonTokens_At(src->tokens, src->index);
-    if (t->type != JSON_TOKEN_TYPE_OBJECT) {
+    const auto n = JsonNodes_At(src->nodes, src->index);
+    if (n->type != JSON_NODE_TYPE_OBJECT) {
         return false;
     }
 
-    if (t->childrenCount < 2) {
+    if (n->childrenCount < 2) {
         return false;
     }
 
-    for (size_t i = 0; i < t->childrenCount; ++i) {
-        const auto keyToken = JsonTokens_At(src->tokens, ++(src->index));
-        if (keyToken->childrenCount < 1) {
+    for (size_t i = 0; i < n->childrenCount; ++i) {
+        const auto keyNode = JsonNodes_At(src->nodes, ++(src->index));
+        if (keyNode->childrenCount < 1) {
             return false;
         }
 
-        const auto key = JsonToken_View(keyToken, src->charSlice);
+        const auto key = JsonNode_View(keyNode, src->charSlice);
         if (CharSlice_Equals(key, CHAR_SLICE("side"))) {
-            const auto valueToken = JsonTokens_At(src->tokens, ++(src->index));
-            if (valueToken->childrenCount != 0) {
+            const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
+            if (valueNode->childrenCount != 0) {
                 return false;
             }
 
-            const auto value = JsonToken_View(valueToken, src->charSlice);
+            const auto value = JsonNode_View(valueNode, src->charSlice);
             dst->side        = Side_Parse(value);
         } else if (CharSlice_Equals(key, CHAR_SLICE("type"))) {
-            const auto valueToken = JsonTokens_At(src->tokens, ++(src->index));
-            if (valueToken->childrenCount != 0) {
+            const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
+            if (valueNode->childrenCount != 0) {
                 return false;
             }
 
-            const auto value = JsonToken_View(valueToken, src->charSlice);
+            const auto value = JsonNode_View(valueNode, src->charSlice);
             dst->type        = PieceType_Parse(value);
         } else {
-            src->index = JsonTokens_Skip(src->tokens, ++(src->index));
+            src->index = JsonNodes_Skip(src->nodes, ++(src->index));
         }
     }
 
@@ -521,22 +521,22 @@ bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto t = JsonTokens_At(src->tokens, src->index);
-    if (t->type != JSON_TOKEN_TYPE_ARRAY) {
+    const auto n = JsonNodes_At(src->nodes, src->index);
+    if (n->type != JSON_NODE_TYPE_ARRAY) {
         // TODO: Add proper error handling
         return false;
     }
 
-    if (!PieceTypes_Resize(dst, t->childrenCount)) {
+    if (!PieceTypes_Resize(dst, n->childrenCount)) {
         return false;
     }
 
-    for (size_t i = 0; i < t->childrenCount; i++) {
-        const auto entryToken = JsonTokens_At(src->tokens, ++src->index);
-        if (entryToken->type != JSON_TOKEN_TYPE_STRING || entryToken->childrenCount != 0) {
+    for (size_t i = 0; i < n->childrenCount; i++) {
+        const auto entryNode = JsonNodes_At(src->nodes, ++src->index);
+        if (entryNode->type != JSON_NODE_TYPE_STRING || entryNode->childrenCount != 0) {
             return false;
         }
-        const auto entry       = JsonToken_View(entryToken, src->charSlice);
+        const auto entry       = JsonNode_View(entryNode, src->charSlice);
         const auto pieceType   = PieceType_Parse(entry);
         *PieceTypes_At(dst, i) = pieceType;
     }
@@ -751,22 +751,22 @@ bool Board_InterpretJson(Board* dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto t = JsonTokens_At(src->tokens, src->index);
-    if (t->type != JSON_TOKEN_TYPE_OBJECT) {
+    const auto n = JsonNodes_At(src->nodes, src->index);
+    if (n->type != JSON_NODE_TYPE_OBJECT) {
         // TODO: Add proper error handling
         return false;
     }
 
-    for (size_t i = 0; i < t->childrenCount; i++) {
-        const auto keyToken = JsonTokens_At(src->tokens, ++(src->index));
-        if (keyToken->childrenCount != 1) {
+    for (size_t i = 0; i < n->childrenCount; i++) {
+        const auto keyNode = JsonNodes_At(src->nodes, ++(src->index));
+        if (keyNode->childrenCount != 1) {
             return false;
         }
-        const auto valueToken = JsonTokens_At(src->tokens, ++(src->index));
-        const auto key        = JsonToken_View(keyToken, src->charSlice);
+        const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
+        const auto key       = JsonNode_View(keyNode, src->charSlice);
 
         if (CharSlice_Equals(key, CHAR_SLICE("next_move_side"))) {
-            const auto value  = JsonToken_View(valueToken, src->charSlice);
+            const auto value  = JsonNode_View(valueNode, src->charSlice);
             dst->nextMoveSide = Side_Parse(value);
         } else if (CharSlice_Equals(key, CHAR_SLICE("squares"))) {
             if (!Squares_InterpretJson(dst->squares, src)) {
@@ -782,7 +782,7 @@ bool Board_InterpretJson(Board* dst, JsonSource* src) {
             }
         } else {
             // Skipping other keys
-            src->index = JsonTokens_Skip(src->tokens, ++src->index);
+            src->index = JsonNodes_Skip(src->nodes, ++src->index);
         }
     }
 
@@ -793,22 +793,22 @@ bool SideState_InterpretJson(SideState* dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto t = JsonTokens_At(src->tokens, src->index);
-    if (t->type != JSON_TOKEN_TYPE_OBJECT) {
+    const auto n = JsonNodes_At(src->nodes, src->index);
+    if (n->type != JSON_NODE_TYPE_OBJECT) {
         // TODO: Add proper error handling
         return false;
     }
 
-    for (size_t i = 0; i < t->childrenCount; i++) {
-        const auto keyToken = JsonTokens_At(src->tokens, ++(src->index));
-        if (keyToken->childrenCount != 1) {
+    for (size_t i = 0; i < n->childrenCount; i++) {
+        const auto keyNode = JsonNodes_At(src->nodes, ++(src->index));
+        if (keyNode->childrenCount != 1) {
             return false;
         }
-        const auto valueToken = JsonTokens_At(src->tokens, ++(src->index));
-        const auto key        = JsonToken_View(keyToken, src->charSlice);
+        const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
+        const auto key       = JsonNode_View(keyNode, src->charSlice);
 
         if (CharSlice_Equals(key, CHAR_SLICE("king_castled"))) {
-            const auto value    = JsonToken_View(valueToken, src->charSlice);
+            const auto value    = JsonNode_View(valueNode, src->charSlice);
             dst->hasKingCastled = CharSlice_Equals(value, CHAR_SLICE("true"));
         } else if (CharSlice_Equals(key, CHAR_SLICE("taken"))) {
             if (!PieceTypes_InterpretJson(&dst->taken, src)) {
@@ -816,7 +816,7 @@ bool SideState_InterpretJson(SideState* dst, JsonSource* src) {
             }
         } else {
             // Skipping other keys
-            src->index = JsonTokens_Skip(src->tokens, ++src->index);
+            src->index = JsonNodes_Skip(src->nodes, ++src->index);
         }
     }
 
@@ -838,27 +838,27 @@ bool Squares_InterpretJson(Squares dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto t = JsonTokens_At(src->tokens, src->index);
-    if (t->type != JSON_TOKEN_TYPE_OBJECT) {
+    const auto n = JsonNodes_At(src->nodes, src->index);
+    if (n->type != JSON_NODE_TYPE_OBJECT) {
         // TODO: Implement proper error handling
         return false;
     }
 
-    if (t->childrenCount < 1) {
+    if (n->childrenCount < 1) {
         return false;
     }
 
-    for (size_t i = 0; i < t->childrenCount; i++) {
-        const auto keyToken = JsonTokens_At(src->tokens, ++(src->index));
-        if (keyToken->childrenCount < 1) {
+    for (size_t i = 0; i < n->childrenCount; i++) {
+        const auto keyNode = JsonNodes_At(src->nodes, ++(src->index));
+        if (keyNode->childrenCount < 1) {
             return false;
         }
-        const auto valueToken = JsonTokens_At(src->tokens, ++(src->index));
-        if (valueToken->type != JSON_TOKEN_TYPE_OBJECT) {
+        const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
+        if (valueNode->type != JSON_NODE_TYPE_OBJECT) {
             return false;
         }
 
-        const auto key = JsonToken_View(keyToken, src->charSlice);
+        const auto key = JsonNode_View(keyNode, src->charSlice);
         Pos        pos = {};
         const auto r1  = Pos_Parse(&pos, key);
         if (r1.err != POS_PARSE_ERR_OK) {
