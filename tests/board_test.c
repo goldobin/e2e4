@@ -967,13 +967,13 @@ void Test_InterpretJson() {
         "}"
     );
     Board      dst              = {};
-    JsonTokens tokens           = JsonTokens_Make(0, 128);
-    const auto jsonaParseResult = JsonTokens_Parse(&tokens, src);
+    JsonNodes  nodes            = JsonNodes_Make(0, 128);
+    const auto jsonaParseResult = JsonNodes_Parse(&nodes, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, jsonaParseResult.err);
 
     JsonSource jsonSrc = {
         .charSlice = src,
-        .tokens    = &tokens,
+        .nodes     = &nodes,
     };
 
     const auto boardParseResult = Board_InterpretJson(&dst, &jsonSrc);
