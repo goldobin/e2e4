@@ -14,7 +14,7 @@
   - [x] **→ Write board to file**
   - [ ] Check the "Checkmate" state
 - [ ] Implement move history
-- [ ] Wrap board into the game 
+- [x] Wrap board into the game 
 - [ ] Implement command history file persistence and scroll through history with arrow keys 
       (probably tough without libs)
 - [x] ~~Implement support for CharSlice in WriteF (PrintF)~~ 
@@ -26,3 +26,4 @@
 - [x] Replace CharSlice_Wrap with CharSlice_Make
 - [ ] Implement reference initialization for the Arena
 - [ ] Check memory got cleaned with 0's in all cases where memory is allocated from the arena.
+- [x] Save and load to JSON

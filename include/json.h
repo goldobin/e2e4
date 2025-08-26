@@ -71,17 +71,21 @@ typedef struct {
 typedef enum {
     JSON_PARSE_ERROR_OK = 0,
     /* Not enough nodes were provided */
-    JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED = -1,
+    JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
     /* Invalid character inside JSON string */
-    JSON_PARSE_ERROR_INVALID = -2,
+    JSON_PARSE_ERROR_INVALID,
     /* The string is not a full JSON packet, more bytes expected */
-    JSON_PARSE_ERROR_PARTIAL = -3
+    JSON_PARSE_ERROR_PARTIAL
 } JsonParseErr;
+
+size_t CharSlice_WriteJsonParseErr(CharSlice *dst, JsonParseErr err);
 
 typedef struct {
     JsonParseErr err;
     size_t       offset;
 } JsonParseResult;
+
+size_t CharSlice_WriteJsonParseResult(CharSlice *dst, const JsonParseResult *r);
 
 #define JsonNodes_Make(len1, cap1) \
     (((cap1) > 0) ? (JsonNodes){.arr = (JsonNode[cap1]){}, .len = (len1), .cap = (cap1)} : (JsonNodes){})

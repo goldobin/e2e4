@@ -1,1 +1,141 @@
-{"next_move_side":"BLACK","squares":{"e2":{"type"="PAWN","side"="WHITE"}},"black":{"king_castled":false,"taken":[]},"white":{"king_castled":false,"taken":["KNIGHT"]}}
+{
+  "next_move_side": "WHITE",
+  "squares": {
+    "a8": {
+      "type": "ROOK",
+      "side": "BLACK"
+    },
+    "b8": {
+      "type": "KNIGHT",
+      "side": "BLACK"
+    },
+    "c8": {
+      "type": "BISHOP",
+      "side": "BLACK"
+    },
+    "d8": {
+      "type": "QUEEN",
+      "side": "BLACK"
+    },
+    "e8": {
+      "type": "KING",
+      "side": "BLACK"
+    },
+    "f8": {
+      "type": "BISHOP",
+      "side": "BLACK"
+    },
+    "g8": {
+      "type": "KNIGHT",
+      "side": "BLACK"
+    },
+    "h8": {
+      "type": "ROOK",
+      "side": "BLACK"
+    },
+    "a7": {
+      "type": "PAWN",
+      "side": "BLACK"
+    },
+    "b7": {
+      "type": "PAWN",
+      "side": "BLACK"
+    },
+    "c7": {
+      "type": "PAWN",
+      "side": "BLACK"
+    },
+    "d7": {
+      "type": "PAWN",
+      "side": "BLACK"
+    },
+    "e7": {
+      "type": "PAWN",
+      "side": "BLACK"
+    },
+    "f7": {
+      "type": "PAWN",
+      "side": "BLACK"
+    },
+    "h7": {
+      "type": "PAWN",
+      "side": "BLACK"
+    },
+    "g6": {
+      "type": "PAWN",
+      "side": "BLACK"
+    },
+    "e4": {
+      "type": "PAWN",
+      "side": "WHITE"
+    },
+    "a2": {
+      "type": "PAWN",
+      "side": "WHITE"
+    },
+    "b2": {
+      "type": "PAWN",
+      "side": "WHITE"
+    },
+    "c2": {
+      "type": "PAWN",
+      "side": "WHITE"
+    },
+    "d2": {
+      "type": "PAWN",
+      "side": "WHITE"
+    },
+    "f2": {
+      "type": "PAWN",
+      "side": "WHITE"
+    },
+    "g2": {
+      "type": "PAWN",
+      "side": "WHITE"
+    },
+    "h2": {
+      "type": "PAWN",
+      "side": "WHITE"
+    },
+    "a1": {
+      "type": "ROOK",
+      "side": "WHITE"
+    },
+    "b1": {
+      "type": "KNIGHT",
+      "side": "WHITE"
+    },
+    "c1": {
+      "type": "BISHOP",
+      "side": "WHITE"
+    },
+    "d1": {
+      "type": "QUEEN",
+      "side": "WHITE"
+    },
+    "e1": {
+      "type": "KING",
+      "side": "WHITE"
+    },
+    "f1": {
+      "type": "BISHOP",
+      "side": "WHITE"
+    },
+    "g1": {
+      "type": "KNIGHT",
+      "side": "WHITE"
+    },
+    "h1": {
+      "type": "ROOK",
+      "side": "WHITE"
+    }
+  },
+  "black": {
+    "king_castled": false,
+    "taken": []
+  },
+  "white": {
+    "king_castled": false,
+    "taken": []
+  }
+}

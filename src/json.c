@@ -12,6 +12,35 @@ CharSlice JsonNode_View(const JsonNode *n, const CharSlice src) {
     return CharSlice_View(&src, n->offset, n->offset + n->len);
 }
 
+size_t CharSlice_WriteJsonParseErr(CharSlice *dst, const JsonParseErr err) {
+    assert(dst != nullptr);
+    switch (err) {
+        case JSON_PARSE_ERROR_OK:
+            return CharSlice_Write(dst, CHAR_SLICE("OK"));
+        case JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED:
+            return CharSlice_Write(dst, CHAR_SLICE("NODE_POOL_EXHAUSTED"));
+        case JSON_PARSE_ERROR_INVALID:
+            return CharSlice_Write(dst, CHAR_SLICE("INVALID"));
+        case JSON_PARSE_ERROR_PARTIAL:
+            return CharSlice_Write(dst, CHAR_SLICE("PARTIAL"));
+        default:
+            return 0;
+    }
+}
+
+size_t CharSlice_WriteJsonParseResult(CharSlice *dst, const JsonParseResult *r) {
+    assert(dst != nullptr);
+    assert(r != nullptr);
+
+    size_t written = 0;
+    written += CharSlice_WriteChar(dst, '{');
+    written += CharSlice_WriteJsonParseErr(dst, r->err);
+    written += CharSlice_WriteChar(dst, ',');
+    written += CharSlice_WriteF(dst, "%zd", r->offset);
+    written += CharSlice_WriteChar(dst, '}');
+    return written;
+}
+
 JsonNode *JsonNodes_At(const JsonNodes *ns, const size_t index) {
     assert(ns != nullptr);
     assert(index < ns->len);
