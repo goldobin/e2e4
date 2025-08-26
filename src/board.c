@@ -85,7 +85,7 @@ size_t CharSlice_WritePieceAsJson(CharSlice* dst, JsonStack* js, const Piece* p)
     auto sideSlice      = CharSlice_Make(0, 32);
 
     CharSlice_WritePieceType(&pieceTypeSlice, p->type);
-    CharSlice_WriteSide(&pieceTypeSlice, p->side);
+    CharSlice_WriteSide(&sideSlice, p->side);
 
     size_t written = 0;
     written += CharSlice_WriteJsonStart(dst, js, '{');

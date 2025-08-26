@@ -937,7 +937,7 @@ void Test_Board_MakeMove(void) {
 
 void Test_WriteAsJson() {
     auto src = parseBoard(CHAR_SLICE(
-        "........"
+        "...k...."
         "........"
         "........"
         "........"
@@ -966,10 +966,10 @@ void Test_InterpretJson() {
         "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
         "}"
     );
-    Board      dst              = {};
-    JsonNodes  nodes            = JsonNodes_Make(0, 128);
-    const auto jsonaParseResult = JsonNodes_Parse(&nodes, src);
-    TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, jsonaParseResult.err);
+    Board      dst             = {};
+    JsonNodes  nodes           = JsonNodes_Make(0, 128);
+    const auto jsonParseResult = JsonNodes_Parse(&nodes, src);
+    TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, jsonParseResult.err);
 
     JsonSource jsonSrc = {
         .charSlice = src,

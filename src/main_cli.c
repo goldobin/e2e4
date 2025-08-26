@@ -57,7 +57,7 @@ bool readBoardFromFile(Board* dst, const CharSlice filePath) {
         return false;
     }
 
-    auto       buff = CharSlice_Make(0, 128);
+    auto       buff = CharSlice_Make(0, 1024 * 10);
     const auto read = CharSlice_ReadFile(&buff, f);
 
     if (fclose(f) != 0) {
@@ -70,13 +70,24 @@ bool readBoardFromFile(Board* dst, const CharSlice filePath) {
         return false;
     }
 
-    const auto parseResult = Board_Parse(dst, buff);
-
-    if (parseResult.err != BOARD_PARSE_ERR_OK) {
+    JsonNodes  nodes           = JsonNodes_Make(0, 1024);
+    const auto jsonParseResult = JsonNodes_Parse(&nodes, buff);
+    if (jsonParseResult.err != JSON_PARSE_ERROR_OK) {
         auto parseResultStr = CharSlice_Make(0, 128);
-        CharSlice_WriteBoardParseResult(&parseResultStr, parseResult);
+        CharSlice_WriteJsonParseResult(&parseResultStr, &jsonParseResult);
 
-        printf("Failed to parse file %s: %s\n", filePath.arr, parseResultStr.arr);
+        printf("Failed to parse JSON file %s: %s\n", filePath.arr, parseResultStr.arr);
+        return false;
+    }
+
+    JsonSource jsonSrc = {
+        .charSlice = buff,
+        .nodes     = &nodes,
+    };
+
+    const auto interpretResult = Board_InterpretJson(dst, &jsonSrc);
+    if (!interpretResult) {
+        printf("Failed to interpret JSON. JSON has unexpected structure");
         return false;
     }
 
@@ -88,7 +99,7 @@ bool writeBoardToFile(const CharSlice filePath, const Board* board) {
     assert(CharSlice_IsNullTerminated(&filePath));
     assert(board != nullptr);
 
-    auto buff = CharSlice_Make(0, 1024);
+    auto buff = CharSlice_Make(0, 1024 * 10);
     auto js   = JsonStack_Make(0, 128);
     CharSlice_WriteBoardAsJson(&buff, &js, board);
 
@@ -116,13 +127,13 @@ bool writeBoardToFile(const CharSlice filePath, const Board* board) {
 void printUsage(const char* progName) { printf("Usage: %s [file]\n", progName); }
 
 int main(const int argc, char* argv[]) {
-    Board b    = {};
-    Side  side = SIDE_WHITE;
+    Board b = {};
 
     switch (argc) {
         case 0:
         case 1:
             Board_PlacePieces(&b);
+            b.nextMoveSide = SIDE_WHITE;
             break;
         case 2:
             auto filePath = CharSlice_Make(0, 256);
@@ -140,7 +151,7 @@ int main(const int argc, char* argv[]) {
     while (true) {
         printBoard(&b);
 
-        const char* sideStr = side == SIDE_WHITE ? "white" : "black";
+        const char* sideStr = b.nextMoveSide == SIDE_WHITE ? "white" : "black";
         printf(
             "Next turn for" ANSI_COLOR_YELLOW_HIGH " %s " ANSI_COLOR_RESET "or command (save <path> | quit): ", sideStr
         );
@@ -182,7 +193,7 @@ int main(const int argc, char* argv[]) {
             continue;
         }
 
-        if (p->side != side) {
+        if (p->side != b.nextMoveSide) {
             const char* pieceSideStr = p->side == SIDE_WHITE ? "white" : "black";
             printf("Can't move %s piece\n", pieceSideStr);
             continue;
@@ -197,7 +208,7 @@ int main(const int argc, char* argv[]) {
             continue;
         }
 
-        side = side == SIDE_WHITE ? SIDE_BLACK : SIDE_WHITE;
+        b.nextMoveSide = b.nextMoveSide == SIDE_WHITE ? SIDE_BLACK : SIDE_WHITE;
     }
 
     return 0;

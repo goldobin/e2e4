@@ -10,9 +10,8 @@
 uint8_t buffer[1024 * 1024] = {};
 Arena   mem                 = {};
 
-void setUp(void) {}
-
-void tearDown(void) {}
+void setUp() {}
+void tearDown() {}
 
 void vtokeq(const JsonNodes *ts, const CharSlice src, va_list ap) {
     assert(ts != nullptr);
