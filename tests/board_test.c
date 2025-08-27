@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unity.h>
 
 void setUp(void) {}
@@ -950,11 +949,23 @@ void Test_WriteAsJson() {
     src.nextMoveSide = SIDE_BLACK;
     src.white.taken  = (PieceTypes){.arr = {[0] = PIECE_TYPE_KNIGHT}, .len = 1};
 
+    const auto expected = CHAR_SLICE(
+        "{"
+        "\"next_move_side\":\"BLACK\","
+        "\"squares\":{"
+        "\"d8\":{\"type\":\"KING\",\"side\":\"BLACK\"},"
+        "\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}"
+        "},"
+        "\"black\":{\"king_castled\":false,\"taken\":[]},"
+        "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
+        "}"
+    );
     auto       dst     = CharSlice_Make(0, 1024);
     auto       js      = JsonStack_Make(0, 128);
     const auto written = CharSlice_WriteBoardAsJson(&dst, &js, &src);
 
     TEST_ASSERT_GREATER_THAN(0, written);
+    TEST_ASSERT_TRUE(CharSlice_Equals(expected, dst));
 }
 
 void Test_InterpretJson() {

@@ -152,6 +152,8 @@ typedef struct {
     size_t    len;
 } PieceTypes;
 
+bool       PieceTypes_Equals(const PieceTypes* a, const PieceTypes* b);
+void       PieceTypes_Copy(PieceTypes* dst, const PieceTypes* src);
 bool       PieceTypes_InterpretJson(PieceTypes* dst, JsonSource* src);
 bool       PieceTypes_Resize(PieceTypes* dst, size_t len);
 PieceType* PieceTypes_At(PieceTypes* dst, size_t len);
@@ -164,13 +166,18 @@ typedef struct {
     bool       hasKingCastled;
 } SideState;
 
+bool SideState_Equals(const SideState* a, SideState const* b);
+void SideState_Copy(const SideState* src, SideState* dst);
 bool SideState_InterpretJson(SideState* dst, JsonSource* src);
 
 typedef Piece Squares[BOARD_SIDE_LEN][BOARD_SIDE_LEN];
 
+void         Squares_Copy(Squares dst, const Squares src);
+bool         Squares_Equals(const Squares a, const Squares b);
 Piece*       Squares_At(Squares s, Pos pos);
 const Piece* Squares_ConstAt(const Squares s, Pos pos);
 bool         Squares_InterpretJson(Squares dst, JsonSource* src);
+void         Squares_PlacePieces(Squares dst);
 
 typedef struct {
     Squares   squares;
@@ -179,7 +186,7 @@ typedef struct {
     Side      nextMoveSide;
 } Board;
 
-void             Board_PlacePieces(Board* dst);
+void             Board_Copy(Board* dst, const Board* src);
 bool             Board_Equals(const Board* a, const Board* b);
 BoardParseResult Board_Parse(Board* dst, CharSlice src);
 bool             Board_InterpretJson(Board* dst, JsonSource* src);
@@ -191,7 +198,6 @@ MoveResult       Board_CheckKnightMove(const Board* b, Move m);
 MoveResult       Board_CheckBishopMove(const Board* b, Move m);
 MoveResult       Board_CheckQueenMove(const Board* b, Move m);
 MoveResult       Board_CheckKingMove(const Board* b, Move m);
-void             Board_Copy(Board* dst, const Board* src);
 
 typedef struct {
     Pos       pos;

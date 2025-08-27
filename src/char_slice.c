@@ -7,7 +7,7 @@
 
 #include "func.h"
 
-CharSlice CharSlice_New(char* buffer, const size_t len, const size_t cap) {
+CharSlice CharSlice_Wrap(char* buffer, const size_t len, const size_t cap) {
     assert(buffer != nullptr);
     assert(cap > 0);
     assert(len <= cap);
@@ -18,9 +18,9 @@ CharSlice CharSlice_New(char* buffer, const size_t len, const size_t cap) {
         .cap = cap,
     };
 }
-bool CharSlice_Equals(CharSlice a, CharSlice b) {
-    assert(CharSlice_IsValid(&a));
-    assert(CharSlice_IsValid(&b));
+bool CharSlice_Equals(const CharSlice a, const CharSlice b) {
+    assert(CharSlice_IsValid(a));
+    assert(CharSlice_IsValid(b));
 
     if (a.len != b.len) {
         return false;
@@ -34,31 +34,29 @@ bool CharSlice_Equals(CharSlice a, CharSlice b) {
     return true;
 }
 
-char CharSlice_At(const CharSlice* s, const size_t i) {
-    assert(s != nullptr);
-    assert(i < s->len);
-    return s->arr[i];
+char CharSlice_At(const CharSlice s, const size_t i) {
+    assert(i < s.len);
+    return s.arr[i];
 }
 
-CharSlice CharSlice_View(const CharSlice* s, const size_t start, const size_t end) {
-    assert(s != nullptr);
+CharSlice CharSlice_View(const CharSlice s, const size_t start, const size_t end) {
     assert(start <= end);
-    assert(end <= s->len);
+    assert(end <= s.len);
     const auto len = end - start;
     return (CharSlice){
-        .arr = s->arr + start,
+        .arr = s.arr + start,
         .len = len,
-        .cap = s->cap - start,
+        .cap = s.cap - start,
     };
 }
 
-size_t CharSlice_WriteCharAt(CharSlice* dst, const size_t offset, const char v) {
+size_t CharSlice_WriteCharAt(CharSlice* dst, const size_t i, const char v) {
     assert(dst != nullptr);
-    if (offset > dst->len || offset >= dst->cap) {
+    if (i > dst->len || i >= dst->cap) {
         return 0;
     }
-    dst->arr[offset] = v;
-    if (offset == dst->len) {
+    dst->arr[i] = v;
+    if (i == dst->len) {
         dst->len++;
     }
     return 1;
@@ -90,7 +88,7 @@ size_t CharSlice_Write(CharSlice* dst, const CharSlice other) {
 size_t CharSlice_WriteString(CharSlice* dst, const char* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
-    assert(CharSlice_IsValid(dst));
+    assert(CharSlice_IsValid(*dst));
 
     const auto remaining = dst->cap - dst->len;
     if (remaining < 1) {
@@ -107,13 +105,12 @@ size_t CharSlice_WriteString(CharSlice* dst, const char* src) {
     return len;
 }
 
-bool CharSlice_StartsWith(const CharSlice* s, const CharSlice prefix) {
-    assert(s != nullptr);
-    if (prefix.len > s->len) {
+bool CharSlice_StartsWith(const CharSlice s, const CharSlice prefix) {
+    if (prefix.len > s.len) {
         return false;
     }
 
-    return memcmp(s->arr, prefix.arr, prefix.len) == 0;
+    return memcmp(s.arr, prefix.arr, prefix.len) == 0;
 }
 
 size_t CharSlice_ToString(char* dst, const size_t maxLen, const CharSlice slice) {
@@ -128,7 +125,7 @@ size_t CharSlice_ToString(char* dst, const size_t maxLen, const CharSlice slice)
 size_t CharSlice_ReadLine(CharSlice* dst, FILE* src, const char separator) {
     assert(dst != nullptr);
     assert(src != nullptr);
-    assert(CharSlice_IsValid(dst));
+    assert(CharSlice_IsValid(*dst));
 
     const auto remaining = (int)(dst->cap - dst->len);
     if (remaining < 1) {
@@ -168,18 +165,20 @@ size_t CharSlice_ReadFile(CharSlice* dst, FILE* src) {
     return read;
 }
 
-bool CharSlice_IsValid(const CharSlice* s) {
-    assert(s != nullptr);
-    return s->arr != nullptr && s->len <= s->cap;
+bool CharSlice_IsValid(const CharSlice s) {
+    if (s.arr == nullptr && s.len == 0 && s.cap == 0) {
+        return true;
+    }
+    return s.arr != nullptr && s.len <= s.cap;
 }
 
-bool CharSlice_IsNullTerminated(const CharSlice* s) {
+bool CharSlice_IsNullTerminated(const CharSlice s) {
     assert(CharSlice_IsValid(s));
-    if (s->len == s->cap) {
+    if (s.len == s.cap) {
         return false;
     }
 
-    return s->arr[s->len] == '\0';
+    return s.arr[s.len] == '\0';
 }
 
 size_t File_WriteCharSlice(FILE* dst, const CharSlice src) {
@@ -190,7 +189,7 @@ size_t File_WriteCharSlice(FILE* dst, const CharSlice src) {
 size_t CharSlice_WriteF(CharSlice* dst, const char* format, ...) {
     assert(dst != nullptr);
     assert(format != nullptr);
-    assert(CharSlice_IsValid(dst));
+    assert(CharSlice_IsValid(*dst));
 
     const auto remaining = dst->cap - dst->len;
 
@@ -210,7 +209,7 @@ size_t CharSlice_WriteF(CharSlice* dst, const char* format, ...) {
 
 size_t CharSlice_NoDiffLen(const CharSlice s1, const CharSlice s2) {
     size_t i = 0;
-    while (i < s1.len && i < s2.len && CharSlice_At(&s1, i) == CharSlice_At(&s2, i)) {
+    while (i < s1.len && i < s2.len && CharSlice_At(s1, i) == CharSlice_At(s2, i)) {
         i++;
     }
 
@@ -238,7 +237,7 @@ void CharSlice_Diff(CharSlice* dst, const CharSlice s1, const CharSlice s2) {
         srcViewLen    = contextHalfLen;
     }
 
-    const auto srcView = CharSlice_View(&s1, srcViewOffset, srcViewOffset + srcViewLen);
+    const auto srcView = CharSlice_View(s1, srcViewOffset, srcViewOffset + srcViewLen);
     CharSlice_Write(dst, srcView);
 
     if (srcViewLen - 3 > noDiffLen) {
@@ -255,7 +254,7 @@ void CharSlice_Diff(CharSlice* dst, const CharSlice s1, const CharSlice s2) {
             }
 
             CharSlice_Write(dst, CHAR_SLICE("\\0|"));
-            const auto diffView = CharSlice_View(&s2, s1.len, s1.len + diffViewLen);
+            const auto diffView = CharSlice_View(s2, s1.len, s1.len + diffViewLen);
             CharSlice_Write(dst, diffView);
             CharSlice_WriteChar(dst, '}');
         } else {
@@ -264,19 +263,19 @@ void CharSlice_Diff(CharSlice* dst, const CharSlice s1, const CharSlice s2) {
                 diffViewLen = contextHalfLen;
             }
 
-            const auto diffView = CharSlice_View(&s1, s2.len, s2.len + diffViewLen);
+            const auto diffView = CharSlice_View(s1, s2.len, s2.len + diffViewLen);
             CharSlice_Write(dst, diffView);
             CharSlice_Write(dst, CHAR_SLICE("|\\0}"));
         }
         return;
     }
 
-    const auto s1DiffView    = CharSlice_View(&s1, noDiffLen, s1.len);
-    const auto s2DiffView    = CharSlice_View(&s2, noDiffLen, s2.len);
+    const auto s1DiffView    = CharSlice_View(s1, noDiffLen, s1.len);
+    const auto s2DiffView    = CharSlice_View(s2, noDiffLen, s2.len);
     const auto s1ContextLen  = MinSizeT(contextHalfLen / 2, s1.len - noDiffLen);
     const auto s2ContextLen  = MinSizeT(contextHalfLen / 2, s2.len - noDiffLen);
-    const auto s1ContextView = CharSlice_View(&s1DiffView, 0, s1ContextLen);
-    const auto s2ContextView = CharSlice_View(&s2DiffView, 0, s2ContextLen);
+    const auto s1ContextView = CharSlice_View(s1DiffView, 0, s1ContextLen);
+    const auto s2ContextView = CharSlice_View(s2DiffView, 0, s2ContextLen);
 
     CharSlice_WriteChar(dst, '{');
     CharSlice_Write(dst, s1ContextView);

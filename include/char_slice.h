@@ -12,29 +12,29 @@ typedef struct {
     size_t cap;
 } CharSlice;
 
-CharSlice CharSlice_New(char* buffer, size_t len, size_t cap);
+CharSlice CharSlice_Wrap(char* buffer, size_t len, size_t cap);
 bool      CharSlice_Equals(CharSlice a, CharSlice b);
-char      CharSlice_At(const CharSlice* s, size_t i);
-CharSlice CharSlice_View(const CharSlice* s, size_t start, size_t end);
-size_t    CharSlice_WriteCharAt(CharSlice* dst, size_t offset, char v);
+char      CharSlice_At(CharSlice s, size_t i);
+CharSlice CharSlice_View(CharSlice s, size_t start, size_t end);
+size_t    CharSlice_WriteCharAt(CharSlice* dst, size_t i, char v);
 size_t    CharSlice_WriteAt(CharSlice* dst, size_t offset, CharSlice other);
 size_t    CharSlice_WriteChar(CharSlice* dst, char v);
 size_t    CharSlice_Write(CharSlice* dst, CharSlice other);
 size_t    CharSlice_WriteString(CharSlice* dst, const char* src);
-bool      CharSlice_StartsWith(const CharSlice* s, CharSlice prefix);
+bool      CharSlice_StartsWith(CharSlice s, CharSlice prefix);
 size_t    CharSlice_NoDiffLen(CharSlice s1, CharSlice s2);
 void      CharSlice_Diff(CharSlice* dst, CharSlice s1, CharSlice s2);
 int       CharSlice_Cmp(CharSlice a, CharSlice b);
 size_t    CharSlice_WriteF(CharSlice* dst, const char* format, ...);
 size_t    CharSlice_ReadLine(CharSlice* dst, FILE* src, char separator);
 size_t    CharSlice_ReadFile(CharSlice* dst, FILE* src);
-bool      CharSlice_IsValid(const CharSlice* s);
-bool      CharSlice_IsNullTerminated(const CharSlice* s);
+bool      CharSlice_IsValid(CharSlice s);
+bool      CharSlice_IsNullTerminated(CharSlice s);
 
 size_t File_WriteCharSlice(FILE* dst, CharSlice src);
 
-#define CharSlice_Make(len, cap) ((cap) > 0 ? CharSlice_New((char[cap]){}, len, cap) : CharSlice_New(nullptr, 0, 0));
+#define CharSlice_Make(len, cap) ((cap) > 0 ? CharSlice_Wrap((char[cap]){}, len, cap) : (CharSlice){})
 #define CHAR_SLICE(buffer) \
-    (sizeof(buffer) > 1 ? CharSlice_New(buffer, sizeof(buffer) - 1, sizeof(buffer) - 1) : CharSlice_New(nullptr, 0, 0))
+    (sizeof(buffer) > 1 ? CharSlice_Wrap(buffer, sizeof(buffer) - 1, sizeof(buffer) - 1) : (CharSlice){})
 
 #endif  // CHAR_SLICE_H

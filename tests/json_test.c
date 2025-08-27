@@ -49,7 +49,7 @@ void vtokeq(const JsonNodes *ts, const CharSlice src, va_list ap) {
 
         TEST_ASSERT_EQUAL(childrenCount, n->childrenCount);
         if (value != nullptr) {
-            const auto view = CharSlice_View(&src, n->offset, n->offset + n->len);
+            const auto view = CharSlice_View(src, n->offset, n->offset + n->len);
             if (view.len != n->len || strncmp(value, view.arr, view.len) != 0) {
                 printf("node %lu value is %.*s, not %s\n", i, (int)view.len, view.arr, value);
                 TEST_FAIL();
@@ -219,7 +219,7 @@ void test_partial_string(void) {
     };
 
     for (size_t i = 1; i <= src.len; i++) {
-        const auto r = JsonNodes_Parse(&dst, CharSlice_View(&src, 0, i));
+        const auto r = JsonNodes_Parse(&dst, CharSlice_View(src, 0, i));
         if (i != src.len) {
             TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_PARTIAL, r.err);
             continue;
@@ -243,7 +243,7 @@ void test_partial_array(void) {
     };
 
     for (size_t i = 1; i <= src.len; i++) {
-        const auto r = JsonNodes_Parse(&dst, CharSlice_View(&src, 0, i));
+        const auto r = JsonNodes_Parse(&dst, CharSlice_View(src, 0, i));
         if (i != src.len) {
             TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_PARTIAL, r.err);
             continue;
@@ -382,7 +382,7 @@ void test_count(void) {
         JsonNode   arr[10]    = {};
         JsonNodes  dst        = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
         char       chars[128] = {};
-        CharSlice  src        = CharSlice_New(chars, 0, 128);
+        CharSlice  src        = CharSlice_Wrap(chars, 0, 128);
         CharSlice_WriteString(&src, tt.src);
 
         TEST_MESSAGE(tt.name);
@@ -508,7 +508,7 @@ void Test_JsonParse() {
                 typeStr = "Unknown";
         }
 
-        const auto content = CharSlice_View(&src, n.offset, n.offset + n.len);
+        const auto content = CharSlice_View(src, n.offset, n.offset + n.len);
         printf(
             "%-10s| %4zd, %4zd, %4zd| \"%.*s\"\n", typeStr, n.offset, n.len, n.childrenCount, (int)content.len,
             content.arr
