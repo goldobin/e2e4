@@ -48,8 +48,8 @@ void printBoard(const Board* b) {
 
 bool readBoardFromFile(Board* dst, const CharSlice filePath) {
     assert(dst != nullptr);
-    assert(CharSlice_IsValid(&filePath));
-    assert(CharSlice_IsNullTerminated(&filePath));
+    assert(CharSlice_IsValid(filePath));
+    assert(CharSlice_IsNullTerminated(filePath));
 
     const auto f = fopen(filePath.arr, "r");
     if (f == nullptr) {
@@ -95,8 +95,8 @@ bool readBoardFromFile(Board* dst, const CharSlice filePath) {
 }
 
 bool writeBoardToFile(const CharSlice filePath, const Board* board) {
-    assert(CharSlice_IsValid(&filePath));
-    assert(CharSlice_IsNullTerminated(&filePath));
+    assert(CharSlice_IsValid(filePath));
+    assert(CharSlice_IsNullTerminated(filePath));
     assert(board != nullptr);
 
     auto buff = CharSlice_Make(0, 1024 * 10);
@@ -132,7 +132,7 @@ int main(const int argc, char* argv[]) {
     switch (argc) {
         case 0:
         case 1:
-            Board_PlacePieces(&b);
+            Squares_PlacePieces(b.squares);
             b.nextMoveSide = SIDE_WHITE;
             break;
         case 2:
@@ -162,8 +162,8 @@ int main(const int argc, char* argv[]) {
             break;
         };
 
-        if (CharSlice_StartsWith(&in, CHAR_SLICE("save "))) {
-            const auto filePath = CharSlice_View(&in, 5, in.len);
+        if (CharSlice_StartsWith(in, CHAR_SLICE("save "))) {
+            const auto filePath = CharSlice_View(in, 5, in.len);
             if (!writeBoardToFile(filePath, &b)) {
                 printf("Failed to save board to %s\n", filePath.arr);
                 continue;
@@ -173,7 +173,7 @@ int main(const int argc, char* argv[]) {
             continue;
         }
 
-        if (CharSlice_StartsWith(&in, CHAR_SLICE("quit"))) {
+        if (CharSlice_StartsWith(in, CHAR_SLICE("quit"))) {
             printf("Bye!\n");
             return 0;
         }

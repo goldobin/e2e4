@@ -3,13 +3,14 @@
 #include <assert.h>
 
 static bool isVisibleChar(const char ch) { return ch >= 32 && ch <= 126; /* ' ' - ~ */ }
-
 static bool isHexChar(const char ch) {
-    return (ch >= 48 && ch <= 57) /* 0-9 */ || (ch >= 65 && ch <= 70) /* A-F */ || (ch >= 97 && ch <= 102); /* a-f */
+    return (ch >= 48 && ch <= 57)   /* 0-9 */
+        || (ch >= 65 && ch <= 70)   /* A-F */
+        || (ch >= 97 && ch <= 102); /* a-f */
 }
 
 CharSlice JsonNode_View(const JsonNode *n, const CharSlice src) {
-    return CharSlice_View(&src, n->offset, n->offset + n->len);
+    return CharSlice_View(src, n->offset, n->offset + n->len);
 }
 
 size_t CharSlice_WriteJsonParseErr(CharSlice *dst, const JsonParseErr err) {
@@ -55,17 +56,16 @@ JsonNode *JsonNodes_Push(JsonNodes *dst) {
         return nullptr;
     }
 
-    JsonNode *t = &dst->arr[dst->len];
+    JsonNode *n = &dst->arr[dst->len];
     dst->len += 1;
-
-    return t;
+    return n;
 }
 
 size_t JsonNodes_Skip(const JsonNodes *ns, size_t index) {
     assert(ns != nullptr);
     assert(index < ns->len);
-    const auto n = JsonNodes_At(ns, index);
 
+    const auto n = JsonNodes_At(ns, index);
     for (size_t i = 0; i < n->childrenCount; i++) {
         index = JsonNodes_Skip(ns, ++index);
     }
@@ -74,15 +74,14 @@ size_t JsonNodes_Skip(const JsonNodes *ns, size_t index) {
 }
 
 /**
- * Fills next available node with JSON primitive.
+ * Fills the next available node with JSON primitive.
  */
 static JsonParseResult JsonNodes_ParsePrimitive(JsonNodes *dst, const CharSlice src, size_t offset) {
-    // TODO: Consider to make offset a shared varaible
     assert(dst != nullptr);
 
     const size_t start = offset;
     for (; offset < src.len; offset++) {
-        const char c = CharSlice_At(&src, offset);
+        const char c = CharSlice_At(src, offset);
         if (c == '\0') {
             break;
         }
@@ -100,20 +99,21 @@ static JsonParseResult JsonNodes_ParsePrimitive(JsonNodes *dst, const CharSlice 
                 if (n == nullptr) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
-                        .offset = offset - start,
+                        .offset = offset,
                     };
                 }
 
                 *n = (JsonNode){
                     .type     = JSON_NODE_TYPE_PRIMITIVE,
                     .offset   = start,
-                    .len      = offset - start,  // TODO: Do not perform this arithmetic
+                    .len      = offset - start,
                     .finished = true,
                 };
 
                 offset--;
                 return (JsonParseResult){
-                    .offset = offset - start,
+                    .err    = JSON_PARSE_ERROR_OK,
+                    .offset = offset,
                 };
             default:
                 /* to quiet a warning from gcc*/
@@ -122,7 +122,7 @@ static JsonParseResult JsonNodes_ParsePrimitive(JsonNodes *dst, const CharSlice 
         if (!isVisibleChar(c)) {
             return (JsonParseResult){
                 .err    = JSON_PARSE_ERROR_INVALID,
-                .offset = offset - start,
+                .offset = offset,
             };
         }
     }
@@ -135,7 +135,7 @@ static JsonParseResult JsonNodes_ParsePrimitive(JsonNodes *dst, const CharSlice 
 }
 
 /**
- * Fills next node with JSON string.
+ * Fills the next node with JSON string.
  */
 static JsonParseResult JsonNodes_ParseString(JsonNodes *dst, const CharSlice src, size_t offset) {
     assert(dst != nullptr);
@@ -145,7 +145,7 @@ static JsonParseResult JsonNodes_ParseString(JsonNodes *dst, const CharSlice src
     offset++;
 
     for (; offset < src.len; offset++) {
-        const char c = CharSlice_At(&src, offset);
+        const char c = CharSlice_At(src, offset);
         if (c == '\0') {
             break;
         }
@@ -156,7 +156,7 @@ static JsonParseResult JsonNodes_ParseString(JsonNodes *dst, const CharSlice src
             if (n == nullptr) {
                 return (JsonParseResult){
                     .err    = JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
-                    .offset = offset - start,
+                    .offset = offset,
                 };
             }
 
@@ -169,14 +169,14 @@ static JsonParseResult JsonNodes_ParseString(JsonNodes *dst, const CharSlice src
 
             return (JsonParseResult){
                 .err    = JSON_PARSE_ERROR_OK,
-                .offset = offset - start,
+                .offset = offset,
             };
         }
 
         /* Backslash: Quoted symbol expected */
         if (c == '\\' && offset + 1 < src.len) {
             offset++;
-            const char secondCh = CharSlice_At(&src, offset);
+            const char secondCh = CharSlice_At(src, offset);
             switch (secondCh) {
                 /* Allowed escaped symbols */
                 case '\"':
@@ -193,16 +193,16 @@ static JsonParseResult JsonNodes_ParseString(JsonNodes *dst, const CharSlice src
                     offset++;
 
                     for (size_t i = 0; i < 4 && offset < src.len; i++) {
-                        const char thirdCh = CharSlice_At(&src, offset);
+                        const char thirdCh = CharSlice_At(src, offset);
                         if (thirdCh == '\0') {
                             break;
                         }
 
-                        /* If it isn't a hex character we have an error */
+                        /* If it isn't a hex character, we have an error */
                         if (!isHexChar(thirdCh)) {
                             return (JsonParseResult){
                                 .err    = JSON_PARSE_ERROR_INVALID,
-                                .offset = offset - start,
+                                .offset = offset,
                             };
                         }
                         offset++;
@@ -213,7 +213,7 @@ static JsonParseResult JsonNodes_ParseString(JsonNodes *dst, const CharSlice src
                 default:
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_INVALID,
-                        .offset = offset - start,
+                        .offset = offset,
                     };
             }
         }
@@ -221,7 +221,7 @@ static JsonParseResult JsonNodes_ParseString(JsonNodes *dst, const CharSlice src
 
     return (JsonParseResult){
         .err    = JSON_PARSE_ERROR_PARTIAL,
-        .offset = offset - start,
+        .offset = offset,
     };
 }
 
@@ -234,7 +234,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
     int    parentNodeIndex = -1;
     size_t offset          = 0;
     for (; offset < src.len; offset++) {
-        const char c = CharSlice_At(&src, offset);
+        const char c = CharSlice_At(src, offset);
         if (c == '\0') {
             break;
         }
@@ -301,7 +301,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
                     n->finished     = true;
                     break;
                 }
-                /* Error if unmatched closing bracket */
+                /* If unmatched closing bracket, then error*/
                 if (i == -1) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_INVALID,
@@ -331,14 +331,11 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
                 }
 
                 const auto r = JsonNodes_ParseString(dst, src, offset);
-                offset += r.offset;
                 if (r.err != JSON_PARSE_ERROR_OK) {
-                    return (JsonParseResult){
-                        .err    = r.err,
-                        .offset = offset,
-                    };
+                    return r;
                 }
 
+                offset             = r.offset;
                 const auto parentT = JsonNodes_At(dst, parentNodeIndex);
                 parentT->childrenCount++;
                 break;
@@ -409,16 +406,13 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
                 }
 
                 const auto r = JsonNodes_ParsePrimitive(dst, src, offset);
-                offset += r.offset;
                 if (r.err != JSON_PARSE_ERROR_OK) {
-                    return (JsonParseResult){
-                        .err    = r.err,
-                        .offset = offset,
-                    };
+                    return r;
                 }
+
+                offset            = r.offset;
                 const auto parenT = JsonNodes_At(dst, parentNodeIndex);
                 parenT->childrenCount++;
-
                 break;
             }
 
@@ -528,7 +522,7 @@ size_t CharSlice_WriteJsonEnd(CharSlice *dst, JsonStack *s) {
 size_t CharSlice_WriteJsonKey(CharSlice *dst, JsonStack *s, CharSlice key) {
     assert(dst != nullptr);
     assert(s != nullptr);
-    assert(CharSlice_IsValid(&key));
+    assert(CharSlice_IsValid(key));
 
     const auto parent = JsonStack_Top(s);
     assert(parent != nullptr);
@@ -582,14 +576,14 @@ size_t CharSlice_WritePrimitivePreamble(CharSlice *dst, JsonStack *s) {
 size_t CharSlice_WriteJsonValue(CharSlice *dst, JsonStack *s, const bool isString, const CharSlice value) {
     assert(dst != nullptr);
     assert(s != nullptr);
-    assert(CharSlice_IsValid(&value));
+    assert(CharSlice_IsValid(value));
 
     size_t written = 0;
     written += CharSlice_WritePrimitivePreamble(dst, s);
     if (isString) {
         written += CharSlice_WriteChar(dst, '\"');
         for (size_t i = 0; i < value.len; ++i) {
-            const auto ch = CharSlice_At(&value, i);
+            const auto ch = CharSlice_At(value, i);
             switch (ch) {
                 case '\"':
                     written += CharSlice_Write(dst, CHAR_SLICE("\\\""));
@@ -615,7 +609,7 @@ size_t CharSlice_WriteJsonValue(CharSlice *dst, JsonStack *s, const bool isStrin
     }
 
     assert(value.len > 0);
-    const auto firstCh = CharSlice_At(&value, 0);
+    const auto firstCh = CharSlice_At(value, 0);
     switch (firstCh) {
         case 'n':
             assert(CharSlice_Cmp(value, CHAR_SLICE("null")) == 0);
@@ -633,7 +627,7 @@ size_t CharSlice_WriteJsonValue(CharSlice *dst, JsonStack *s, const bool isStrin
             written += CharSlice_WriteChar(dst, firstCh);
             bool wasPoint = false;
             for (size_t i = 1; i < value.len; ++i) {
-                const auto ch = CharSlice_At(&value, i);
+                const auto ch = CharSlice_At(value, i);
                 if (ch == '.') {
                     if (wasPoint) {
                         assert(false);
