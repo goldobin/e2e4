@@ -58,8 +58,8 @@ bool Piece_FromChar(Piece* t, const char ch) {
             t->side = SIDE_BLACK;
             return true;
         case '.':
-            t->type = PIECE_TYPE_NONE;
-            t->side = SIDE_NONE;
+            t->type = PIECE_TYPE_UNSPECIFIED;
+            t->side = SIDE_UNSPECIFIED;
             return true;
         default:
             return false;
@@ -156,40 +156,36 @@ bool Piece_InterpretJson(Piece* dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto n = JsonNodes_At(src->nodes, src->index);
-    if (n->type != JSON_NODE_TYPE_OBJECT) {
+    if (JsonSource_Type(src) != JSON_TYPE_OBJECT) {
         return false;
     }
 
-    if (n->childrenCount < 2) {
+    const auto keyCount = JsonSource_ChildrenCount(src);
+
+    if (keyCount < 2) {
         return false;
     }
 
-    for (size_t i = 0; i < n->childrenCount; ++i) {
-        const auto keyNode = JsonNodes_At(src->nodes, ++(src->index));
-        if (keyNode->childrenCount < 1) {
+    for (size_t i = 0; i < keyCount; ++i) {
+        JsonSource_Next(src);
+        if (JsonSource_Type(src) != JSON_TYPE_KEY) {
             return false;
         }
 
-        const auto key = JsonNode_View(keyNode, src->charSlice);
+        const auto key = JsonSource_Value(src);
+        JsonSource_Next(src);
         if (CharSlice_Equals(key, CHAR_SLICE("side"))) {
-            const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
-            if (valueNode->childrenCount != 0) {
+            if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-
-            const auto value = JsonNode_View(valueNode, src->charSlice);
-            dst->side        = Side_Parse(value);
+            dst->side = Side_Parse(JsonSource_Value(src));
         } else if (CharSlice_Equals(key, CHAR_SLICE("type"))) {
-            const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
-            if (valueNode->childrenCount != 0) {
+            if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-
-            const auto value = JsonNode_View(valueNode, src->charSlice);
-            dst->type        = PieceType_Parse(value);
+            dst->type = PieceType_Parse(JsonSource_Value(src));
         } else {
-            src->index = JsonNodes_Skip(src->nodes, ++(src->index));
+            JsonSource_Skip(src);
         }
     }
 
@@ -198,7 +194,7 @@ bool Piece_InterpretJson(Piece* dst, JsonSource* src) {
 
 bool PieceType_IsValid(const PieceType t) {
     switch (t) {
-        case PIECE_TYPE_NONE:
+        case PIECE_TYPE_UNSPECIFIED:
         case PIECE_TYPE_PAWN:
         case PIECE_TYPE_ROOK:
         case PIECE_TYPE_KNIGHT:
@@ -213,7 +209,7 @@ bool PieceType_IsValid(const PieceType t) {
 PieceType PieceType_Parse(const CharSlice src) {
     assert(CharSlice_IsValid(src));
     if (src.len < 1) {
-        return PIECE_TYPE_NONE;
+        return PIECE_TYPE_UNSPECIFIED;
     }
 
     if (CharSlice_Equals(src, CHAR_SLICE("PAWN"))) {
@@ -239,12 +235,12 @@ PieceType PieceType_Parse(const CharSlice src) {
         return PIECE_TYPE_KING;
     }
 
-    return PIECE_TYPE_NONE;
+    return PIECE_TYPE_UNSPECIFIED;
 }
 
 Side Side_Parse(CharSlice src) {
     if (src.len < 1) {
-        return SIDE_NONE;
+        return SIDE_UNSPECIFIED;
     }
 
     const auto firstChar = CharSlice_At(src, 0);
@@ -257,7 +253,7 @@ Side Side_Parse(CharSlice src) {
         return SIDE_WHITE;
     }
 
-    return SIDE_NONE;
+    return SIDE_UNSPECIFIED;
 }
 
 char PieceType_ToUpperCaseChar(const PieceType t) {
@@ -294,7 +290,7 @@ size_t CharSlice_WritePieceType(CharSlice* dst, const PieceType t) {
             return CharSlice_Write(dst, CHAR_SLICE("QUEEN"));
         case PIECE_TYPE_KING:
             return CharSlice_Write(dst, CHAR_SLICE("KING"));
-        case PIECE_TYPE_NONE:
+        case PIECE_TYPE_UNSPECIFIED:
             return CharSlice_Write(dst, CHAR_SLICE("NONE"));
         default:
             return 0;
@@ -507,7 +503,7 @@ size_t CharSlice_WriteMoveError(CharSlice* dst, const MoveErr a) {
     }
 }
 
-bool Piece_IsEmpty(const Piece* p) { return p->type == PIECE_TYPE_NONE; }
+bool Piece_IsEmpty(const Piece* p) { return p->type == PIECE_TYPE_UNSPECIFIED; }
 
 bool Piece_Equals(const Piece* a, const Piece* b) { return a->type == b->type && a->side == b->side; }
 
@@ -546,23 +542,22 @@ bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto n = JsonNodes_At(src->nodes, src->index);
-    if (n->type != JSON_NODE_TYPE_ARRAY) {
-        // TODO: Add proper error handling
+    if (JsonSource_Type(src) != JSON_TYPE_ARRAY) {
         return false;
     }
 
-    if (!PieceTypes_Resize(dst, n->childrenCount)) {
+    const auto arraySize = JsonSource_ChildrenCount(src);
+    if (!PieceTypes_Resize(dst, arraySize)) {
         return false;
     }
 
-    for (size_t i = 0; i < n->childrenCount; i++) {
-        const auto entryNode = JsonNodes_At(src->nodes, ++src->index);
-        if (entryNode->type != JSON_NODE_TYPE_STRING || entryNode->childrenCount != 0) {
+    for (size_t i = 0; i < arraySize; i++) {
+        JsonSource_Next(src);
+        if (JsonSource_Type(src) != JSON_TYPE_STRING) {
             return false;
         }
-        const auto entry       = JsonNode_View(entryNode, src->charSlice);
-        const auto pieceType   = PieceType_Parse(entry);
+
+        const auto pieceType   = PieceType_Parse(JsonSource_Value(src));
         *PieceTypes_At(dst, i) = pieceType;
     }
 
@@ -714,8 +709,8 @@ void Squares_PlacePieces(Squares dst) {
 
     for (size_t i = 2; i < 6; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
-            dst[i][j].type = PIECE_TYPE_NONE;
-            dst[i][j].side = SIDE_NONE;
+            dst[i][j].type = PIECE_TYPE_UNSPECIFIED;
+            dst[i][j].side = SIDE_UNSPECIFIED;
         }
     }
 }
@@ -780,23 +775,24 @@ bool Board_InterpretJson(Board* dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto n = JsonNodes_At(src->nodes, src->index);
-    if (n->type != JSON_NODE_TYPE_OBJECT) {
-        // TODO: Add proper error handling
+    if (JsonSource_Type(src) != JSON_TYPE_OBJECT) {
         return false;
     }
 
-    for (size_t i = 0; i < n->childrenCount; i++) {
-        const auto keyNode = JsonNodes_At(src->nodes, ++(src->index));
-        if (keyNode->childrenCount != 1) {
+    const auto keyCount = JsonSource_ChildrenCount(src);
+
+    for (size_t i = 0; i < keyCount; i++) {
+        JsonSource_Next(src);
+        if (JsonSource_Type(src) != JSON_TYPE_KEY) {
             return false;
         }
-        const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
-        const auto key       = JsonNode_View(keyNode, src->charSlice);
-
+        const auto key = JsonSource_Value(src);
+        JsonSource_Next(src);
         if (CharSlice_Equals(key, CHAR_SLICE("next_move_side"))) {
-            const auto value  = JsonNode_View(valueNode, src->charSlice);
-            dst->nextMoveSide = Side_Parse(value);
+            if (JsonSource_Type(src) != JSON_TYPE_STRING) {
+                return false;
+            }
+            dst->nextMoveSide = Side_Parse(JsonSource_Value(src));
         } else if (CharSlice_Equals(key, CHAR_SLICE("squares"))) {
             if (!Squares_InterpretJson(dst->squares, src)) {
                 return false;
@@ -811,7 +807,7 @@ bool Board_InterpretJson(Board* dst, JsonSource* src) {
             }
         } else {
             // Skipping other keys
-            src->index = JsonNodes_Skip(src->nodes, ++src->index);
+            JsonSource_Skip(src);
         }
     }
 
@@ -845,30 +841,31 @@ bool SideState_InterpretJson(SideState* dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto n = JsonNodes_At(src->nodes, src->index);
-    if (n->type != JSON_NODE_TYPE_OBJECT) {
-        // TODO: Add proper error handling
+    if (JsonSource_Type(src) != JSON_TYPE_OBJECT) {
         return false;
     }
 
-    for (size_t i = 0; i < n->childrenCount; i++) {
-        const auto keyNode = JsonNodes_At(src->nodes, ++(src->index));
-        if (keyNode->childrenCount != 1) {
+    const auto childrenCount = JsonSource_ChildrenCount(src);
+    for (size_t i = 0; i < childrenCount; i++) {
+        JsonSource_Next(src);
+        if (JsonSource_Type(src) != JSON_TYPE_KEY) {
             return false;
         }
-        const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
-        const auto key       = JsonNode_View(keyNode, src->charSlice);
 
+        const auto key = JsonSource_Value(src);
+        JsonSource_Next(src);
         if (CharSlice_Equals(key, CHAR_SLICE("king_castled"))) {
-            const auto value    = JsonNode_View(valueNode, src->charSlice);
-            dst->hasKingCastled = CharSlice_Equals(value, CHAR_SLICE("true"));
+            if (JsonSource_Type(src) != JSON_TYPE_BOOL) {
+                return false;
+            }
+            dst->hasKingCastled = JsonSource_BoolValue(src);
         } else if (CharSlice_Equals(key, CHAR_SLICE("taken"))) {
             if (!PieceTypes_InterpretJson(&dst->taken, src)) {
                 return false;
             }
         } else {
             // Skipping other keys
-            src->index = JsonNodes_Skip(src->nodes, ++src->index);
+            JsonSource_Skip(src);
         }
     }
 
@@ -914,39 +911,30 @@ bool Squares_InterpretJson(Squares dst, JsonSource* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto n = JsonNodes_At(src->nodes, src->index);
-    if (n->type != JSON_NODE_TYPE_OBJECT) {
-        // TODO: Implement proper error handling
+    if (JsonSource_Type(src) != JSON_TYPE_OBJECT) {
         return false;
     }
 
-    if (n->childrenCount < 1) {
-        return false;
-    }
-
-    for (size_t i = 0; i < n->childrenCount; i++) {
-        const auto keyNode = JsonNodes_At(src->nodes, ++(src->index));
-        if (keyNode->childrenCount < 1) {
-            return false;
-        }
-        const auto valueNode = JsonNodes_At(src->nodes, ++(src->index));
-        if (valueNode->type != JSON_NODE_TYPE_OBJECT) {
+    const auto keyCount = JsonSource_ChildrenCount(src);
+    for (size_t i = 0; i < keyCount; i++) {
+        JsonSource_Next(src);
+        if (JsonSource_Type(src) != JSON_TYPE_KEY) {
             return false;
         }
 
-        const auto key = JsonNode_View(keyNode, src->charSlice);
-        Pos        pos = {};
-        const auto r1  = Pos_Parse(&pos, key);
-        if (r1.err != POS_PARSE_ERR_OK) {
+        Pos        pos            = {};
+        const auto posParseResult = Pos_Parse(&pos, JsonSource_Value(src));
+        if (posParseResult.err != POS_PARSE_ERR_OK) {
             return false;
         }
 
-        const auto piece = Squares_At(dst, pos);
-        //++src->index;
-        const auto r2 = Piece_InterpretJson(piece, src);
-        if (!r2) {
+        JsonSource_Next(src);
+        Piece piece = {};
+        if (!Piece_InterpretJson(&piece, src)) {
             return false;
-        }
+        };
+
+        *Squares_At(dst, pos) = piece;
     }
 
     return true;
@@ -992,7 +980,7 @@ MoveResult Board_CheckMove(const Board* b, const Move m) {
 
     const auto piece = Squares_ConstAt(b->squares, m.from);
     switch (piece->type) {
-        case PIECE_TYPE_NONE:
+        case PIECE_TYPE_UNSPECIFIED:
         default:
             return (MoveResult){.err = MOVE_ERR_NO_PIECE};
         case PIECE_TYPE_PAWN:

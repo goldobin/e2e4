@@ -40,7 +40,7 @@ typedef struct {
 constexpr size_t         NODE_MATCH_RULES_CAP = 16;
 typedef NodeMatchingRule NodeMatchingRules[NODE_MATCH_RULES_CAP];
 
-bool NodeMatchingRule_Empty(const NodeMatchingRule r) { return r.type == JSON_NODE_TYPE_NONE; }
+bool NodeMatchingRule_Empty(const NodeMatchingRule r) { return r.type == JSON_NODE_TYPE_UNSPECIFIED; }
 
 void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const CharSlice src, const JsonNodes nodes) {
     assert(nodes.len <= NODE_MATCH_RULES_CAP);
@@ -53,11 +53,11 @@ void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const CharSl
         if (NodeMatchingRule_Empty(rule)) {
             continue;
         }
-        const auto n = JsonNodes_At(&nodes, i);
+        const auto n = JsonNodes_At(nodes, i);
         TEST_ASSERT_EQUAL_MESSAGE(rule.type, n->type, "node type doesn't match");
 
         if (rule.type == JSON_NODE_TYPE_STRING) {
-            const auto v = JsonNode_View(n, src);
+            const auto v = CharSlice_View(src, n->offset, n->offset + n->len);
             TEST_ASSERT_TRUE_MESSAGE(CharSlice_Equals(rule.string.value, v), "string content doesn't match");
             TEST_ASSERT_EQUAL_MESSAGE(
                 rule.string.childrenCount, n->childrenCount, "string children count doesn't match"
@@ -66,7 +66,7 @@ void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const CharSl
         }
 
         if (rule.type == JSON_NODE_TYPE_PRIMITIVE) {
-            const auto v = JsonNode_View(n, src);
+            const auto v = CharSlice_View(src, n->offset, n->offset + n->len);
             TEST_ASSERT_TRUE_MESSAGE(CharSlice_Equals(rule.primitive.value, v), "primitive content doesn't match");
             continue;
         }
@@ -877,13 +877,13 @@ void Example_JsonParse() {
 
     for (size_t i = 0; i < sizeof(nodes) / sizeof(nodes[0]); i++) {
         const auto n = nodes[i];
-        if (n.type == JSON_NODE_TYPE_NONE) {
+        if (n.type == JSON_NODE_TYPE_UNSPECIFIED) {
             break;
         }
 
         char *typeStr;
         switch (n.type) {
-            case JSON_NODE_TYPE_NONE:
+            case JSON_NODE_TYPE_UNSPECIFIED:
                 typeStr = "Undefined";
                 break;
             case JSON_NODE_TYPE_OBJECT:

@@ -33,7 +33,7 @@ void printBoard(const Board* b) {
             const char  rowChar   = (char)(ROW_CHAR_MIN + (BOARD_SIDE_LEN - i - 1));
             const char* pieceChar = Piece_ToUnicodeChar(piece);
             auto        color     = ANSI_COLOR_WHITE_HIGH;
-            if ((piece->type == PIECE_TYPE_NONE && (i + j) % 2 == 0) || piece->side == SIDE_BLACK) {
+            if ((piece->type == PIECE_TYPE_UNSPECIFIED && (i + j) % 2 == 0) || piece->side == SIDE_BLACK) {
                 color = ANSI_COLOR_WHITE_LOW;
             }
 
@@ -80,11 +80,7 @@ bool readBoardFromFile(Board* dst, const CharSlice filePath) {
         return false;
     }
 
-    JsonSource jsonSrc = {
-        .charSlice = buff,
-        .nodes     = &nodes,
-    };
-
+    JsonSource jsonSrc         = {.chars = buff, .nodes = nodes};
     const auto interpretResult = Board_InterpretJson(dst, &jsonSrc);
     if (!interpretResult) {
         printf("Failed to interpret JSON. JSON has unexpected structure");
@@ -188,7 +184,7 @@ int main(const int argc, char* argv[]) {
         }
 
         const auto p = Squares_ConstAt(b.squares, m.from);
-        if (p->type == PIECE_TYPE_NONE) {
+        if (p->type == PIECE_TYPE_UNSPECIFIED) {
             printf("No piece to move\n");
             continue;
         }

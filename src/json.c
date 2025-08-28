@@ -9,10 +9,6 @@ static bool isHexChar(const char ch) {
         || (ch >= 97 && ch <= 102); /* a-f */
 }
 
-CharSlice JsonNode_View(const JsonNode *n, const CharSlice src) {
-    return CharSlice_View(src, n->offset, n->offset + n->len);
-}
-
 size_t CharSlice_WriteJsonParseErr(CharSlice *dst, const JsonParseErr err) {
     assert(dst != nullptr);
     switch (err) {
@@ -42,10 +38,9 @@ size_t CharSlice_WriteJsonParseResult(CharSlice *dst, const JsonParseResult *r) 
     return written;
 }
 
-JsonNode *JsonNodes_At(const JsonNodes *ns, const size_t index) {
-    assert(ns != nullptr);
-    assert(index < ns->len);
-    return &ns->arr[index];
+JsonNode *JsonNodes_At(const JsonNodes nodes, const size_t index) {
+    assert(index < nodes.len);
+    return &nodes.arr[index];
 }
 
 /**
@@ -61,17 +56,17 @@ JsonNode *JsonNodes_Push(JsonNodes *dst) {
     return n;
 }
 
-size_t JsonNodes_Skip(const JsonNodes *ns, size_t index) {
-    assert(ns != nullptr);
-    assert(index < ns->len);
-
-    const auto n = JsonNodes_At(ns, index);
-    for (size_t i = 0; i < n->childrenCount; i++) {
-        index = JsonNodes_Skip(ns, ++index);
-    }
-
-    return index;
-}
+// size_t JsonNodes_Skip(const JsonNodes nodes, size_t index) {
+//     assert(nodes != nullptr);
+//     assert(index < nodes->len);
+//
+//     const auto n = JsonNodes_At(nodes, index);
+//     for (size_t i = 0; i < n->childrenCount; i++) {
+//         index = JsonNodes_Skip(nodes, ++index);
+//     }
+//
+//     return index;
+// }
 
 /**
  * Fills the next available node with JSON primitive.
@@ -250,7 +245,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
                 }
 
                 if (parentNodeIndex != -1) {
-                    JsonNode *parentT = JsonNodes_At(dst, parentNodeIndex);
+                    JsonNode *parentT = JsonNodes_At(*dst, parentNodeIndex);
 
                     /* In strict mode an object or array can't become a key */
                     if (parentT->type == JSON_NODE_TYPE_OBJECT) {
@@ -286,7 +281,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
                 const JsonNodeType type = (c == '}' ? JSON_NODE_TYPE_OBJECT : JSON_NODE_TYPE_ARRAY);
                 int                i    = (int)dst->len - 1;
                 for (; i >= 0; i--) {
-                    const auto n = JsonNodes_At(dst, i);
+                    const auto n = JsonNodes_At(*dst, i);
                     if (n->finished) {
                         continue;
                     }
@@ -309,7 +304,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
                     };
                 }
                 for (; i >= 0; i--) {
-                    const auto n = JsonNodes_At(dst, i);
+                    const auto n = JsonNodes_At(*dst, i);
                     if (!n->finished) {
                         parentNodeIndex = i;
                         break;
@@ -336,7 +331,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
                 }
 
                 offset             = r.offset;
-                const auto parentT = JsonNodes_At(dst, parentNodeIndex);
+                const auto parentT = JsonNodes_At(*dst, parentNodeIndex);
                 parentT->childrenCount++;
                 break;
             }
@@ -358,12 +353,12 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
             }
             case ',': {
                 if (parentNodeIndex != -1) {
-                    const auto parenT = JsonNodes_At(dst, parentNodeIndex);
+                    const auto parenT = JsonNodes_At(*dst, parentNodeIndex);
                     if (parenT->type == JSON_NODE_TYPE_ARRAY || parenT->type == JSON_NODE_TYPE_OBJECT) {
                         break;
                     }
                     for (int i = (int)dst->len - 1; i >= 0; i--) {
-                        const auto n = JsonNodes_At(dst, i);
+                        const auto n = JsonNodes_At(*dst, i);
                         if (n->type == JSON_NODE_TYPE_ARRAY || n->type == JSON_NODE_TYPE_OBJECT) {
                             if (!n->finished) {
                                 parentNodeIndex = i;
@@ -397,7 +392,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
                     };
                 }
 
-                const auto n = JsonNodes_At(dst, parentNodeIndex);
+                const auto n = JsonNodes_At(*dst, parentNodeIndex);
                 if (n->type == JSON_NODE_TYPE_OBJECT || (n->type == JSON_NODE_TYPE_STRING && n->childrenCount != 0)) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_INVALID,
@@ -411,7 +406,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
                 }
 
                 offset            = r.offset;
-                const auto parenT = JsonNodes_At(dst, parentNodeIndex);
+                const auto parenT = JsonNodes_At(*dst, parentNodeIndex);
                 parenT->childrenCount++;
                 break;
             }
@@ -428,7 +423,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const CharSlice src) {
 finished:
     for (int i = (int)dst->len - 1; i >= 0; i--) {
         /* Unmatched opened object or array */
-        const auto n = JsonNodes_At(dst, i);
+        const auto n = JsonNodes_At(*dst, i);
         if (!n->finished) {
             return (JsonParseResult){
                 .err    = JSON_PARSE_ERROR_PARTIAL,
@@ -466,7 +461,7 @@ size_t CharSlice_WriteJsonStart(CharSlice *dst, JsonStack *s, const char bracket
     assert(dst != nullptr);
     assert(s != nullptr);
 
-    JsonStackEntryType t = JSON_STACK_ENTRY_TYPE_NONE;
+    JsonStackEntryType t = JSON_STACK_ENTRY_TYPE_UNSPECIFIED;
     switch (bracket) {
         case '{':
             t = JSON_STACK_ENTRY_TYPE_OBJECT;
@@ -665,4 +660,102 @@ size_t CharSlice_WriteJsonNumeric(CharSlice *dst, JsonStack *s, CharSlice value)
     assert(s != nullptr);
 
     return CharSlice_WriteJsonValue(dst, s, false, value);
+}
+
+void JsonSource_Reset(JsonSource *s) { s->index = 0; }
+
+static const JsonNode *JsonSource_Node(const JsonSource *s) { return JsonNodes_At(s->nodes, s->index); }
+
+bool JsonSource_Next(JsonSource *s) {
+    if (s->index >= s->nodes.len) {
+        return false;
+    }
+
+    s->index++;
+    return true;
+}
+
+bool JsonSource_Skip(JsonSource *s) {
+    const auto n = JsonSource_Node(s);
+    if (n->childrenCount == 0) {
+        return false;
+    }
+
+    for (size_t i = 0; i < n->childrenCount; i++) {
+        JsonSource_Next(s);
+        JsonSource_Skip(s);
+    }
+
+    return true;
+}
+
+JsonType JsonSource_Type(const JsonSource *s) {
+    const auto n = JsonSource_Node(s);
+    switch (n->type) {
+        case JSON_NODE_TYPE_OBJECT:
+            return JSON_TYPE_OBJECT;
+        case JSON_NODE_TYPE_ARRAY:
+            return JSON_TYPE_ARRAY;
+        case JSON_NODE_TYPE_STRING:
+            switch (n->childrenCount) {
+                case 0:
+                    return JSON_TYPE_STRING;
+                case 1:
+                    return JSON_TYPE_KEY;
+                default:
+                    assert(false);
+            }
+
+        case JSON_NODE_TYPE_PRIMITIVE:
+            assert(n->childrenCount == 0);
+            const auto v = JsonSource_Value(s);
+            assert(v.len > 0);
+            const auto firstCh = CharSlice_At(v, 0);
+            switch (firstCh) {
+                case 'n':
+                    return JSON_TYPE_NULL;
+                case 't':
+                case 'f':
+                    return JSON_TYPE_BOOL;
+                default:
+                    return JSON_TYPE_NUMERIC;
+            }
+        default:
+            assert(false);
+    }
+}
+
+CharSlice JsonSource_Value(const JsonSource *s) {
+    const auto n = JsonNodes_At(s->nodes, s->index);
+    return CharSlice_View(s->chars, n->offset, n->offset + n->len);
+}
+
+bool JsonSource_BoolValue(const JsonSource *s) {
+    assert(JsonSource_Type(s) == JSON_TYPE_BOOL);
+    const auto v = JsonSource_Value(s);
+    assert(v.len > 0);
+    const auto firstCh = CharSlice_At(v, 0);
+
+    switch (firstCh) {
+        case 't':
+            return true;
+        case 'f':
+            return false;
+        default:
+            assert(false);
+    }
+}
+
+bool JsonSource_IsObject(const JsonSource *s) {
+    const auto n = JsonSource_Node(s);
+    return n->type == JSON_NODE_TYPE_OBJECT;
+}
+bool JsonSource_IsArray(const JsonSource *s) {
+    const auto n = JsonSource_Node(s);
+    return n->type == JSON_NODE_TYPE_ARRAY;
+}
+
+size_t JsonSource_ChildrenCount(const JsonSource *s) {
+    const auto n = JsonSource_Node(s);
+    return n->childrenCount;
 }

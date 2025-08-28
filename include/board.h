@@ -32,7 +32,7 @@ constexpr char UNICODE_BLACK_KNIGHT[4] = "\u265E";
 constexpr char UNICODE_BLACK_PAWN[4]   = "\u265F";
 
 typedef enum {
-    PIECE_TYPE_NONE = 0,
+    PIECE_TYPE_UNSPECIFIED = 0,
     PIECE_TYPE_PAWN,
     PIECE_TYPE_ROOK,
     PIECE_TYPE_KNIGHT,
@@ -47,7 +47,7 @@ bool      PieceType_IsValid(PieceType t);
 PieceType PieceType_Parse(CharSlice src);
 
 typedef enum {
-    SIDE_NONE = 0,
+    SIDE_UNSPECIFIED = 0,
     SIDE_BLACK,
     SIDE_WHITE
 } Side;
