@@ -983,8 +983,8 @@ void Test_InterpretJson() {
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, jsonParseResult.err);
 
     JsonSource jsonSrc = {
-        .charSlice = src,
-        .nodes     = &nodes,
+        .chars = src,
+        .nodes = nodes,
     };
 
     const auto boardParseResult = Board_InterpretJson(&dst, &jsonSrc);

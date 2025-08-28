@@ -36,10 +36,10 @@
  * 	- Object
  * 	- Array
  * 	- String
- * 	- Other primitive: number, boolean (true/false) or null
+ * 	- Another primitive: number, boolean (true/false) or null
  */
 typedef enum {
-    JSON_NODE_TYPE_NONE = 0,
+    JSON_NODE_TYPE_UNSPECIFIED = 0,
     JSON_NODE_TYPE_OBJECT,
     JSON_NODE_TYPE_ARRAY,
     JSON_NODE_TYPE_STRING,
@@ -60,8 +60,6 @@ typedef struct {
     size_t       len;
 } JsonNode;
 
-CharSlice JsonNode_View(const JsonNode *n, CharSlice src);
-
 typedef struct {
     JsonNode *arr;
     size_t    len;
@@ -70,11 +68,8 @@ typedef struct {
 
 typedef enum {
     JSON_PARSE_ERROR_OK = 0,
-    /* Not enough nodes were provided */
     JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
-    /* Invalid character inside JSON string */
     JSON_PARSE_ERROR_INVALID,
-    /* The string is not a full JSON packet, more bytes expected */
     JSON_PARSE_ERROR_PARTIAL
 } JsonParseErr;
 
@@ -90,19 +85,18 @@ size_t CharSlice_WriteJsonParseResult(CharSlice *dst, const JsonParseResult *r);
 #define JsonNodes_Make(len1, cap1) \
     (((cap1) > 0) ? (JsonNodes){.arr = (JsonNode[cap1]){}, .len = (len1), .cap = (cap1)} : (JsonNodes){})
 
-JsonNode       *JsonNodes_At(const JsonNodes *ns, size_t index);
+JsonNode       *JsonNodes_At(JsonNodes nodes, size_t index);
 JsonNode       *JsonNodes_Push(JsonNodes *dst);
-size_t          JsonNodes_Skip(const JsonNodes *ns, size_t index);  // TODO: Move to JsonSource
 JsonParseResult JsonNodes_Parse(JsonNodes *dst, CharSlice src);
 
 /**
  * JSON Write Functions
  */
 typedef enum {
-    JSON_STACK_ENTRY_TYPE_NONE   = 0,
-    JSON_STACK_ENTRY_TYPE_OBJECT = 1,
-    JSON_STACK_ENTRY_TYPE_ARRAY  = 2,
-    JSON_STACK_ENTRY_TYPE_FIELD  = 3,
+    JSON_STACK_ENTRY_TYPE_UNSPECIFIED = 0,
+    JSON_STACK_ENTRY_TYPE_OBJECT      = 1,
+    JSON_STACK_ENTRY_TYPE_ARRAY       = 2,
+    JSON_STACK_ENTRY_TYPE_FIELD       = 3,
 } JsonStackEntryType;
 
 typedef struct {
@@ -137,14 +131,28 @@ typedef struct {
 } JsonInterpretResult;
 
 typedef struct {
-    const CharSlice  charSlice;
-    const JsonNodes *nodes;
-    size_t           index;
+    const CharSlice chars;
+    const JsonNodes nodes;
+    size_t          index;
 } JsonSource;
 
-void            JsonSource_Reset(JsonSource *s);
-bool            JsonSource_Skip(JsonSource *s);
-const JsonNode *JsonSource_Node(const JsonSource *s);
-CharSlice       JsonSource_Value(const JsonSource *s);
+typedef enum {
+    JSON_TYPE_UNSPECIFIED = 0,
+    JSON_TYPE_OBJECT,
+    JSON_TYPE_KEY,
+    JSON_TYPE_ARRAY,
+    JSON_TYPE_NULL,
+    JSON_TYPE_BOOL,
+    JSON_TYPE_NUMERIC,
+    JSON_TYPE_STRING,
+} JsonType;
+
+void      JsonSource_Reset(JsonSource *s);
+bool      JsonSource_Next(JsonSource *s);
+bool      JsonSource_Skip(JsonSource *s);
+JsonType  JsonSource_Type(const JsonSource *s);
+size_t    JsonSource_ChildrenCount(const JsonSource *s);
+CharSlice JsonSource_Value(const JsonSource *s);
+bool      JsonSource_BoolValue(const JsonSource *s);
 
 #endif /* JSON_H */
