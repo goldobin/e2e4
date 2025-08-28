@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "board.h"
+#include "board_json.h"
 
 #define ANSI_COLOR_RESET       "\x1b[0m"
 #define ANSI_COLOR_RED_LOW     "\x1b[0;31m"

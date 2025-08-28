@@ -63,7 +63,6 @@ bool        Piece_IsEmpty(const Piece* p);
 bool        Piece_Equals(const Piece* a, const Piece* b);
 bool        Piece_FromChar(Piece* t, char ch);
 const char* Piece_ToUnicodeChar(const Piece* p);
-bool        Piece_InterpretJson(Piece* dst, JsonSource* src);
 
 typedef struct {
     size_t col;
@@ -152,9 +151,9 @@ typedef struct {
     size_t    len;
 } PieceTypes;
 
-bool       PieceTypes_Equals(const PieceTypes* a, const PieceTypes* b);
-void       PieceTypes_Copy(PieceTypes* dst, const PieceTypes* src);
-bool       PieceTypes_InterpretJson(PieceTypes* dst, JsonSource* src);
+bool PieceTypes_Equals(const PieceTypes* a, const PieceTypes* b);
+void PieceTypes_Copy(PieceTypes* dst, const PieceTypes* src);
+
 bool       PieceTypes_Resize(PieceTypes* dst, size_t len);
 PieceType* PieceTypes_At(PieceTypes* dst, size_t len);
 
@@ -168,7 +167,6 @@ typedef struct {
 
 bool SideState_Equals(const SideState* a, SideState const* b);
 void SideState_Copy(const SideState* src, SideState* dst);
-bool SideState_InterpretJson(SideState* dst, JsonSource* src);
 
 typedef Piece Squares[BOARD_SIDE_LEN][BOARD_SIDE_LEN];
 
@@ -176,8 +174,8 @@ void         Squares_Copy(Squares dst, const Squares src);
 bool         Squares_Equals(const Squares a, const Squares b);
 Piece*       Squares_At(Squares s, Pos pos);
 const Piece* Squares_ConstAt(const Squares s, Pos pos);
-bool         Squares_InterpretJson(Squares dst, JsonSource* src);
-void         Squares_PlacePieces(Squares dst);
+
+void Squares_PlacePieces(Squares dst);
 
 typedef struct {
     Squares   squares;
@@ -189,7 +187,6 @@ typedef struct {
 void             Board_Copy(Board* dst, const Board* src);
 bool             Board_Equals(const Board* a, const Board* b);
 BoardParseResult Board_Parse(Board* dst, CharSlice src);
-bool             Board_InterpretJson(Board* dst, JsonSource* src);
 MoveResult       Board_MakeMove(Board* dst, Move m);
 MoveResult       Board_CheckMove(const Board* b, Move m);
 MoveResult       Board_CheckPawnMove(const Board* b, Move m);
@@ -217,7 +214,7 @@ size_t Threats_Collect(Threats* dst, const Board* b, Pos p);
 size_t CharSlice_WritePieceType(CharSlice* dst, PieceType t);
 size_t CharSlice_WriteSide(CharSlice* dst, Side s);
 size_t CharSlice_WritePiece(CharSlice* dst, Piece p);
-size_t CharSlice_WritePieceAsJson(CharSlice* dst, JsonStack* js, const Piece* p);
+
 size_t CharSlice_WritePosParseErr(CharSlice* dst, PosParseErr err);
 size_t CharSlice_WritePosParseResult(CharSlice* dst, PosParseResult a);
 size_t CharSlice_WritePos(CharSlice* dst, Pos a);
@@ -228,10 +225,6 @@ size_t CharSlice_WriteBoardParseResult(CharSlice* dst, BoardParseResult err);
 size_t CharSlice_WriteBoardParseErr(CharSlice* dst, BoardParseErr err);
 size_t CharSlice_WriteMoveError(CharSlice* dst, MoveErr a);
 size_t CharSlice_WriteMoveResult(CharSlice* dst, const MoveResult* a);
-size_t CharSlice_WriteSquaresAsJson(CharSlice* dst, JsonStack* js, const Squares src);
-size_t CharSlice_WritePieceTypeArrAsJson(CharSlice* dst, JsonStack* js, const PieceTypes* src);
-size_t CharSlice_WriteSideStateAsJson(CharSlice* dst, JsonStack* js, const SideState* src);
 size_t CharSlice_WriteBoard(CharSlice* dst, const Board* b);
-size_t CharSlice_WriteBoardAsJson(CharSlice* dst, JsonStack* js, const Board* src);
 
 #endif  // BOARD_H

@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <unity.h>
 
-void setUp(void) {}
+#include "board_json.h"
 
+void setUp(void) {}
 void tearDown(void) {}
 
 Board parseBoard(const CharSlice src) {
