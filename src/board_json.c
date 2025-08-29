@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include "board_repr.h"
+
 // Interpret
 
 bool Piece_InterpretJson(Piece* dst, JsonSource* src) {

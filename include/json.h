@@ -73,25 +73,11 @@ typedef enum {
     JSON_PARSE_ERROR_PARTIAL
 } JsonParseErr;
 
-size_t CharSlice_WriteJsonParseErr(CharSlice *dst, JsonParseErr err);
-
 typedef struct {
     JsonParseErr err;
     size_t       offset;
 } JsonParseResult;
 
-size_t CharSlice_WriteJsonParseResult(CharSlice *dst, const JsonParseResult *r);
-
-#define JsonNodes_Make(len1, cap1) \
-    (((cap1) > 0) ? (JsonNodes){.arr = (JsonNode[cap1]){}, .len = (len1), .cap = (cap1)} : (JsonNodes){})
-
-JsonNode       *JsonNodes_At(JsonNodes nodes, size_t index);
-JsonNode       *JsonNodes_Push(JsonNodes *dst);
-JsonParseResult JsonNodes_Parse(JsonNodes *dst, CharSlice src);
-
-/**
- * JSON Write Functions
- */
 typedef enum {
     JSON_STACK_ENTRY_TYPE_UNSPECIFIED = 0,
     JSON_STACK_ENTRY_TYPE_OBJECT      = 1,
@@ -109,17 +95,6 @@ typedef struct {
     size_t          len;
     size_t          cap;
 } JsonStack;
-
-#define JsonStack_Make(len1, cap1) \
-    ((cap1) > 0 ? ((JsonStack){.arr = (JsonStackEntry[cap1]){}, .len = (len1), .cap = (cap1)}) : (JsonStack){})
-
-size_t CharSlice_WriteJsonStart(CharSlice *dst, JsonStack *s, char bracket);
-size_t CharSlice_WriteJsonEnd(CharSlice *dst, JsonStack *s);
-size_t CharSlice_WriteJsonKey(CharSlice *dst, JsonStack *s, CharSlice key);
-size_t CharSlice_WriteJsonString(CharSlice *dst, JsonStack *s, CharSlice value);
-size_t CharSlice_WriteJsonBool(CharSlice *dst, JsonStack *s, bool value);
-size_t CharSlice_WriteJsonNull(CharSlice *dst, JsonStack *s);
-size_t CharSlice_WriteJsonNumeric(CharSlice *dst, JsonStack *s, CharSlice value);
 
 typedef enum {
     JSON_INTERPRET_ERR_OK = 0,
@@ -147,12 +122,30 @@ typedef enum {
     JSON_TYPE_STRING,
 } JsonType;
 
-void      JsonSource_Reset(JsonSource *s);
-bool      JsonSource_Next(JsonSource *s);
-bool      JsonSource_Skip(JsonSource *s);
-JsonType  JsonSource_Type(const JsonSource *s);
-size_t    JsonSource_ChildrenCount(const JsonSource *s);
-CharSlice JsonSource_Value(const JsonSource *s);
-bool      JsonSource_BoolValue(const JsonSource *s);
+JsonNode       *JsonNodes_At(JsonNodes nodes, size_t index);
+JsonNode       *JsonNodes_Push(JsonNodes *dst);
+JsonParseResult JsonNodes_Parse(JsonNodes *dst, CharSlice src);
+void            JsonSource_Reset(JsonSource *s);
+bool            JsonSource_Next(JsonSource *s);
+bool            JsonSource_Skip(JsonSource *s);
+JsonType        JsonSource_Type(const JsonSource *s);
+size_t          JsonSource_ChildrenCount(const JsonSource *s);
+CharSlice       JsonSource_Value(const JsonSource *s);
+bool            JsonSource_BoolValue(const JsonSource *s);
+size_t          CharSlice_WriteJsonParseErr(CharSlice *dst, JsonParseErr err);
+size_t          CharSlice_WriteJsonParseResult(CharSlice *dst, const JsonParseResult *r);
+size_t          CharSlice_WriteJsonStart(CharSlice *dst, JsonStack *s, char bracket);
+size_t          CharSlice_WriteJsonEnd(CharSlice *dst, JsonStack *s);
+size_t          CharSlice_WriteJsonKey(CharSlice *dst, JsonStack *s, CharSlice key);
+size_t          CharSlice_WriteJsonString(CharSlice *dst, JsonStack *s, CharSlice value);
+size_t          CharSlice_WriteJsonBool(CharSlice *dst, JsonStack *s, bool value);
+size_t          CharSlice_WriteJsonNull(CharSlice *dst, JsonStack *s);
+size_t          CharSlice_WriteJsonNumeric(CharSlice *dst, JsonStack *s, CharSlice value);
+
+#define JsonNodes_Make(len1, cap1) \
+    (((cap1) > 0) ? (JsonNodes){.arr = (JsonNode[cap1]){}, .len = (len1), .cap = (cap1)} : (JsonNodes){})
+
+#define JsonStack_Make(len1, cap1) \
+    ((cap1) > 0 ? ((JsonStack){.arr = (JsonStackEntry[cap1]){}, .len = (len1), .cap = (cap1)}) : (JsonStack){})
 
 #endif /* JSON_H */

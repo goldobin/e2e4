@@ -67,6 +67,7 @@ add_library(e2e4 STATIC
         src/board.c
         src/json.c
         src/board_json.c
+        src/board_repr.c
 )
 target_compile_features(e2e4 PRIVATE ${C_STANDARD})
 target_compile_options(e2e4 PRIVATE ${CC_PARAMS})
@@ -90,6 +91,7 @@ target_link_libraries(char_slice_test PRIVATE
 add_executable(arena_test
         tests/arena_test.c
         include/board_json.h
+        include/board_repr.h
 )
 
 target_compile_features(arena_test PRIVATE ${C_STANDARD})

@@ -5,6 +5,7 @@
 #include <unity.h>
 
 #include "board_json.h"
+#include "board_repr.h"
 
 void setUp(void) {}
 void tearDown(void) {}
