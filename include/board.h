@@ -113,7 +113,6 @@ const Piece* Squares_ConstAt(const Squares s, Pos pos);
 void         Squares_Copy(Squares dst, const Squares src);
 bool         Squares_Equals(const Squares a, const Squares b);
 void         Squares_PlacePieces(Squares dst);
-size_t       TakenPieces_Append(PieceTypes* ts, PieceType p);
 PieceType    TakenPieces_At(const PieceTypes* ts, size_t i);
 bool         SideState_Equals(const SideState* a, SideState const* b);
 void         SideState_Copy(const SideState* src, SideState* dst);

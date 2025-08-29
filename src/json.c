@@ -746,15 +746,6 @@ bool JsonSource_BoolValue(const JsonSource *s) {
     }
 }
 
-bool JsonSource_IsObject(const JsonSource *s) {
-    const auto n = JsonSource_Node(s);
-    return n->type == JSON_NODE_TYPE_OBJECT;
-}
-bool JsonSource_IsArray(const JsonSource *s) {
-    const auto n = JsonSource_Node(s);
-    return n->type == JSON_NODE_TYPE_ARRAY;
-}
-
 size_t JsonSource_ChildrenCount(const JsonSource *s) {
     const auto n = JsonSource_Node(s);
     return n->childrenCount;

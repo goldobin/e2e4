@@ -1,5 +1,5 @@
-#ifndef E2E4_BOARD_JSON_H
-#define E2E4_BOARD_JSON_H
+#ifndef BOARD_JSON_H
+#define BOARD_JSON_H
 
 #include "board.h"
 #include "json.h"
@@ -20,4 +20,4 @@ size_t CharSlice_WritePieceTypeArrAsJson(CharSlice* dst, JsonStack* js, const Pi
 size_t CharSlice_WriteSideStateAsJson(CharSlice* dst, JsonStack* js, const SideState* src);
 size_t CharSlice_WriteBoardAsJson(CharSlice* dst, JsonStack* js, const Board* src);
 
-#endif  // E2E4_BOARD_JSON_H
+#endif  // BOARD_JSON_H

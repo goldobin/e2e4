@@ -84,6 +84,7 @@ bool PieceTypes_Resize(PieceTypes* dst, const size_t len) {
     dst->len = len;
     return true;
 }
+
 PieceType* PieceTypes_At(PieceTypes* dst, size_t i) {
     assert(dst != nullptr);
     assert(i < dst->len);
