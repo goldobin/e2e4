@@ -45,7 +45,7 @@ bool             MoveParseResult_Equals(MoveParseResult a, MoveParseResult b);
 PieceType        PieceType_Parse(CharSlice src);
 Side             Side_Parse(CharSlice src);
 bool             Piece_FromChar(Piece* t, char ch);
-const char*      Piece_ToUnicodeChar(const Piece* p);
+const char*      Piece_ToUnicodeChar(Piece p);
 PosParseResult   Pos_Parse(Pos* dst, CharSlice src);
 MoveParseResult  Move_Parse(Move* dst, CharSlice src);
 bool             BoardParseResult_Equals(BoardParseResult a, BoardParseResult b);

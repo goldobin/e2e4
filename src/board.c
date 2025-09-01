@@ -26,15 +26,12 @@ bool PieceType_IsValid(const PieceType t) {
     }
 }
 
-bool PieceTypes_Equals(const PieceTypes* a, const PieceTypes* b) {
-    assert(a != nullptr);
-    assert(b != nullptr);
-
-    if (a->len != b->len) {
+bool PieceTypes_Equals(const PieceTypes a, const PieceTypes b) {
+    if (a.len != b.len) {
         return false;
     }
-    for (size_t i = 0; i < a->len; i++) {
-        if (a->arr[i] != b->arr[i]) {
+    for (size_t i = 0; i < a.len; i++) {
+        if (a.arr[i] != b.arr[i]) {
             return false;
         }
     }
@@ -52,21 +49,21 @@ void PieceTypes_Copy(PieceTypes* dst, const PieceTypes* src) {
     }
 }
 
-bool Piece_Equals(const Piece* a, const Piece* b) { return a->type == b->type && a->side == b->side; }
+bool Piece_Equals(const Piece a, const Piece b) { return a.type == b.type && a.side == b.side; }
 
 Side Pos_BoardSide(const Pos a) {
     assert(Pos_IsValid(a));
     return a.row < BOARD_SIDE_LEN / 2 ? SIDE_BLACK : SIDE_WHITE;
 }
 
-Vec2I Vec2I_FromPos(const Pos l, const Pos r) {
+static Vec2I Vec2I_FromPos(const Pos l, const Pos r) {
     return (Vec2I){
         .x = (int)r.col - (int)l.col,
         .y = (int)r.row - (int)l.row,
     };
 }
 
-bool Piece_IsEmpty(const Piece* p) { return p->type == PIECE_TYPE_UNSPECIFIED; }
+bool Piece_IsEmpty(Piece p) { return p.type == PIECE_TYPE_UNSPECIFIED; }
 
 bool PieceTypes_Resize(PieceTypes* dst, const size_t len) {
     assert(dst != nullptr);
@@ -85,17 +82,16 @@ bool PieceTypes_Resize(PieceTypes* dst, const size_t len) {
     return true;
 }
 
-PieceType* PieceTypes_At(PieceTypes* dst, size_t i) {
+PieceType PieceTypes_At(PieceTypes slice, size_t i) {
+    assert(i < slice.len);
+    return slice.arr[i];
+}
+
+void PieceTypes_UpdateAt(PieceTypes* dst, size_t i, PieceType t) {
     assert(dst != nullptr);
     assert(i < dst->len);
 
-    return &dst->arr[i];
-}
-
-PieceType TakenPieces_At(const PieceTypes* ts, const size_t i) {
-    assert(ts != nullptr);
-    assert(i < ts->len);
-    return ts->arr[i];
+    dst->arr[i] = t;
 }
 
 bool Move_Equals(const Move a, const Move b) { return Pos_Equals(a.from, b.from) && Pos_Equals(a.to, b.to); }
@@ -107,19 +103,16 @@ bool Move_IsValid(const Move a) {
 bool MoveResult_Equals(const MoveResult* a, const MoveResult* b) {
     assert(a != nullptr);
     assert(b != nullptr);
-    return a->err == b->err && Piece_Equals(&a->pieceTaken, &b->pieceTaken) && Pos_Equals(a->obstacleAt, b->obstacleAt);
+
+    return a->err == b->err && Piece_Equals(a->pieceTaken, b->pieceTaken) && Pos_Equals(a->obstacleAt, b->obstacleAt);
 }
 
-size_t Threats_Append(Threats* ts, const Threat t) {
+void Threats_Append(Threats* ts, const Threat t) {
     assert(ts != nullptr);
     assert(Threat_IsValid(t));
-
-    if (ts->len >= THREATS_CAP) {
-        return 0;
-    }
+    assert(ts->len < THREATS_CAP);
 
     ts->items[ts->len++] = t;
-    return 1;
 }
 
 void Squares_PlacePieces(Squares dst) {
@@ -173,7 +166,7 @@ bool Squares_Equals(const Squares a, const Squares b) {
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
-            if (!Piece_Equals(&a[i][j], &b[i][j])) {
+            if (!Piece_Equals(a[i][j], b[i][j])) {
                 return false;
             }
         }
@@ -181,15 +174,17 @@ bool Squares_Equals(const Squares a, const Squares b) {
     return true;
 }
 
-Piece* Squares_At(Squares s, const Pos pos) {
+Piece Squares_At(const Squares s, const Pos pos) {
     assert(s != nullptr);
     assert(Pos_IsValid(pos));
-    return &s[pos.row][pos.col];
+
+    return s[pos.row][pos.col];
 }
-const Piece* Squares_ConstAt(const Squares s, Pos pos) {
+void Squares_UpdateAt(Squares s, const Pos pos, const Piece p) {
     assert(s != nullptr);
     assert(Pos_IsValid(pos));
-    return &s[pos.row][pos.col];
+
+    s[pos.row][pos.col] = p;
 }
 
 bool SideState_Equals(const SideState* a, SideState const* b) {
@@ -199,11 +194,9 @@ bool SideState_Equals(const SideState* a, SideState const* b) {
     if (a->hasKingCastled != b->hasKingCastled) {
         return false;
     }
-
-    if (!PieceTypes_Equals(&a->taken, &b->taken)) {
+    if (!PieceTypes_Equals(a->taken, b->taken)) {
         return false;
     }
-
     return true;
 }
 
@@ -251,15 +244,13 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
         return result;
     }
 
-    const auto piece = *Squares_At(dst->squares, m.from);
+    const auto piece = Squares_At(dst->squares, m.from);
     if (piece.type == PIECE_TYPE_KING) {
         Board   dstCopy = {};
         Threats ts      = {};
         Board_Copy(&dstCopy, dst);
-        const auto fromSquare = Squares_At(dstCopy.squares, m.from);
-        const auto toSquare   = Squares_At(dstCopy.squares, m.to);
-        *fromSquare           = (Piece){};
-        *toSquare             = piece;
+        Squares_UpdateAt(dstCopy.squares, m.from, (Piece){});
+        Squares_UpdateAt(dstCopy.squares, m.to, piece);
 
         Threats_Collect(&ts, &dstCopy, m.to);
         if (ts.len > 0) {
@@ -268,10 +259,8 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
         return result;
     }
 
-    const auto fromSquare = Squares_At(dst->squares, m.from);
-    const auto toSquare   = Squares_At(dst->squares, m.to);
-    *fromSquare           = (Piece){};
-    *toSquare             = piece;
+    Squares_UpdateAt(dst->squares, m.from, (Piece){});
+    Squares_UpdateAt(dst->squares, m.to, piece);
     return result;
 }
 
@@ -283,8 +272,8 @@ MoveResult Board_CheckMove(const Board* b, const Move m) {
         return (MoveResult){.err = MOVE_ERR_NO_MOVEMENT};
     }
 
-    const auto piece = Squares_ConstAt(b->squares, m.from);
-    switch (piece->type) {
+    const auto piece = Squares_At(b->squares, m.from);
+    switch (piece.type) {
         case PIECE_TYPE_UNSPECIFIED:
         default:
             return (MoveResult){.err = MOVE_ERR_NO_PIECE};
@@ -309,9 +298,9 @@ MoveResult Board_CheckPawnMove(const Board* b, const Move m) {
     assert(b != nullptr);
     assert(Move_IsValid(m));
     const auto direction      = Vec2I_FromPos(m.from, m.to);
-    const auto piece          = Squares_ConstAt(b->squares, m.from);
-    const auto dstPiece       = Squares_ConstAt(b->squares, m.to);
-    const auto validDirection = piece->side == SIDE_WHITE ? -1 : 1;
+    const auto piece          = Squares_At(b->squares, m.from);
+    const auto dstPiece       = Squares_At(b->squares, m.to);
+    const auto validDirection = piece.side == SIDE_WHITE ? -1 : 1;
 
     if (sign(direction.y) != validDirection) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL};
@@ -319,26 +308,32 @@ MoveResult Board_CheckPawnMove(const Board* b, const Move m) {
 
     const auto distance = abs(direction.y);
 
-    if (dstPiece->side != piece->side && distance && abs(direction.x) == 1) {
-        return (MoveResult){.err = MOVE_ERR_OK, .pieceTaken = *dstPiece};
+    if (dstPiece.side != piece.side && distance && abs(direction.x) == 1) {
+        return (MoveResult){.err = MOVE_ERR_OK, .pieceTaken = dstPiece};
     }
 
     if (direction.x != 0) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL};
     }
 
-    if (Pos_BoardSide(m.to) != piece->side && distance > 1) {
+    if (Pos_BoardSide(m.to) != piece.side && distance > 1) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL};
     }
 
     for (int i = 1; i < distance + 1; i++) {
-        const Pos  p        = {.row = m.from.row + sign(direction.y) * i, .col = m.from.col};
-        const auto obstacle = Squares_ConstAt(b->squares, p);
+        const Pos p = {
+            .row = m.from.row + sign(direction.y) * i,
+            .col = m.from.col,
+        };
+        const auto obstacle = Squares_At(b->squares, p);
         if (Piece_IsEmpty(obstacle)) {
             continue;
         }
 
-        return (MoveResult){.err = MOVE_ERR_OBSTACLE, .obstacleAt = p};
+        return (MoveResult){
+            .err        = MOVE_ERR_OBSTACLE,
+            .obstacleAt = p,
+        };
     }
 
     return (MoveResult){.err = MOVE_ERR_OK};
@@ -349,7 +344,7 @@ MoveResult Board_CheckRookMove(const Board* b, const Move m) {
     assert(Move_IsValid(m));
 
     const auto direction = Vec2I_FromPos(m.from, m.to);
-    const auto piece     = Squares_ConstAt(b->squares, m.from);
+    const auto piece     = Squares_At(b->squares, m.from);
 
     if (direction.y != 0 && direction.x != 0) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL};
@@ -358,21 +353,30 @@ MoveResult Board_CheckRookMove(const Board* b, const Move m) {
     const auto distance   = MaxSizeT((size_t)abs(direction.y), (size_t)abs(direction.x));
     Piece      pieceTaken = {};
     for (size_t i = 1; i < distance + 1; i++) {
-        const Pos  p      = {.row = m.from.row + sign(direction.y) * i, .col = m.from.col + sign(direction.x) * i};
-        const auto square = Squares_ConstAt(b->squares, p);
+        const Pos p = {
+            .row = m.from.row + sign(direction.y) * i,
+            .col = m.from.col + sign(direction.x) * i,
+        };
+        const auto square = Squares_At(b->squares, p);
         if (Piece_IsEmpty(square)) {
             continue;
         }
 
-        if (i == distance && square->side != piece->side) {
-            pieceTaken = *square;
+        if (i == distance && square.side != piece.side) {
+            pieceTaken = square;
             break;
         }
 
-        return (MoveResult){.err = MOVE_ERR_OBSTACLE, .obstacleAt = p};
+        return (MoveResult){
+            .err        = MOVE_ERR_OBSTACLE,
+            .obstacleAt = p,
+        };
     }
 
-    return (MoveResult){.err = MOVE_ERR_OK, .pieceTaken = pieceTaken};
+    return (MoveResult){
+        .err        = MOVE_ERR_OK,
+        .pieceTaken = pieceTaken,
+    };
 }
 
 MoveResult Board_CheckKnightMove(const Board* b, const Move m) {
@@ -380,8 +384,8 @@ MoveResult Board_CheckKnightMove(const Board* b, const Move m) {
     assert(Move_IsValid(m));
 
     const auto direction = Vec2I_FromPos(m.from, m.to);
-    const auto piece     = Squares_ConstAt(b->squares, m.from);
-    const auto dstPiece  = Squares_ConstAt(b->squares, m.to);
+    const auto piece     = Squares_At(b->squares, m.from);
+    const auto dstPiece  = Squares_At(b->squares, m.to);
 
     if ((abs(direction.y) != 2 || abs(direction.x) != 1) && (abs(direction.y) != 1 || abs(direction.x) != 2)) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL};
@@ -389,14 +393,17 @@ MoveResult Board_CheckKnightMove(const Board* b, const Move m) {
 
     Piece pieceTaken = {};
     if (!Piece_IsEmpty(dstPiece)) {
-        if (dstPiece->side == piece->side) {
+        if (dstPiece.side == piece.side) {
             return (MoveResult){.err = MOVE_ERR_OBSTACLE, .obstacleAt = m.to};
         }
 
-        pieceTaken = *dstPiece;
+        pieceTaken = dstPiece;
     }
 
-    return (MoveResult){.err = MOVE_ERR_OK, .pieceTaken = pieceTaken};
+    return (MoveResult){
+        .err        = MOVE_ERR_OK,
+        .pieceTaken = pieceTaken,
+    };
 }
 
 MoveResult Board_CheckBishopMove(const Board* b, const Move m) {
@@ -404,7 +411,7 @@ MoveResult Board_CheckBishopMove(const Board* b, const Move m) {
     assert(Move_IsValid(m));
 
     const auto direction = Vec2I_FromPos(m.from, m.to);
-    const auto piece     = Squares_ConstAt(b->squares, m.from);
+    const auto piece     = Squares_At(b->squares, m.from);
 
     if (abs(direction.y) != abs(direction.x)) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL};
@@ -413,21 +420,30 @@ MoveResult Board_CheckBishopMove(const Board* b, const Move m) {
     const auto distance   = (size_t)abs(direction.y);
     Piece      pieceTaken = {};
     for (size_t i = 1; i < distance + 1; i++) {
-        const Pos  p      = {.row = m.from.row + sign(direction.y) * i, .col = m.from.col + sign(direction.x) * i};
-        const auto square = Squares_ConstAt(b->squares, p);
+        const Pos p = {
+            .row = m.from.row + sign(direction.y) * i,
+            .col = m.from.col + sign(direction.x) * i,
+        };
+        const auto square = Squares_At(b->squares, p);
         if (Piece_IsEmpty(square)) {
             continue;
         }
 
-        if (i == distance && square->side != piece->side) {
-            pieceTaken = *square;
+        if (i == distance && square.side != piece.side) {
+            pieceTaken = square;
             break;
         }
 
-        return (MoveResult){.err = MOVE_ERR_OBSTACLE, .obstacleAt = p};
+        return (MoveResult){
+            .err        = MOVE_ERR_OBSTACLE,
+            .obstacleAt = p,
+        };
     }
 
-    return (MoveResult){.err = MOVE_ERR_OK, .pieceTaken = pieceTaken};
+    return (MoveResult){
+        .err        = MOVE_ERR_OK,
+        .pieceTaken = pieceTaken,
+    };
 }
 
 MoveResult Board_CheckQueenMove(const Board* b, const Move m) {
@@ -461,43 +477,50 @@ MoveResult Board_CheckKingMove(const Board* b, const Move m) {
     assert(Move_IsValid(m));
 
     const auto direction = Vec2I_FromPos(m.from, m.to);
-    const auto piece     = Squares_ConstAt(b->squares, m.from);
-    const auto dstPiece  = Squares_ConstAt(b->squares, m.to);
+    const auto piece     = Squares_At(b->squares, m.from);
+    const auto dstPiece  = Squares_At(b->squares, m.to);
 
     if (abs(direction.y) > 1 || abs(direction.x) > 1) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL};
     }
 
-    if (dstPiece->side == piece->side) {
-        return (MoveResult){.err = MOVE_ERR_OBSTACLE, .obstacleAt = m.to};
+    if (dstPiece.side == piece.side) {
+        return (MoveResult){
+            .err        = MOVE_ERR_OBSTACLE,
+            .obstacleAt = m.to,
+        };
     }
 
-    return (MoveResult){.err = MOVE_ERR_OK, .pieceTaken = *dstPiece};
+    return (MoveResult){
+        .err        = MOVE_ERR_OK,
+        .pieceTaken = dstPiece,
+    };
 }
 
 bool Threat_IsValid(const Threat t) { return Pos_IsValid(t.pos) && PieceType_IsValid(t.pieceType); }
 
-size_t Threats_Collect(Threats* dst, const Board* b, const Pos p) {
-    const auto piece = Squares_ConstAt(b->squares, p);
+void Threats_Collect(Threats* dst, const Board* b, const Pos p) {
+    const auto piece = Squares_At(b->squares, p);
     if (Piece_IsEmpty(piece)) {
-        return 0;
+        return;
     }
 
-    size_t collected = 0;
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
             const Pos  opponentPos = {.col = i, .row = j};
-            const auto opponent    = Squares_ConstAt(b->squares, opponentPos);
-            if (opponent->side == piece->side) {
+            const auto opponent    = Squares_At(b->squares, opponentPos);
+            if (opponent.side == piece.side) {
                 continue;
             }
 
             const auto result = Board_CheckMove(b, (Move){.from = opponentPos, .to = p});
             if (result.err == MOVE_ERR_OK) {
-                collected += Threats_Append(dst, (Threat){.pos = opponentPos, .pieceType = opponent->type});
+                const Threat threat = {
+                    .pos       = opponentPos,
+                    .pieceType = opponent.type,
+                };
+                Threats_Append(dst, threat);
             }
         }
     }
-
-    return collected;
 }
