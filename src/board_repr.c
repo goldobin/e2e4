@@ -56,9 +56,9 @@ constexpr char UNICODE_BLACK_BISHOP[4] = "\u265D";
 constexpr char UNICODE_BLACK_KNIGHT[4] = "\u265E";
 constexpr char UNICODE_BLACK_PAWN[4]   = "\u265F";
 
-const char* Piece_ToUnicodeChar(const Piece* p) {
-    if (p->side == SIDE_WHITE) {
-        switch (p->type) {
+const char* Piece_ToUnicodeChar(Piece p) {
+    if (p.side == SIDE_WHITE) {
+        switch (p.type) {
             case PIECE_TYPE_KING:
                 return UNICODE_WHITE_KING;
             case PIECE_TYPE_QUEEN:
@@ -75,7 +75,7 @@ const char* Piece_ToUnicodeChar(const Piece* p) {
                 return ".";
         }
     }
-    switch (p->type) {
+    switch (p.type) {
         case PIECE_TYPE_KING:
             return UNICODE_BLACK_KING;
         case PIECE_TYPE_QUEEN:
@@ -434,7 +434,7 @@ size_t CharSlice_WriteMoveResult(CharSlice* dst, const MoveResult* a) {
         written += CharSlice_WritePos(dst, a->obstacleAt);
     }
 
-    if (!Piece_IsEmpty(&a->pieceTaken)) {
+    if (!Piece_IsEmpty(a->pieceTaken)) {
         written += CharSlice_WriteChar(dst, ',');
         written += CharSlice_WritePiece(dst, a->pieceTaken);
     }
@@ -470,9 +470,8 @@ BoardParseResult Board_Parse(Board* dst, const CharSlice src) {
             };
         }
 
-        const Pos  pos = {.col = i % BOARD_SIDE_LEN, .row = i / BOARD_SIDE_LEN};
-        const auto sq  = Squares_At(dst->squares, pos);
-        *sq            = piece;
+        const Pos pos = {.col = i % BOARD_SIDE_LEN, .row = i / BOARD_SIDE_LEN};
+        Squares_UpdateAt(dst->squares, pos, piece);
         i++;
     }
 
@@ -484,12 +483,12 @@ size_t CharSlice_WriteBoard(CharSlice* dst, const Board* b) {
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; ++j) {
             const Pos  pos   = {.row = i, .col = j};
-            const auto piece = Squares_ConstAt(b->squares, pos);
+            const auto piece = Squares_At(b->squares, pos);
             char       pieceChar;
-            if (piece->side == SIDE_WHITE) {
-                pieceChar = PieceType_ToUpperCaseChar(piece->type);
+            if (piece.side == SIDE_WHITE) {
+                pieceChar = PieceType_ToUpperCaseChar(piece.type);
             } else {
-                pieceChar = PieceType_ToLowerCaseChar(piece->type);
+                pieceChar = PieceType_ToLowerCaseChar(piece.type);
             }
             written += CharSlice_WriteChar(dst, pieceChar);
         }

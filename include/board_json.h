@@ -14,9 +14,9 @@ bool Board_InterpretJson(Board* dst, JsonSource* src);
 
 // Write
 
-size_t CharSlice_WritePieceAsJson(CharSlice* dst, JsonStack* js, const Piece* p);
+size_t CharSlice_WritePieceAsJson(CharSlice* dst, JsonStack* js, Piece p);
 size_t CharSlice_WriteSquaresAsJson(CharSlice* dst, JsonStack* js, const Squares src);
-size_t CharSlice_WritePieceTypeArrAsJson(CharSlice* dst, JsonStack* js, const PieceTypes* src);
+size_t CharSlice_WritePieceTypesAsJson(CharSlice* dst, JsonStack* js, PieceTypes src);
 size_t CharSlice_WriteSideStateAsJson(CharSlice* dst, JsonStack* js, const SideState* src);
 size_t CharSlice_WriteBoardAsJson(CharSlice* dst, JsonStack* js, const Board* src);
 

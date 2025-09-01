@@ -31,11 +31,11 @@ void printBoard(const Board* b) {
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; ++j) {
             const Pos   pos       = {.row = i, .col = j};
-            const auto  piece     = Squares_ConstAt(b->squares, pos);
+            const auto  piece     = Squares_At(b->squares, pos);
             const char  rowChar   = (char)(ROW_CHAR_MIN + (BOARD_SIDE_LEN - i - 1));
             const char* pieceChar = Piece_ToUnicodeChar(piece);
             auto        color     = ANSI_COLOR_WHITE_HIGH;
-            if ((piece->type == PIECE_TYPE_UNSPECIFIED && (i + j) % 2 == 0) || piece->side == SIDE_BLACK) {
+            if ((piece.type == PIECE_TYPE_UNSPECIFIED && (i + j) % 2 == 0) || piece.side == SIDE_BLACK) {
                 color = ANSI_COLOR_WHITE_LOW;
             }
 
@@ -185,14 +185,14 @@ int main(const int argc, char* argv[]) {
             continue;
         }
 
-        const auto p = Squares_ConstAt(b.squares, m.from);
-        if (p->type == PIECE_TYPE_UNSPECIFIED) {
+        const auto p = Squares_At(b.squares, m.from);
+        if (p.type == PIECE_TYPE_UNSPECIFIED) {
             printf("No piece to move\n");
             continue;
         }
 
-        if (p->side != b.nextMoveSide) {
-            const char* pieceSideStr = p->side == SIDE_WHITE ? "white" : "black";
+        if (p.side != b.nextMoveSide) {
+            const char* pieceSideStr = p.side == SIDE_WHITE ? "white" : "black";
             printf("Can't move %s piece\n", pieceSideStr);
             continue;
         }

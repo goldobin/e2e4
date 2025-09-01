@@ -65,8 +65,8 @@ bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSource* src) {
             return false;
         }
 
-        const auto pieceType   = PieceType_Parse(JsonSource_Value(src));
-        *PieceTypes_At(dst, i) = pieceType;
+        const auto pieceType = PieceType_Parse(JsonSource_Value(src));
+        PieceTypes_UpdateAt(dst, i, pieceType);
     }
 
     return true;
@@ -177,7 +177,7 @@ bool Squares_InterpretJson(Squares dst, JsonSource* src) {
             return false;
         };
 
-        *Squares_At(dst, pos) = piece;
+        Squares_UpdateAt(dst, pos, piece);
     }
 
     return true;
@@ -185,15 +185,15 @@ bool Squares_InterpretJson(Squares dst, JsonSource* src) {
 
 // Write
 
-size_t CharSlice_WritePieceAsJson(CharSlice* dst, JsonStack* js, const Piece* p) {
+size_t CharSlice_WritePieceAsJson(CharSlice* dst, JsonStack* js, const Piece p) {
     assert(dst != nullptr);
     assert(js != nullptr);
 
     auto pieceTypeSlice = CharSlice_Make(0, 32);
     auto sideSlice      = CharSlice_Make(0, 32);
 
-    CharSlice_WritePieceType(&pieceTypeSlice, p->type);
-    CharSlice_WriteSide(&sideSlice, p->side);
+    CharSlice_WritePieceType(&pieceTypeSlice, p.type);
+    CharSlice_WriteSide(&sideSlice, p.side);
 
     size_t written = 0;
     written += CharSlice_WriteJsonStart(dst, js, '{');
@@ -213,7 +213,7 @@ size_t CharSlice_WriteSquaresAsJson(CharSlice* dst, JsonStack* js, const Squares
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
             const Pos  pos   = {.row = i, .col = j};
-            const auto piece = Squares_ConstAt(src, pos);
+            const auto piece = Squares_At(src, pos);
 
             if (!Piece_IsEmpty(piece)) {
                 auto posSlice = CharSlice_Make(0, 64);
@@ -228,17 +228,16 @@ size_t CharSlice_WriteSquaresAsJson(CharSlice* dst, JsonStack* js, const Squares
     return written;
 }
 
-size_t CharSlice_WritePieceTypeArrAsJson(CharSlice* dst, JsonStack* js, const PieceTypes* src) {
+size_t CharSlice_WritePieceTypesAsJson(CharSlice* dst, JsonStack* js, const PieceTypes src) {
     assert(dst != nullptr);
     assert(js != nullptr);
-    assert(src != nullptr);
 
     size_t written = 0;
     written += CharSlice_WriteJsonStart(dst, js, '[');
-    for (size_t i = 0; i < src->len; i++) {
-        const auto piece      = TakenPieces_At(src, i);
+    for (size_t i = 0; i < src.len; i++) {
+        const auto t          = PieceTypes_At(src, i);
         auto       pieceSlice = CharSlice_Make(0, 64);
-        CharSlice_WritePieceType(&pieceSlice, piece);
+        CharSlice_WritePieceType(&pieceSlice, t);
         written += CharSlice_WriteJsonString(dst, js, pieceSlice);
     }
     written += CharSlice_WriteJsonEnd(dst, js);
@@ -255,7 +254,7 @@ size_t CharSlice_WriteSideStateAsJson(CharSlice* dst, JsonStack* js, const SideS
     written += CharSlice_WriteJsonKey(dst, js, CHAR_SLICE("king_castled"));
     written += CharSlice_WriteJsonBool(dst, js, src->hasKingCastled);
     written += CharSlice_WriteJsonKey(dst, js, CHAR_SLICE("taken"));
-    written += CharSlice_WritePieceTypeArrAsJson(dst, js, &src->taken);
+    written += CharSlice_WritePieceTypesAsJson(dst, js, src->taken);
     written += CharSlice_WriteJsonEnd(dst, js);
     return written;
 }
