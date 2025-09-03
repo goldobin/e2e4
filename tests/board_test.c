@@ -711,6 +711,18 @@ void Test_Board_MakeMove(void) {
                     },
             },
             {
+                .name = "case 6.8 pawn, illegal move",
+                .m    = {.from = {.row = 1, .col = 3}, .to = {.row = 7, .col = 4}},
+                .b =
+                    {
+                        .state = BOARD_STATE_IN_PROGRESS,
+                        .side  = SIDE_BLACK,
+                        .squares =
+                            {[1][3] = BLACK_PAWN, [7][4] = WHITE_QUEEN, [0][4] = BLACK_KING, [7][7] = WHITE_KING},
+                    },
+                .want = {.err = MOVE_ERR_ILLEGAL_MOVE},
+            },
+            {
                 .name = "case 7.1 king, no obstacle",
                 .m    = parseMove(CHAR_SLICE("a1b2")),
                 .b =
@@ -829,7 +841,7 @@ void Test_Board_MakeMove(void) {
                         .state = BOARD_STATE_IN_PROGRESS,
                         .side  = SIDE_BLACK,
                         .squares =
-                            {[7][0] = WHITE_KING, [5][1] = BLACK_QUEEN, [4][2] = BLACK_PAWN, [7][7] = BLACK_KING},
+                            {[7][0] = WHITE_KING, [5][1] = BLACK_QUEEN, [5][2] = BLACK_PAWN, [7][7] = BLACK_KING},
                     },
                 .want = {.err = MOVE_ERR_OK},
                 .wantB =
@@ -837,7 +849,7 @@ void Test_Board_MakeMove(void) {
                         .state = BOARD_STATE_CHECKMATE,
                         .side  = SIDE_BLACK,
                         .squares =
-                            {[7][0] = WHITE_KING, [6][1] = BLACK_QUEEN, [4][2] = BLACK_PAWN, [7][7] = BLACK_KING},
+                            {[7][0] = WHITE_KING, [6][1] = BLACK_QUEEN, [5][2] = BLACK_PAWN, [7][7] = BLACK_KING},
                         .white.check = true,
                     },
             },
@@ -846,7 +858,7 @@ void Test_Board_MakeMove(void) {
     constexpr size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
-        // if (strncmp("case 7.6 king, check", tt.name, 64) != 0) {
+        // if (strncmp("case 7.8 king, checkmate", tt.name, 64) != 0) {
         //     continue;
         // }
 
