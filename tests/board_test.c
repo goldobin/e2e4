@@ -784,12 +784,69 @@ void Test_Board_MakeMove(void) {
                         .white.taken = {.arr = {PIECE_TYPE_PAWN}, .len = 1},
                     },
             },
+            {
+                .name = "case 7.6 king, check",
+                .m    = parseMove(CHAR_SLICE("b3b2")),
+                .b =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_BLACK,
+                        .squares = {[7][0] = WHITE_KING, [5][1] = BLACK_PAWN, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_OK},
+                .wantB =
+                    {
+                        .state       = BOARD_STATE_IN_PROGRESS,
+                        .side        = SIDE_WHITE,
+                        .squares     = {[7][0] = WHITE_KING, [6][1] = BLACK_PAWN, [7][7] = BLACK_KING},
+                        .white.check = true,
+                    },
+            },
+            {
+                .name = "case 7.7 king, remove check",
+                .m    = parseMove(CHAR_SLICE("a1b2")),
+                .b =
+                    {
+                        .state       = BOARD_STATE_IN_PROGRESS,
+                        .side        = SIDE_WHITE,
+                        .squares     = {[7][0] = WHITE_KING, [6][1] = BLACK_PAWN, [7][7] = BLACK_KING},
+                        .white.check = true,
+                    },
+                .want = {.err = MOVE_ERR_OK, .pieceTaken = BLACK_PAWN},
+                .wantB =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_BLACK,
+                        .squares = {[6][1] = WHITE_KING, [7][7] = BLACK_KING},
+                        .white   = {.check = false, .taken = {.arr = {PIECE_TYPE_PAWN}, .len = 1}},
+                    },
+            },
+            {
+                .name = "case 7.8 king, checkmate",
+                .m    = parseMove(CHAR_SLICE("b3b2")),
+                .b =
+                    {
+                        .state = BOARD_STATE_IN_PROGRESS,
+                        .side  = SIDE_BLACK,
+                        .squares =
+                            {[7][0] = WHITE_KING, [5][1] = BLACK_QUEEN, [4][2] = BLACK_PAWN, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_OK},
+                .wantB =
+                    {
+                        .state = BOARD_STATE_CHECKMATE,
+                        .side  = SIDE_BLACK,
+                        .squares =
+                            {[7][0] = WHITE_KING, [6][1] = BLACK_QUEEN, [4][2] = BLACK_PAWN, [7][7] = BLACK_KING},
+                        .white.check = true,
+                    },
+            },
         };
 
     constexpr size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
-        // if (strncmp("case 6.7 pawn, take piece", tt.name, 64) != 0) {
+        // if (strncmp("case 7.6 king, check", tt.name, 64) != 0) {
         //     continue;
         // }
 

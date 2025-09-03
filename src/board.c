@@ -155,21 +155,13 @@ void Squares_InitDefaultLayout(Squares dst) {
     }
 }
 
-bool Pos_Find(Pos* dst, const Squares src, const PieceType t, const Side s) {
+bool Pos_Find(Pos* dst, const Squares src, const Piece p) {
     assert(src != nullptr);
     assert(dst != nullptr);
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
-            const auto piece = src[i][j];
-            bool       found = false;
-            if (t != PIECE_TYPE_UNSPECIFIED && t == piece.type) {
-                found = true;
-            }
-            if (s != SIDE_UNSPECIFIED && s == piece.side) {
-                found = true;
-            }
-            if (found) {
+            if (Piece_Equals(src[i][j], p)) {
                 *dst = (Pos){.row = i, .col = j};
                 return true;
             }
@@ -236,7 +228,7 @@ bool Squares_CanKingMove(const Squares ss, const Pos p) {
     Positions ps = {};
     Positions_Around(&ps, p);
     for (size_t i = 0; i < ps.len; i++) {
-        const Move m = (Move){.from = p, .to = ps.arr[i]};
+        const auto m = (Move){.from = p, .to = ps.arr[i]};
         const auto r = Squares_CheckKingMove(ss, m);
         if (r.err != MOVE_ERR_OK) {
             continue;
@@ -301,6 +293,9 @@ bool SideState_Equals(const SideState* a, SideState const* b) {
     assert(b != nullptr);
 
     if (a->hasKingCastled != b->hasKingCastled) {
+        return false;
+    }
+    if (a->check != b->check) {
         return false;
     }
     if (!PieceTypes_Equals(a->taken, b->taken)) {
@@ -394,21 +389,30 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
     const auto oppositeSideState = Board_SideStateRef(dst, Side_Opposite(side));
 
     Squares_Move(dst->squares, m.to, m.from);
-    dst->side = oppositeSide;
-
     if (result.pieceTaken.type != PIECE_TYPE_UNSPECIFIED) {
         PieceTypes_Push(&sideState->taken, result.pieceTaken.type);
     }
 
-    Pos otherKingPos = {};
-    if (!Pos_Find(&otherKingPos, dst->squares, PIECE_TYPE_KING, oppositeSide)) {
+    const Piece kingPiece = {.side = side, .type = PIECE_TYPE_KING};
+    Pos         kingPos   = {};
+    if (!Pos_Find(&kingPos, dst->squares, kingPiece)) {
         assert(false);
     };
 
-    if (Squares_IsThreatened(dst->squares, otherKingPos)) {
-        oppositeSideState->check = true;
+    const Piece oppositeKingPiece = {.side = oppositeSide, .type = PIECE_TYPE_KING};
+    Pos         otherKingPos      = {};
+    if (!Pos_Find(&otherKingPos, dst->squares, oppositeKingPiece)) {
+        assert(false);
+    };
+
+    sideState->check         = Squares_IsThreatened(dst->squares, kingPos);
+    oppositeSideState->check = Squares_IsThreatened(dst->squares, otherKingPos);
+    if (oppositeSideState->check && !Squares_CanKingMove(dst->squares, otherKingPos)) {
+        dst->state = BOARD_STATE_CHECKMATE;
+        return result;
     }
 
+    dst->side = oppositeSide;
     return result;
 }
 
