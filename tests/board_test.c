@@ -665,7 +665,7 @@ void Test_Board_MakeMove(void) {
                         .side    = SIDE_WHITE,
                         .squares = {[6][4] = WHITE_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_ILLEGAL},
+                .want = {.err = MOVE_ERR_ILLEGAL_MOVE},
             },
             {
                 .name = "case 6.5 pawn, obstacle",
@@ -708,6 +708,80 @@ void Test_Board_MakeMove(void) {
                         .side        = SIDE_BLACK,
                         .squares     = {[4][4] = WHITE_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                         .white.taken = {.arr = {PIECE_TYPE_QUEEN}, .len = 1},
+                    },
+            },
+            {
+                .name = "case 7.1 king, no obstacle",
+                .m    = parseMove(CHAR_SLICE("a1b2")),
+                .b =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_WHITE,
+                        .squares = {[7][0] = WHITE_KING, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_OK},
+                .wantB =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_BLACK,
+                        .squares = {[6][1] = WHITE_KING, [7][7] = BLACK_KING},
+                    },
+            },
+            {
+                .name = "case 7.2 king, no obstacle",
+                .m    = parseMove(CHAR_SLICE("a1a2")),
+                .b =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_WHITE,
+                        .squares = {[7][0] = WHITE_KING, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_OK},
+                .wantB =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_BLACK,
+                        .squares = {[6][0] = WHITE_KING, [7][7] = BLACK_KING},
+                    },
+            },
+            {
+                .name = "case 7.3 king, illegal move",
+                .m    = parseMove(CHAR_SLICE("a1c3")),
+                .b =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_WHITE,
+                        .squares = {[7][0] = WHITE_KING, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_ILLEGAL_MOVE},
+            },
+            {
+                .name = "case 7.4 king, obstacle",
+                .m    = parseMove(CHAR_SLICE("a1b2")),
+                .b =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_WHITE,
+                        .squares = {[7][0] = WHITE_KING, [6][1] = WHITE_PAWN, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(CHAR_SLICE("b2"))},
+            },
+            {
+                .name = "case 7.5 king, take piece",
+                .m    = parseMove(CHAR_SLICE("a1b2")),
+                .b =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_WHITE,
+                        .squares = {[7][0] = WHITE_KING, [6][1] = BLACK_PAWN, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_OK, .pieceTaken = BLACK_PAWN},
+                .wantB =
+                    {
+                        .state       = BOARD_STATE_IN_PROGRESS,
+                        .side        = SIDE_BLACK,
+                        .squares     = {[6][1] = WHITE_KING, [7][7] = BLACK_KING},
+                        .white.taken = {.arr = {PIECE_TYPE_PAWN}, .len = 1},
                     },
             },
         };

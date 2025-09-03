@@ -384,7 +384,7 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
         Squares_Copy(squaresCopy, dst->squares);
         Squares_Move(squaresCopy, m.to, m.from);
         if (Squares_IsThreatened(squaresCopy, m.to)) {
-            return (MoveResult){.err = MOVE_ERR_ILLEGAL};
+            return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
         }
     }
 
@@ -451,7 +451,7 @@ MoveResult Squares_CheckPawnMove(const Squares ss, const Move m) {
     const auto validDirection = piece.side == SIDE_WHITE ? -1 : 1;
 
     if (sign(direction.y) != validDirection) {
-        return (MoveResult){.err = MOVE_ERR_ILLEGAL};
+        return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
     const auto distance = abs(direction.y);
@@ -461,11 +461,11 @@ MoveResult Squares_CheckPawnMove(const Squares ss, const Move m) {
     }
 
     if (direction.x != 0) {
-        return (MoveResult){.err = MOVE_ERR_ILLEGAL};
+        return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
     if (Pos_BoardSide(m.to) != piece.side && distance > 1) {
-        return (MoveResult){.err = MOVE_ERR_ILLEGAL};
+        return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
     for (int i = 1; i < distance + 1; i++) {
@@ -495,7 +495,7 @@ MoveResult Squares_CheckRookMove(const Squares ss, const Move m) {
     const auto piece     = Squares_At(ss, m.from);
 
     if (direction.y != 0 && direction.x != 0) {
-        return (MoveResult){.err = MOVE_ERR_ILLEGAL};
+        return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
     const auto distance   = MaxSizeT((size_t)abs(direction.y), (size_t)abs(direction.x));
@@ -536,7 +536,7 @@ MoveResult Squares_CheckKnightMove(const Squares ss, const Move m) {
     const auto dstPiece  = Squares_At(ss, m.to);
 
     if ((abs(direction.y) != 2 || abs(direction.x) != 1) && (abs(direction.y) != 1 || abs(direction.x) != 2)) {
-        return (MoveResult){.err = MOVE_ERR_ILLEGAL};
+        return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
     Piece pieceTaken = {};
@@ -562,7 +562,7 @@ MoveResult Squares_CheckBishopMove(const Squares ss, const Move m) {
     const auto piece     = Squares_At(ss, m.from);
 
     if (abs(direction.y) != abs(direction.x)) {
-        return (MoveResult){.err = MOVE_ERR_ILLEGAL};
+        return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
     const auto distance   = (size_t)abs(direction.y);
@@ -616,7 +616,7 @@ MoveResult Squares_CheckQueenMove(const Squares ss, const Move m) {
             break;
     }
     return (MoveResult){
-        .err = MOVE_ERR_ILLEGAL,
+        .err = MOVE_ERR_ILLEGAL_MOVE,
     };
 }
 
@@ -629,7 +629,7 @@ MoveResult Squares_CheckKingMove(const Squares ss, const Move m) {
     const auto dstPiece  = Squares_At(ss, m.to);
 
     if (abs(direction.y) > 1 || abs(direction.x) > 1) {
-        return (MoveResult){.err = MOVE_ERR_ILLEGAL};
+        return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
     if (dstPiece.side == piece.side) {

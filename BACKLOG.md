@@ -8,7 +8,7 @@
 - [x] Replace CharSlice_Wrap with CharSlice_Make
 - [x] Simplify JSON interpretation by using JsonSource
 - [x] Test pawn move
-- [ ] Test king move
+- [x] Test king move
 - [ ] Implement game loop
   - [x] Read board from a file
   - [x] Write board to JSON file
