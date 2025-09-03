@@ -8,6 +8,19 @@
 #include "board_json.h"
 #include "board_repr.h"
 
+constexpr Piece WHITE_PAWN   = {.side = SIDE_WHITE, .type = PIECE_TYPE_PAWN};
+constexpr Piece BLACK_PAWN   = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN};
+constexpr Piece WHITE_ROOK   = {.side = SIDE_WHITE, .type = PIECE_TYPE_ROOK};
+constexpr Piece BLACK_ROOK   = {.side = SIDE_BLACK, .type = PIECE_TYPE_ROOK};
+constexpr Piece WHITE_KNIGHT = {.side = SIDE_WHITE, .type = PIECE_TYPE_KNIGHT};
+constexpr Piece BLACK_KNIGHT = {.side = SIDE_BLACK, .type = PIECE_TYPE_KNIGHT};
+constexpr Piece WHITE_BISHOP = {.side = SIDE_WHITE, .type = PIECE_TYPE_BISHOP};
+constexpr Piece BLACK_BISHOP = {.side = SIDE_BLACK, .type = PIECE_TYPE_BISHOP};
+constexpr Piece WHITE_QUEEN  = {.side = SIDE_WHITE, .type = PIECE_TYPE_QUEEN};
+constexpr Piece BLACK_QUEEN  = {.side = SIDE_BLACK, .type = PIECE_TYPE_QUEEN};
+constexpr Piece WHITE_KING   = {.side = SIDE_WHITE, .type = PIECE_TYPE_KING};
+constexpr Piece BLACK_KING   = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING};
+
 void setUp(void) {}
 void tearDown(void) {}
 
@@ -412,7 +425,7 @@ void Test_Board_MakeMove(void) {
                         .side    = SIDE_WHITE,
                         .squares = {[6][0] = WHITE_ROOK, [6][4] = BLACK_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OK, .pieceTaken = BLACK_PAWN},
+                .want = {.err = MOVE_ERR_OK, .taken = PIECE_TYPE_PAWN},
                 .wantB =
                     {
                         .state       = BOARD_STATE_IN_PROGRESS,
@@ -475,7 +488,7 @@ void Test_Board_MakeMove(void) {
                         .squares =
                             {[7][0] = WHITE_BISHOP, [5][2] = BLACK_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OK, .pieceTaken = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN}},
+                .want = {.err = MOVE_ERR_OK, .taken = PIECE_TYPE_PAWN},
                 .wantB =
                     {
                         .state       = BOARD_STATE_IN_PROGRESS,
@@ -557,7 +570,7 @@ void Test_Board_MakeMove(void) {
                         .squares =
                             {[7][0] = WHITE_QUEEN, [3][4] = BLACK_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OK, .pieceTaken = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN}},
+                .want = {.err = MOVE_ERR_OK, .taken = PIECE_TYPE_PAWN},
                 .wantB =
                     {
                         .state       = BOARD_STATE_IN_PROGRESS,
@@ -610,7 +623,7 @@ void Test_Board_MakeMove(void) {
                         .squares =
                             {[7][0] = WHITE_KNIGHT, [5][1] = BLACK_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OK, .pieceTaken = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN}},
+                .want = {.err = MOVE_ERR_OK, .taken = PIECE_TYPE_PAWN},
                 .wantB =
                     {
                         .state       = BOARD_STATE_IN_PROGRESS,
@@ -701,7 +714,7 @@ void Test_Board_MakeMove(void) {
                         .squares =
                             {[5][3] = WHITE_PAWN, [4][4] = BLACK_QUEEN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OK, .pieceTaken = BLACK_QUEEN},
+                .want = {.err = MOVE_ERR_OK, .taken = PIECE_TYPE_QUEEN},
                 .wantB =
                     {
                         .state       = BOARD_STATE_IN_PROGRESS,
@@ -787,7 +800,7 @@ void Test_Board_MakeMove(void) {
                         .side    = SIDE_WHITE,
                         .squares = {[7][0] = WHITE_KING, [6][1] = BLACK_PAWN, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OK, .pieceTaken = BLACK_PAWN},
+                .want = {.err = MOVE_ERR_OK, .taken = PIECE_TYPE_PAWN},
                 .wantB =
                     {
                         .state       = BOARD_STATE_IN_PROGRESS,
@@ -824,7 +837,7 @@ void Test_Board_MakeMove(void) {
                         .squares     = {[7][0] = WHITE_KING, [6][1] = BLACK_PAWN, [7][7] = BLACK_KING},
                         .white.check = true,
                     },
-                .want = {.err = MOVE_ERR_OK, .pieceTaken = BLACK_PAWN},
+                .want = {.err = MOVE_ERR_OK, .taken = PIECE_TYPE_PAWN},
                 .wantB =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,

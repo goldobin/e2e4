@@ -36,19 +36,6 @@ typedef struct {
     PieceType type;
 } Piece;
 
-constexpr Piece WHITE_PAWN   = {.side = SIDE_WHITE, .type = PIECE_TYPE_PAWN};
-constexpr Piece BLACK_PAWN   = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN};
-constexpr Piece WHITE_ROOK   = {.side = SIDE_WHITE, .type = PIECE_TYPE_ROOK};
-constexpr Piece BLACK_ROOK   = {.side = SIDE_BLACK, .type = PIECE_TYPE_ROOK};
-constexpr Piece WHITE_KNIGHT = {.side = SIDE_WHITE, .type = PIECE_TYPE_KNIGHT};
-constexpr Piece BLACK_KNIGHT = {.side = SIDE_BLACK, .type = PIECE_TYPE_KNIGHT};
-constexpr Piece WHITE_BISHOP = {.side = SIDE_WHITE, .type = PIECE_TYPE_BISHOP};
-constexpr Piece BLACK_BISHOP = {.side = SIDE_BLACK, .type = PIECE_TYPE_BISHOP};
-constexpr Piece WHITE_QUEEN  = {.side = SIDE_WHITE, .type = PIECE_TYPE_QUEEN};
-constexpr Piece BLACK_QUEEN  = {.side = SIDE_BLACK, .type = PIECE_TYPE_QUEEN};
-constexpr Piece WHITE_KING   = {.side = SIDE_WHITE, .type = PIECE_TYPE_KING};
-constexpr Piece BLACK_KING   = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING};
-
 typedef struct {
     size_t row;
     size_t col;
@@ -74,14 +61,13 @@ typedef enum {
     MOVE_ERR_NO_PIECE,
     MOVE_ERR_NO_MOVEMENT,
     MOVE_ERR_ILLEGAL_MOVE,
-    MOVE_ERR_UNDER_THREAT,
     MOVE_ERR_OBSTACLE
 } MoveErr;
 
 typedef struct {
-    MoveErr err;
-    Pos     obstacleAt;
-    Piece   pieceTaken;
+    MoveErr   err;
+    Pos       obstacleAt;
+    PieceType taken;
 } MoveResult;
 
 typedef struct {
