@@ -110,7 +110,7 @@ bool MoveResult_Equals(const MoveResult* a, const MoveResult* b) {
     assert(a != nullptr);
     assert(b != nullptr);
 
-    return a->err == b->err && Piece_Equals(a->pieceTaken, b->pieceTaken) && Pos_Equals(a->obstacleAt, b->obstacleAt);
+    return a->err == b->err && a->taken == b->taken && Pos_Equals(a->obstacleAt, b->obstacleAt);
 }
 
 void Threats_Append(Threats* dst, const Threat t) {
@@ -389,8 +389,8 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
     const auto oppositeSideState = Board_SideStateRef(dst, Side_Opposite(side));
 
     Squares_Move(dst->squares, m.to, m.from);
-    if (result.pieceTaken.type != PIECE_TYPE_UNSPECIFIED) {
-        PieceTypes_Push(&sideState->taken, result.pieceTaken.type);
+    if (result.taken != PIECE_TYPE_UNSPECIFIED) {
+        PieceTypes_Push(&sideState->taken, result.taken);
     }
 
     const Piece kingPiece = {.side = side, .type = PIECE_TYPE_KING};
@@ -463,7 +463,7 @@ MoveResult Squares_CheckPawnMove(const Squares ss, const Move m) {
     const auto distance = abs(direction.y);
 
     if (toPiece.side != piece.side && abs(direction.x) == 1 && abs(direction.y) == 1) {
-        return (MoveResult){.err = MOVE_ERR_OK, .pieceTaken = toPiece};
+        return (MoveResult){.err = MOVE_ERR_OK, .taken = toPiece.type};
     }
 
     if (direction.x != 0) {
@@ -505,8 +505,8 @@ MoveResult Squares_CheckRookMove(const Squares ss, const Move m) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
-    const auto distance   = MaxSizeT((size_t)abs(direction.y), (size_t)abs(direction.x));
-    Piece      pieceTaken = {};
+    const auto distance = MaxSizeT((size_t)abs(direction.y), (size_t)abs(direction.x));
+    PieceType  taken    = PIECE_TYPE_UNSPECIFIED;
     for (size_t i = 1; i < distance + 1; i++) {
         const Pos p = {
             .row = m.from.row + sign(direction.y) * i,
@@ -518,7 +518,7 @@ MoveResult Squares_CheckRookMove(const Squares ss, const Move m) {
         }
 
         if (i == distance && square.side != piece.side) {
-            pieceTaken = square;
+            taken = square.type;
             break;
         }
 
@@ -529,8 +529,8 @@ MoveResult Squares_CheckRookMove(const Squares ss, const Move m) {
     }
 
     return (MoveResult){
-        .err        = MOVE_ERR_OK,
-        .pieceTaken = pieceTaken,
+        .err   = MOVE_ERR_OK,
+        .taken = taken,
     };
 }
 
@@ -548,18 +548,18 @@ MoveResult Squares_CheckKnightMove(const Squares ss, const Move m) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
-    Piece pieceTaken = {};
+    PieceType taken = PIECE_TYPE_UNSPECIFIED;
     if (!Piece_IsEmpty(toPiece)) {
         if (toPiece.side == piece.side) {
             return (MoveResult){.err = MOVE_ERR_OBSTACLE, .obstacleAt = m.to};
         }
 
-        pieceTaken = toPiece;
+        taken = toPiece.type;
     }
 
     return (MoveResult){
-        .err        = MOVE_ERR_OK,
-        .pieceTaken = pieceTaken,
+        .err   = MOVE_ERR_OK,
+        .taken = taken,
     };
 }
 
@@ -575,8 +575,8 @@ MoveResult Squares_CheckBishopMove(const Squares ss, const Move m) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
-    const auto distance   = (size_t)abs(direction.y);
-    Piece      pieceTaken = {};
+    const auto distance = (size_t)abs(direction.y);
+    PieceType  taken    = PIECE_TYPE_UNSPECIFIED;
     for (size_t i = 1; i < distance + 1; i++) {
         const Pos p = {
             .row = m.from.row + sign(direction.y) * i,
@@ -588,7 +588,7 @@ MoveResult Squares_CheckBishopMove(const Squares ss, const Move m) {
         }
 
         if (i == distance && square.side != piece.side) {
-            pieceTaken = square;
+            taken = square.type;
             break;
         }
 
@@ -599,8 +599,8 @@ MoveResult Squares_CheckBishopMove(const Squares ss, const Move m) {
     }
 
     return (MoveResult){
-        .err        = MOVE_ERR_OK,
-        .pieceTaken = pieceTaken,
+        .err   = MOVE_ERR_OK,
+        .taken = taken,
     };
 }
 
@@ -651,8 +651,8 @@ MoveResult Squares_CheckKingMove(const Squares ss, const Move m) {
     }
 
     return (MoveResult){
-        .err        = MOVE_ERR_OK,
-        .pieceTaken = toPiece,
+        .err   = MOVE_ERR_OK,
+        .taken = toPiece.type,
     };
 }
 

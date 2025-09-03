@@ -354,8 +354,6 @@ size_t CharSlice_WriteMoveError(CharSlice* dst, const MoveErr a) {
             return CharSlice_Write(dst, CHAR_SLICE("ILLEGAL_MOVE"));
         case MOVE_ERR_OBSTACLE:
             return CharSlice_Write(dst, CHAR_SLICE("OBSTACLE"));
-        case MOVE_ERR_UNDER_THREAT:
-            return CharSlice_Write(dst, CHAR_SLICE("UNDER_THREAT"));
         default:
             return CharSlice_WriteF(dst, "UNKNOWN (%d)", a);
     }
@@ -434,9 +432,9 @@ size_t CharSlice_WriteMoveResult(CharSlice* dst, const MoveResult* a) {
         written += CharSlice_WritePos(dst, a->obstacleAt);
     }
 
-    if (!Piece_IsEmpty(a->pieceTaken)) {
+    if (a->taken != PIECE_TYPE_UNSPECIFIED) {
         written += CharSlice_WriteChar(dst, ',');
-        written += CharSlice_WritePiece(dst, a->pieceTaken);
+        written += CharSlice_WritePieceType(dst, a->taken);
     }
 
     written += CharSlice_WriteChar(dst, '}');
