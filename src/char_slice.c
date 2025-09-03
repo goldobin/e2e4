@@ -18,6 +18,7 @@ CharSlice CharSlice_Wrap(char* buffer, const size_t len, const size_t cap) {
         .cap = cap,
     };
 }
+
 bool CharSlice_Equals(const CharSlice a, const CharSlice b) {
     assert(CharSlice_IsValid(a));
     assert(CharSlice_IsValid(b));

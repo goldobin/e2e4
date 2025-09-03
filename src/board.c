@@ -81,6 +81,12 @@ bool PieceTypes_Resize(PieceTypes* dst, const size_t len) {
     dst->len = len;
     return true;
 }
+void PieceTypes_Push(PieceTypes* dst, PieceType t) {
+    assert(dst != nullptr);
+    assert(dst->len < PIECE_TYPES_CAP);
+
+    dst->arr[dst->len++] = t;
+}
 
 PieceType PieceTypes_At(PieceTypes slice, size_t i) {
     assert(i < slice.len);
@@ -115,7 +121,7 @@ void Threats_Append(Threats* dst, const Threat t) {
     dst->items[dst->len++] = t;
 }
 
-void Squares_PlacePieces(Squares dst) {
+void Squares_InitDefaultLayout(Squares dst) {
     assert(dst != nullptr);
 
     dst[7][0] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_WHITE};
@@ -201,6 +207,16 @@ void Positions_Append(Positions* dst, Pos p) {
     assert(dst->len < POSITIONS_CAP);
 
     dst->arr[dst->len++] = p;
+}
+Side Side_Opposite(const Side s) {
+    switch (s) {
+        case SIDE_WHITE:
+            return SIDE_BLACK;
+        case SIDE_BLACK:
+            return SIDE_WHITE;
+        default:
+            assert(false);
+    }
 }
 
 bool Squares_IsThreatened(const Squares ss, Pos pos) {
@@ -300,14 +316,24 @@ void SideState_Copy(const SideState* src, SideState* dst) {
     dst->hasKingCastled = src->hasKingCastled;
     PieceTypes_Copy(&dst->taken, &src->taken);
 }
+void Board_Init(Board* dst) {
+    assert(dst != nullptr);
+
+    dst->side  = SIDE_WHITE;
+    dst->state = BOARD_STATE_IN_PROGRESS;
+    Squares_InitDefaultLayout(dst->squares);
+}
 
 bool Board_Equals(const Board* a, const Board* b) {
     assert(a != nullptr);
     assert(b != nullptr);
 
-    if (a->nextMoveSide != b->nextMoveSide) {
+    if (a->state != b->state) {
         return false;
-    };
+    }
+    if (a->side != b->side) {
+        return false;
+    }
     if (!SideState_Equals(&a->white, &b->white)) {
         return false;
     }
@@ -325,13 +351,28 @@ void Board_Copy(Board* dst, const Board* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    dst->nextMoveSide = src->nextMoveSide;
+    dst->side = src->side;
     SideState_Copy(&src->white, &dst->white);
     SideState_Copy(&src->black, &dst->black);
     Squares_Copy(dst->squares, src->squares);
 }
+SideState* Board_SideStateRef(Board* b, const Side s) {
+    switch (s) {
+        case SIDE_WHITE:
+            return &b->white;
+        case SIDE_BLACK:
+            return &b->black;
+        default:
+            assert(false);
+    }
+}
 
 MoveResult Board_MakeMove(Board* dst, const Move m) {
+    assert(dst != nullptr);
+    assert(Move_IsValid(m));
+    assert(dst->state == BOARD_STATE_IN_PROGRESS);
+    assert(dst->side != SIDE_UNSPECIFIED);
+
     const auto result = Squares_CheckMove(dst->squares, m);
     if (result.err != MOVE_ERR_OK) {
         return result;
@@ -347,7 +388,27 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
         }
     }
 
+    const auto side              = dst->side;
+    const auto oppositeSide      = Side_Opposite(dst->side);
+    const auto sideState         = Board_SideStateRef(dst, side);
+    const auto oppositeSideState = Board_SideStateRef(dst, Side_Opposite(side));
+
     Squares_Move(dst->squares, m.to, m.from);
+    dst->side = oppositeSide;
+
+    if (result.pieceTaken.type != PIECE_TYPE_UNSPECIFIED) {
+        PieceTypes_Push(&sideState->taken, result.pieceTaken.type);
+    }
+
+    Pos otherKingPos = {};
+    if (!Pos_Find(&otherKingPos, dst->squares, PIECE_TYPE_KING, oppositeSide)) {
+        assert(false);
+    };
+
+    if (Squares_IsThreatened(dst->squares, otherKingPos)) {
+        oppositeSideState->check = true;
+    }
+
     return result;
 }
 

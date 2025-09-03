@@ -310,31 +310,31 @@ size_t CharSlice_WriteMove(CharSlice* dst, const Move a) {
     return written;
 }
 
-size_t CharSlice_WriteBoardParseErr(CharSlice* dst, const BoardParseErr err) {
+size_t CharSlice_WriteBoardParseErr(CharSlice* dst, const SquaresParseErr err) {
     switch (err) {
-        case BOARD_PARSE_ERR_OK:
+        case SQUARES_PARSE_ERR_OK:
             return CharSlice_Write(dst, CHAR_SLICE("OK"));
-        case BOARD_PARSE_ERR_TOO_SHORT:
+        case SQUARES_PARSE_ERR_TOO_SHORT:
             return CharSlice_Write(dst, CHAR_SLICE("TOO_SHORT"));
-        case BOARD_PARSE_ERR_UNEXPECTED_CHAR:
+        case SQUARES_PARSE_ERR_UNEXPECTED_CHAR:
             return CharSlice_Write(dst, CHAR_SLICE("UNEXPECTED_CHAR"));
         default:
             return CharSlice_WriteF(dst, "UNKNOWN (%d)", err);
     }
 }
 
-bool BoardParseResult_Equals(const BoardParseResult a, const BoardParseResult b) {
+bool SquaresParseResult_Equals(const SquaresParseResult a, const SquaresParseResult b) {
     return a.err == b.err && a.offset == b.offset && a.unexpectedChar == b.unexpectedChar;
 }
 
-size_t CharSlice_WriteBoardParseResult(CharSlice* dst, const BoardParseResult err) {
+size_t CharSlice_WriteBoardParseResult(CharSlice* dst, const SquaresParseResult err) {
     assert(dst != nullptr);
     size_t written = 0;
     written += CharSlice_WriteChar(dst, '{');
     written += CharSlice_WriteBoardParseErr(dst, err.err);
     written += CharSlice_WriteChar(dst, ',');
     written += CharSlice_WriteF(dst, "%zd", err.offset);
-    if (err.err == BOARD_PARSE_ERR_UNEXPECTED_CHAR) {
+    if (err.err == SQUARES_PARSE_ERR_UNEXPECTED_CHAR) {
         written += CharSlice_WriteChar(dst, ',');
         written += CharSlice_WriteChar(dst, err.unexpectedChar);
     }
@@ -443,15 +443,15 @@ size_t CharSlice_WriteMoveResult(CharSlice* dst, const MoveResult* a) {
     return written;
 }
 
-BoardParseResult Board_Parse(Board* dst, const CharSlice src) {
+SquaresParseResult Squares_Parse(Squares dst, const CharSlice src) {
     assert(dst != nullptr);
 
     size_t i      = 0;
     size_t offset = 0;
     while (i < BOARD_SIZE) {
         if (offset >= src.len) {
-            return (BoardParseResult){
-                .err    = BOARD_PARSE_ERR_TOO_SHORT,
+            return (SquaresParseResult){
+                .err    = SQUARES_PARSE_ERR_TOO_SHORT,
                 .offset = offset,
             };
         }
@@ -463,19 +463,19 @@ BoardParseResult Board_Parse(Board* dst, const CharSlice src) {
 
         Piece piece = {};
         if (!Piece_FromChar(&piece, ch)) {
-            return (BoardParseResult){
-                .err            = BOARD_PARSE_ERR_UNEXPECTED_CHAR,
+            return (SquaresParseResult){
+                .err            = SQUARES_PARSE_ERR_UNEXPECTED_CHAR,
                 .offset         = offset,
                 .unexpectedChar = ch,
             };
         }
 
         const Pos pos = {.col = i % BOARD_SIDE_LEN, .row = i / BOARD_SIDE_LEN};
-        Squares_UpdateAt(dst->squares, pos, piece);
+        Squares_UpdateAt(dst, pos, piece);
         i++;
     }
 
-    return (BoardParseResult){.offset = offset};
+    return (SquaresParseResult){.offset = offset};
 }
 
 size_t CharSlice_WriteBoard(CharSlice* dst, const Board* b) {
