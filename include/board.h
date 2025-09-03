@@ -125,7 +125,7 @@ typedef struct {
 bool             Pos_Equals(Pos a, Pos b);
 bool             Pos_IsValid(Pos a);
 Side             Pos_BoardSide(Pos a);
-bool             Pos_Find(Pos* dst, const Squares src, PieceType t, Side s);
+bool             Pos_Find(Pos* dst, const Squares src, Piece p);
 void             Positions_Around(Positions* dst, Pos p);
 void             Positions_Append(Positions* dst, Pos p);
 Side             Side_Opposite(Side s);

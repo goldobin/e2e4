@@ -13,7 +13,7 @@
   - [x] Read board from a file
   - [x] Write board to JSON file
   - [x] Read the board from the JSON file
-  - [ ] Check the "Checkmate" state
+  - [x] Check the "Checkmate" state
   - [ ] Implement pawn exchange move
   - [ ] Implement king's castle move
 - [ ] Move history. Requires dynamically resizable **slice**
