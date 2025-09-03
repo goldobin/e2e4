@@ -211,7 +211,7 @@ Side Side_Opposite(const Side s) {
     }
 }
 
-bool Squares_IsThreatened(const Squares ss, Pos pos) {
+bool Squares_IsThreatened(const Squares ss, const Pos pos) {
     assert(ss != nullptr);
     Threats ts = {};
     Threats_Collect(&ts, ss, pos);
@@ -400,14 +400,14 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
     };
 
     const Piece oppositeKingPiece = {.side = oppositeSide, .type = PIECE_TYPE_KING};
-    Pos         otherKingPos      = {};
-    if (!Pos_Find(&otherKingPos, dst->squares, oppositeKingPiece)) {
+    Pos         oppositeKingPos   = {};
+    if (!Pos_Find(&oppositeKingPos, dst->squares, oppositeKingPiece)) {
         assert(false);
     };
 
     sideState->check         = Squares_IsThreatened(dst->squares, kingPos);
-    oppositeSideState->check = Squares_IsThreatened(dst->squares, otherKingPos);
-    if (oppositeSideState->check && !Squares_CanKingMove(dst->squares, otherKingPos)) {
+    oppositeSideState->check = Squares_IsThreatened(dst->squares, oppositeKingPos);
+    if (oppositeSideState->check && !Squares_CanKingMove(dst->squares, oppositeKingPos)) {
         dst->state = BOARD_STATE_CHECKMATE;
         return result;
     }
@@ -449,9 +449,11 @@ int sign(const int a) { return a > 0 ? 1 : a < 0 ? -1 : 0; }
 MoveResult Squares_CheckPawnMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
+
+    const auto piece = Squares_At(ss, m.from);
+    assert(piece.side != SIDE_UNSPECIFIED);
+    const auto toPiece        = Squares_At(ss, m.to);
     const auto direction      = Vec2I_FromPos(m.from, m.to);
-    const auto piece          = Squares_At(ss, m.from);
-    const auto dstPiece       = Squares_At(ss, m.to);
     const auto validDirection = piece.side == SIDE_WHITE ? -1 : 1;
 
     if (sign(direction.y) != validDirection) {
@@ -460,8 +462,8 @@ MoveResult Squares_CheckPawnMove(const Squares ss, const Move m) {
 
     const auto distance = abs(direction.y);
 
-    if (dstPiece.side != piece.side && distance && abs(direction.x) == 1) {
-        return (MoveResult){.err = MOVE_ERR_OK, .pieceTaken = dstPiece};
+    if (toPiece.side != piece.side && abs(direction.x) == 1 && abs(direction.y) == 1) {
+        return (MoveResult){.err = MOVE_ERR_OK, .pieceTaken = toPiece};
     }
 
     if (direction.x != 0) {
@@ -495,9 +497,10 @@ MoveResult Squares_CheckRookMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
 
-    const auto direction = Vec2I_FromPos(m.from, m.to);
-    const auto piece     = Squares_At(ss, m.from);
+    const auto piece = Squares_At(ss, m.from);
+    assert(piece.side != SIDE_UNSPECIFIED);
 
+    const auto direction = Vec2I_FromPos(m.from, m.to);
     if (direction.y != 0 && direction.x != 0) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
@@ -535,21 +538,23 @@ MoveResult Squares_CheckKnightMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
 
+    const auto piece = Squares_At(ss, m.from);
+    assert(piece.side != SIDE_UNSPECIFIED);
+
+    const auto toPiece   = Squares_At(ss, m.to);
     const auto direction = Vec2I_FromPos(m.from, m.to);
-    const auto piece     = Squares_At(ss, m.from);
-    const auto dstPiece  = Squares_At(ss, m.to);
 
     if ((abs(direction.y) != 2 || abs(direction.x) != 1) && (abs(direction.y) != 1 || abs(direction.x) != 2)) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
     Piece pieceTaken = {};
-    if (!Piece_IsEmpty(dstPiece)) {
-        if (dstPiece.side == piece.side) {
+    if (!Piece_IsEmpty(toPiece)) {
+        if (toPiece.side == piece.side) {
             return (MoveResult){.err = MOVE_ERR_OBSTACLE, .obstacleAt = m.to};
         }
 
-        pieceTaken = dstPiece;
+        pieceTaken = toPiece;
     }
 
     return (MoveResult){
@@ -562,9 +567,10 @@ MoveResult Squares_CheckBishopMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
 
-    const auto direction = Vec2I_FromPos(m.from, m.to);
-    const auto piece     = Squares_At(ss, m.from);
+    const auto piece = Squares_At(ss, m.from);
+    assert(piece.side != SIDE_UNSPECIFIED);
 
+    const auto direction = Vec2I_FromPos(m.from, m.to);
     if (abs(direction.y) != abs(direction.x)) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
@@ -627,16 +633,17 @@ MoveResult Squares_CheckQueenMove(const Squares ss, const Move m) {
 MoveResult Squares_CheckKingMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
+    const auto piece = Squares_At(ss, m.from);
+    assert(piece.side != SIDE_UNSPECIFIED);
 
+    const auto toPiece   = Squares_At(ss, m.to);
     const auto direction = Vec2I_FromPos(m.from, m.to);
-    const auto piece     = Squares_At(ss, m.from);
-    const auto dstPiece  = Squares_At(ss, m.to);
 
     if (abs(direction.y) > 1 || abs(direction.x) > 1) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
-    if (dstPiece.side == piece.side) {
+    if (toPiece.side == piece.side) {
         return (MoveResult){
             .err        = MOVE_ERR_OBSTACLE,
             .obstacleAt = m.to,
@@ -645,7 +652,7 @@ MoveResult Squares_CheckKingMove(const Squares ss, const Move m) {
 
     return (MoveResult){
         .err        = MOVE_ERR_OK,
-        .pieceTaken = dstPiece,
+        .pieceTaken = toPiece,
     };
 }
 
@@ -659,9 +666,9 @@ void Threats_Collect(Threats* dst, const Squares ss, const Pos p) {
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
-            const Pos  opponentPos = {.col = i, .row = j};
+            const auto opponentPos = (Pos){.row = i, .col = j};
             const auto opponent    = Squares_At(ss, opponentPos);
-            if (opponent.side == piece.side) {
+            if (opponent.side == SIDE_UNSPECIFIED || opponent.side == piece.side) {
                 continue;
             }
 
