@@ -203,6 +203,16 @@ int main(const int argc, char* argv[]) {
         if (moveResult.err != MOVE_ERR_OK) {
             printf("Move result: %s\n", moveResultStr.arr);
         }
+
+        if (b.state == BOARD_STATE_CHECKMATE) {
+            printf("Checkmate!\n");
+            break;
+        }
+
+        if (b.state == BOARD_STATE_STALEMATE) {
+            printf("Stalemate!\n");
+            break;
+        }
     }
 
     return 0;
