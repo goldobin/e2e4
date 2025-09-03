@@ -350,8 +350,8 @@ size_t CharSlice_WriteMoveError(CharSlice* dst, const MoveErr a) {
             return CharSlice_Write(dst, CHAR_SLICE("NO_PIECE"));
         case MOVE_ERR_NO_MOVEMENT:
             return CharSlice_Write(dst, CHAR_SLICE("NO_MOVEMENT"));
-        case MOVE_ERR_ILLEGAL:
-            return CharSlice_Write(dst, CHAR_SLICE("ILLEGAL"));
+        case MOVE_ERR_ILLEGAL_MOVE:
+            return CharSlice_Write(dst, CHAR_SLICE("ILLEGAL_MOVE"));
         case MOVE_ERR_OBSTACLE:
             return CharSlice_Write(dst, CHAR_SLICE("OBSTACLE"));
         case MOVE_ERR_UNDER_THREAT:
