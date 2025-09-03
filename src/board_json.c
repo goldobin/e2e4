@@ -93,7 +93,7 @@ bool Board_InterpretJson(Board* dst, JsonSource* src) {
             if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            dst->nextMoveSide = Side_Parse(JsonSource_Value(src));
+            dst->side = Side_Parse(JsonSource_Value(src));
         } else if (CharSlice_Equals(key, CHAR_SLICE("squares"))) {
             if (!Squares_InterpretJson(dst->squares, src)) {
                 return false;
@@ -264,7 +264,7 @@ size_t CharSlice_WriteBoardAsJson(CharSlice* dst, JsonStack* js, const Board* sr
     assert(src != nullptr);
 
     auto nextMoveSideSlice = CharSlice_Make(0, 64);
-    CharSlice_WriteSide(&nextMoveSideSlice, src->nextMoveSide);
+    CharSlice_WriteSide(&nextMoveSideSlice, src->side);
 
     size_t written = 0;
     written += CharSlice_WriteJsonStart(dst, js, '{');

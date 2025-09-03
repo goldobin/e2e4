@@ -130,8 +130,7 @@ int main(const int argc, char* argv[]) {
     switch (argc) {
         case 0:
         case 1:
-            Squares_PlacePieces(b.squares);
-            b.nextMoveSide = SIDE_WHITE;
+            Board_Init(&b);
             break;
         case 2:
             auto filePath = CharSlice_Make(0, 256);
@@ -149,7 +148,7 @@ int main(const int argc, char* argv[]) {
     while (true) {
         printBoard(&b);
 
-        const char* sideStr = b.nextMoveSide == SIDE_WHITE ? "white" : "black";
+        const char* sideStr = b.side == SIDE_WHITE ? "white" : "black";
         printf(
             "Next turn for" ANSI_COLOR_YELLOW_HIGH " %s " ANSI_COLOR_RESET "or command (save <path> | quit): ", sideStr
         );
@@ -191,7 +190,7 @@ int main(const int argc, char* argv[]) {
             continue;
         }
 
-        if (p.side != b.nextMoveSide) {
+        if (p.side != b.side) {
             const char* pieceSideStr = p.side == SIDE_WHITE ? "white" : "black";
             printf("Can't move %s piece\n", pieceSideStr);
             continue;
@@ -203,10 +202,7 @@ int main(const int argc, char* argv[]) {
 
         if (moveResult.err != MOVE_ERR_OK) {
             printf("Move result: %s\n", moveResultStr.arr);
-            continue;
         }
-
-        b.nextMoveSide = b.nextMoveSide == SIDE_WHITE ? SIDE_BLACK : SIDE_WHITE;
     }
 
     return 0;

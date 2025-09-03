@@ -36,9 +36,22 @@ typedef struct {
     PieceType type;
 } Piece;
 
+constexpr Piece WHITE_PAWN   = {.side = SIDE_WHITE, .type = PIECE_TYPE_PAWN};
+constexpr Piece BLACK_PAWN   = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN};
+constexpr Piece WHITE_ROOK   = {.side = SIDE_WHITE, .type = PIECE_TYPE_ROOK};
+constexpr Piece BLACK_ROOK   = {.side = SIDE_BLACK, .type = PIECE_TYPE_ROOK};
+constexpr Piece WHITE_KNIGHT = {.side = SIDE_WHITE, .type = PIECE_TYPE_KNIGHT};
+constexpr Piece BLACK_KNIGHT = {.side = SIDE_BLACK, .type = PIECE_TYPE_KNIGHT};
+constexpr Piece WHITE_BISHOP = {.side = SIDE_WHITE, .type = PIECE_TYPE_BISHOP};
+constexpr Piece BLACK_BISHOP = {.side = SIDE_BLACK, .type = PIECE_TYPE_BISHOP};
+constexpr Piece WHITE_QUEEN  = {.side = SIDE_WHITE, .type = PIECE_TYPE_QUEEN};
+constexpr Piece BLACK_QUEEN  = {.side = SIDE_BLACK, .type = PIECE_TYPE_QUEEN};
+constexpr Piece WHITE_KING   = {.side = SIDE_WHITE, .type = PIECE_TYPE_KING};
+constexpr Piece BLACK_KING   = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING};
+
 typedef struct {
-    size_t col;
     size_t row;
+    size_t col;
 } Pos;
 
 typedef struct {
@@ -78,16 +91,25 @@ typedef struct {
 
 typedef struct {
     PieceTypes taken;
+    bool       check;
     bool       hasKingCastled;
 } SideState;
 
 typedef Piece Squares[BOARD_SIDE_LEN][BOARD_SIDE_LEN];
 
+typedef enum {
+    BOARD_STATE_IN_UNSPECIFIED = 0,
+    BOARD_STATE_IN_PROGRESS,
+    BOARD_STATE_CHECKMATE,
+    BOARD_STATE_STALEMATE,
+} BoardState;
+
 typedef struct {
-    Squares   squares;
-    SideState white;
-    SideState black;
-    Side      nextMoveSide;
+    Squares    squares;
+    BoardState state;
+    Side       side;
+    SideState  white;
+    SideState  black;
 } Board;
 
 typedef struct {
@@ -100,44 +122,49 @@ typedef struct {
     Threat items[THREATS_CAP];
 } Threats;
 
-bool       Pos_Equals(Pos a, Pos b);
-bool       Pos_IsValid(Pos a);
-Side       Pos_BoardSide(Pos a);
-bool       Pos_Find(Pos* dst, const Squares src, PieceType t, Side s);
-void       Positions_Around(Positions* dst, Pos p);
-void       Positions_Append(Positions* dst, Pos p);
-bool       PieceType_IsValid(PieceType t);
-bool       PieceTypes_Equals(PieceTypes a, PieceTypes b);
-bool       PieceTypes_Resize(PieceTypes* dst, size_t len);
-void       PieceTypes_UpdateAt(PieceTypes* dst, size_t len, PieceType t);
-PieceType  PieceTypes_At(PieceTypes slice, size_t len);
-bool       Piece_IsEmpty(Piece p);
-bool       Piece_Equals(Piece a, Piece b);
-bool       Move_Equals(Move a, Move b);
-bool       Move_IsValid(Move a);
-bool       MoveResult_Equals(const MoveResult* a, const MoveResult* b);
-Piece      Squares_At(const Squares ss, Pos pos);
-void       Squares_UpdateAt(Squares ss, Pos pos, Piece p);
-void       Squares_Copy(Squares dst, const Squares src);
-bool       Squares_Equals(const Squares ss, const Squares b);
-void       Squares_PlacePieces(Squares dst);
-bool       Squares_IsThreatened(const Squares ss, Pos pos);
-bool       Squares_CanKingMove(const Squares ss, Pos p);
-void       Squares_Move(Squares dst, Pos to, Pos from);
-MoveResult Squares_CheckMove(const Squares ss, Move m);
-MoveResult Squares_CheckPawnMove(const Squares ss, Move m);
-MoveResult Squares_CheckRookMove(const Squares ss, Move m);
-MoveResult Squares_CheckKnightMove(const Squares ss, Move m);
-MoveResult Squares_CheckBishopMove(const Squares ss, Move m);
-MoveResult Squares_CheckQueenMove(const Squares ss, Move m);
-MoveResult Squares_CheckKingMove(const Squares ss, Move m);
-bool       SideState_Equals(const SideState* a, SideState const* b);
-void       SideState_Copy(const SideState* src, SideState* dst);
-bool       Board_Equals(const Board* a, const Board* b);
-void       Board_Copy(Board* dst, const Board* src);
-MoveResult Board_MakeMove(Board* dst, Move m);
-bool       Threat_IsValid(Threat t);
-void       Threats_Append(Threats* dst, Threat t);
-void       Threats_Collect(Threats* dst, const Squares ss, Pos p);
+bool             Pos_Equals(Pos a, Pos b);
+bool             Pos_IsValid(Pos a);
+Side             Pos_BoardSide(Pos a);
+bool             Pos_Find(Pos* dst, const Squares src, PieceType t, Side s);
+void             Positions_Around(Positions* dst, Pos p);
+void             Positions_Append(Positions* dst, Pos p);
+Side             Side_Opposite(Side s);
+bool             PieceType_IsValid(PieceType t);
+bool             PieceTypes_Equals(PieceTypes a, PieceTypes b);
+bool             PieceTypes_Resize(PieceTypes* dst, size_t len);
+void             PieceTypes_Push(PieceTypes* dst, PieceType t);
+void             PieceTypes_UpdateAt(PieceTypes* dst, size_t len, PieceType t);
+PieceType        PieceTypes_At(PieceTypes slice, size_t len);
+bool             Piece_IsEmpty(Piece p);
+bool             Piece_Equals(Piece a, Piece b);
+bool             Move_Equals(Move a, Move b);
+bool             Move_IsValid(Move a);
+bool             MoveResult_Equals(const MoveResult* a, const MoveResult* b);
+Piece            Squares_At(const Squares ss, Pos pos);
+void             Squares_UpdateAt(Squares ss, Pos pos, Piece p);
+void             Squares_Copy(Squares dst, const Squares src);
+bool             Squares_Equals(const Squares ss, const Squares b);
+void             Squares_InitDefaultLayout(Squares dst);
+bool             Squares_IsThreatened(const Squares ss, Pos pos);
+bool             Squares_CanKingMove(const Squares ss, Pos p);
+void             Squares_Move(Squares dst, Pos to, Pos from);
+MoveResult       Squares_CheckMove(const Squares ss, Move m);
+MoveResult       Squares_CheckPawnMove(const Squares ss, Move m);
+MoveResult       Squares_CheckRookMove(const Squares ss, Move m);
+MoveResult       Squares_CheckKnightMove(const Squares ss, Move m);
+MoveResult       Squares_CheckBishopMove(const Squares ss, Move m);
+MoveResult       Squares_CheckQueenMove(const Squares ss, Move m);
+MoveResult       Squares_CheckKingMove(const Squares ss, Move m);
+bool             SideState_Equals(const SideState* a, SideState const* b);
+void             SideState_Copy(const SideState* src, SideState* dst);
+void             Board_Init(Board* dst);
+bool             Board_Equals(const Board* a, const Board* b);
+void             Board_Copy(Board* dst, const Board* src);
+SideState*       Board_SideStateRef(Board* b, Side s);
+const SideState* Board_SideState(const Board* b, Side s);
+MoveResult       Board_MakeMove(Board* dst, Move m);
+bool             Threat_IsValid(Threat t);
+void             Threats_Append(Threats* dst, Threat t);
+void             Threats_Collect(Threats* dst, const Squares ss, Pos p);
 
 #endif  // BOARD_H
