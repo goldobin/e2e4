@@ -415,7 +415,7 @@ void Test_Board_MakeMove(void) {
                 .want = {.err = MOVE_ERR_OK, .pieceTaken = BLACK_PAWN},
                 .wantB =
                     {
-                    .state   = BOARD_STATE_IN_PROGRESS,
+                        .state       = BOARD_STATE_IN_PROGRESS,
                         .side        = SIDE_BLACK,
                         .squares     = {[6][4] = WHITE_ROOK, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                         .white.taken = {.arr = {PIECE_TYPE_PAWN}, .len = 1},
@@ -552,8 +552,8 @@ void Test_Board_MakeMove(void) {
                 .m    = parseMove(CHAR_SLICE("a1e5")),
                 .b =
                     {
-                    .state       = BOARD_STATE_IN_PROGRESS,
-                        .side = SIDE_WHITE,
+                        .state = BOARD_STATE_IN_PROGRESS,
+                        .side  = SIDE_WHITE,
                         .squares =
                             {[7][0] = WHITE_QUEEN, [3][4] = BLACK_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
@@ -667,12 +667,55 @@ void Test_Board_MakeMove(void) {
                     },
                 .want = {.err = MOVE_ERR_ILLEGAL},
             },
+            {
+                .name = "case 6.5 pawn, obstacle",
+                .m    = parseMove(CHAR_SLICE("e2e4")),
+                .b =
+                    {
+                        .state = BOARD_STATE_IN_PROGRESS,
+                        .side  = SIDE_WHITE,
+                        .squares =
+                            {[6][4] = WHITE_PAWN, [5][4] = BLACK_QUEEN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(CHAR_SLICE("e3"))},
+            },
+            {
+                .name = "case 6.6 pawn, obstacle",
+                .m    = parseMove(CHAR_SLICE("e2e4")),
+                .b =
+                    {
+                        .state   = BOARD_STATE_IN_PROGRESS,
+                        .side    = SIDE_WHITE,
+                        .squares = {[6][4] = WHITE_PAWN, [4][4] = WHITE_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(CHAR_SLICE("e4"))},
+
+            },
+            {
+                .name = "case 6.7 pawn, take piece",
+                .m    = parseMove(CHAR_SLICE("d3e4")),
+                .b =
+                    {
+                        .state = BOARD_STATE_IN_PROGRESS,
+                        .side  = SIDE_WHITE,
+                        .squares =
+                            {[5][3] = WHITE_PAWN, [4][4] = BLACK_QUEEN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
+                    },
+                .want = {.err = MOVE_ERR_OK, .pieceTaken = BLACK_QUEEN},
+                .wantB =
+                    {
+                        .state       = BOARD_STATE_IN_PROGRESS,
+                        .side        = SIDE_BLACK,
+                        .squares     = {[4][4] = WHITE_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
+                        .white.taken = {.arr = {PIECE_TYPE_QUEEN}, .len = 1},
+                    },
+            },
         };
 
     constexpr size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
-        // if (strncmp("case 2.4: bishop, take piece", tt.name, 64) != 0) {
+        // if (strncmp("case 6.7 pawn, take piece", tt.name, 64) != 0) {
         //     continue;
         // }
 

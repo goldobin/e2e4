@@ -7,7 +7,7 @@
 - [x] Wrap board into the game
 - [x] Replace CharSlice_Wrap with CharSlice_Make
 - [x] Simplify JSON interpretation by using JsonSource
-- [ ] Test pawn move
+- [x] Test pawn move
 - [ ] Test king move
 - [ ] Implement game loop
   - [x] Read board from a file
