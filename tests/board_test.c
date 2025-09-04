@@ -24,7 +24,7 @@ constexpr Piece BLACK_KING   = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING};
 void setUp(void) {}
 void tearDown(void) {}
 
-Board parseBoard(const CharSlice src) {
+Board parseBoard(const Str src) {
     Board      b   = {};
     const auto res = Squares_Parse(b.squares, src);
     assert(res.err == SQUARES_PARSE_ERR_OK);
@@ -33,7 +33,7 @@ Board parseBoard(const CharSlice src) {
     return b;
 }
 
-Move parseMove(const CharSlice src) {
+Move parseMove(const Str src) {
     Move       m   = {};
     const auto res = Move_Parse(&m, src);
 
@@ -41,7 +41,7 @@ Move parseMove(const CharSlice src) {
     return m;
 }
 
-Pos parsePos(const CharSlice src) {
+Pos parsePos(const Str src) {
     Pos        p   = {};
     const auto res = Pos_Parse(&p, src);
     assert(res.err == POS_PARSE_ERR_OK);
@@ -51,7 +51,7 @@ Pos parsePos(const CharSlice src) {
 void Test_Pos_Parse(void) {
     typedef struct {
         const char* name;
-        CharSlice   str;
+        Str         str;
 
         PosParseResult want;
         Pos            wantPos;
@@ -128,8 +128,8 @@ void Test_Pos_Parse(void) {
         const auto got    = Pos_Parse(&gotPos, tt.str);
 
         if (!PosParseResult_Equals(got, tt.want)) {
-            auto wantStr = CharSlice_Make(0, 128);
-            auto gotStr  = CharSlice_Make(0, 128);
+            auto wantStr = CharSlice_OnStack(0, 128);
+            auto gotStr  = CharSlice_OnStack(0, 128);
 
             CharSlice_WritePosParseResult(&wantStr, tt.want);
             CharSlice_WritePosParseResult(&gotStr, got);
@@ -139,8 +139,8 @@ void Test_Pos_Parse(void) {
         }
 
         if (!Pos_Equals(gotPos, tt.wantPos)) {
-            auto wantStr = CharSlice_Make(0, 128);
-            auto gotStr  = CharSlice_Make(0, 128);
+            auto wantStr = CharSlice_OnStack(0, 128);
+            auto gotStr  = CharSlice_OnStack(0, 128);
 
             CharSlice_WritePos(&wantStr, tt.wantPos);
             CharSlice_WritePos(&gotStr, gotPos);
@@ -158,7 +158,7 @@ void Test_Pos_Parse(void) {
 void Test_Move_Parse(void) {
     typedef struct {
         const char* name;
-        CharSlice   str;
+        Str         str;
 
         MoveParseResult want;
         Move            wantMove;
@@ -214,8 +214,8 @@ void Test_Move_Parse(void) {
         const auto got     = Move_Parse(&gotMove, tt.str);
 
         if (!MoveParseResult_Equals(got, tt.want)) {
-            auto wantStr = CharSlice_Make(0, 128);
-            auto gotStr  = CharSlice_Make(0, 128);
+            auto wantStr = CharSlice_OnStack(0, 128);
+            auto gotStr  = CharSlice_OnStack(0, 128);
 
             CharSlice_WriteMoveParseResult(&wantStr, tt.want);
             CharSlice_WriteMoveParseResult(&gotStr, got);
@@ -225,8 +225,8 @@ void Test_Move_Parse(void) {
         }
 
         if (!Move_Equals(gotMove, tt.wantMove)) {
-            auto wantStr = CharSlice_Make(0, 128);
-            auto gotStr  = CharSlice_Make(0, 128);
+            auto wantStr = CharSlice_OnStack(0, 128);
+            auto gotStr  = CharSlice_OnStack(0, 128);
 
             CharSlice_WriteMove(&wantStr, tt.wantMove);
             CharSlice_WriteMove(&gotStr, gotMove);
@@ -243,9 +243,8 @@ void Test_Move_Parse(void) {
 
 void Test_Board_Parse(void) {
     typedef struct {
-        const char* name;
-        CharSlice   str;
-
+        const char*        name;
+        Str                str;
         SquaresParseResult want;
         Board              wantBoard;
     } test;
@@ -320,8 +319,8 @@ void Test_Board_Parse(void) {
         const auto got      = Squares_Parse(gotBoard.squares, tt.str);
 
         if (!SquaresParseResult_Equals(got, tt.want)) {
-            auto wantStr = CharSlice_Make(0, 128);
-            auto gotStr  = CharSlice_Make(0, 128);
+            auto wantStr = CharSlice_OnStack(0, 128);
+            auto gotStr  = CharSlice_OnStack(0, 128);
 
             CharSlice_WriteBoardParseResult(&wantStr, tt.want);
             CharSlice_WriteBoardParseResult(&gotStr, got);
@@ -331,8 +330,8 @@ void Test_Board_Parse(void) {
         }
 
         if (!Board_Equals(&gotBoard, &tt.wantBoard)) {
-            auto wantStr = CharSlice_Make(0, 128);
-            auto gotStr  = CharSlice_Make(0, 128);
+            auto wantStr = CharSlice_OnStack(0, 128);
+            auto gotStr  = CharSlice_OnStack(0, 128);
 
             CharSlice_WriteBoard(&wantStr, &tt.wantBoard);
             CharSlice_WriteBoard(&gotStr, &gotBoard);
@@ -915,12 +914,12 @@ void Test_WriteAsJson() {
         "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
         "}"
     );
-    auto       dst     = CharSlice_Make(0, 1024);
+    auto       dst     = CharSlice_OnStack(0, 1024);
     auto       js      = JsonStack_Make(0, 128);
     const auto written = CharSlice_WriteBoardAsJson(&dst, &js, &src);
 
     TEST_ASSERT_GREATER_THAN(0, written);
-    TEST_ASSERT_TRUE(CharSlice_Equals(expected, dst));
+    TEST_ASSERT_TRUE(CharSlice_EqualsStr(dst, expected));
 }
 
 void Test_InterpretJson() {
@@ -938,7 +937,7 @@ void Test_InterpretJson() {
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, jsonParseResult.err);
 
     JsonSource jsonSrc = {
-        .chars = src,
+        .str   = src,
         .nodes = nodes,
     };
 

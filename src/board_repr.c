@@ -105,50 +105,50 @@ size_t CharSlice_WritePiece(CharSlice* dst, const Piece p) {
     return written;
 }
 
-PieceType PieceType_Parse(const CharSlice src) {
-    assert(CharSlice_IsValid(src));
+PieceType PieceType_Parse(const Str src) {
+    assert(Str_IsValid(src));
     if (src.len < 1) {
         return PIECE_TYPE_UNSPECIFIED;
     }
 
-    if (CharSlice_Equals(src, CHAR_SLICE("PAWN"))) {
+    if (Str_Equals(src, CHAR_SLICE("PAWN"))) {
         return PIECE_TYPE_PAWN;
     }
 
-    if (CharSlice_Equals(src, CHAR_SLICE("ROOK"))) {
+    if (Str_Equals(src, CHAR_SLICE("ROOK"))) {
         return PIECE_TYPE_ROOK;
     }
 
-    if (CharSlice_Equals(src, CHAR_SLICE("KNIGHT"))) {
+    if (Str_Equals(src, CHAR_SLICE("KNIGHT"))) {
         return PIECE_TYPE_KNIGHT;
     }
 
-    if (CharSlice_Equals(src, CHAR_SLICE("BISHOP"))) {
+    if (Str_Equals(src, CHAR_SLICE("BISHOP"))) {
         return PIECE_TYPE_BISHOP;
     }
 
-    if (CharSlice_Equals(src, CHAR_SLICE("QUEEN"))) {
+    if (Str_Equals(src, CHAR_SLICE("QUEEN"))) {
         return PIECE_TYPE_QUEEN;
     }
-    if (CharSlice_Equals(src, CHAR_SLICE("KING"))) {
+    if (Str_Equals(src, CHAR_SLICE("KING"))) {
         return PIECE_TYPE_KING;
     }
 
     return PIECE_TYPE_UNSPECIFIED;
 }
 
-Side Side_Parse(CharSlice src) {
+Side Side_Parse(Str src) {
     if (src.len < 1) {
         return SIDE_UNSPECIFIED;
     }
 
-    const auto firstChar = CharSlice_At(src, 0);
+    const auto firstChar = Str_At(src, 0);
 
-    if (firstChar == 'B' && CharSlice_Cmp(src, CHAR_SLICE("BLACK")) == 0) {
+    if (firstChar == 'B' && Str_Equals(src, CHAR_SLICE("BLACK"))) {
         return SIDE_BLACK;
     }
 
-    if (firstChar == 'W' && CharSlice_Cmp(src, CHAR_SLICE("WHITE")) == 0) {
+    if (firstChar == 'W' && Str_Equals(src, CHAR_SLICE("WHITE"))) {
         return SIDE_WHITE;
     }
 
@@ -159,19 +159,19 @@ size_t CharSlice_WritePieceType(CharSlice* dst, const PieceType t) {
     assert(dst != nullptr);
     switch (t) {
         case PIECE_TYPE_PAWN:
-            return CharSlice_Write(dst, CHAR_SLICE("PAWN"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("PAWN"));
         case PIECE_TYPE_ROOK:
-            return CharSlice_Write(dst, CHAR_SLICE("ROOK"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("ROOK"));
         case PIECE_TYPE_KNIGHT:
-            return CharSlice_Write(dst, CHAR_SLICE("KNIGHT"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("KNIGHT"));
         case PIECE_TYPE_BISHOP:
-            return CharSlice_Write(dst, CHAR_SLICE("BISHOP"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("BISHOP"));
         case PIECE_TYPE_QUEEN:
-            return CharSlice_Write(dst, CHAR_SLICE("QUEEN"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("QUEEN"));
         case PIECE_TYPE_KING:
-            return CharSlice_Write(dst, CHAR_SLICE("KING"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("KING"));
         case PIECE_TYPE_UNSPECIFIED:
-            return CharSlice_Write(dst, CHAR_SLICE("NONE"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("NONE"));
         default:
             return 0;
     }
@@ -181,23 +181,34 @@ size_t CharSlice_WriteSide(CharSlice* dst, const Side s) {
     assert(dst != nullptr);
     switch (s) {
         case SIDE_WHITE:
-            return CharSlice_Write(dst, CHAR_SLICE("WHITE"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("WHITE"));
         case SIDE_BLACK:
-            return CharSlice_Write(dst, CHAR_SLICE("BLACK"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("BLACK"));
         default:
             return 0;
     }
 }
 
-PosParseResult Pos_Parse(Pos* dst, const CharSlice src) {
+Str Side_ToStr(Side s) {
+    switch (s) {
+        case SIDE_WHITE:
+            return CHAR_SLICE("WHITE");
+        case SIDE_BLACK:
+            return CHAR_SLICE("BLACK");
+        default:
+            return CHAR_SLICE("");
+    }
+}
+
+PosParseResult Pos_Parse(Pos* dst, const Str src) {
     assert(dst != nullptr);
 
     if (src.len < POS_STR_LEN) {
         return (PosParseResult){.err = POS_PARSE_ERR_TOO_SHORT};
     }
 
-    const auto colChar = CharSlice_At(src, 0);
-    const auto rowChar = CharSlice_At(src, 1);
+    const auto colChar = Str_At(src, 0);
+    const auto rowChar = Str_At(src, 1);
     if (colChar < COL_CHAR_MIN || colChar > COL_CHAR_MAX || rowChar < ROW_CHAR_MIN || rowChar > ROW_CHAR_MAX) {
         return (PosParseResult){.err = POS_PARSE_ERR_INVALID_FORMAT};
     }
@@ -211,11 +222,11 @@ PosParseResult Pos_Parse(Pos* dst, const CharSlice src) {
 size_t CharSlice_WritePosParseErr(CharSlice* dst, const PosParseErr err) {
     switch (err) {
         case POS_PARSE_ERR_OK:
-            return CharSlice_Write(dst, CHAR_SLICE("OK"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("OK"));
         case POS_PARSE_ERR_TOO_SHORT:
-            return CharSlice_Write(dst, CHAR_SLICE("TOO_SHORT"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("TOO_SHORT"));
         case POS_PARSE_ERR_INVALID_FORMAT:
-            return CharSlice_Write(dst, CHAR_SLICE("INVALID_FORMAT"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("INVALID_FORMAT"));
         default:
             return CharSlice_WriteF(dst, "UNKNOWN (%d)", err);
     }
@@ -247,13 +258,13 @@ size_t CharSlice_WritePos(CharSlice* dst, const Pos a) {
 size_t CharSlice_WriteMoveParseErr(CharSlice* dst, const MoveParseErr err) {
     switch (err) {
         case MOVE_PARSE_ERR_OK:
-            return CharSlice_Write(dst, CHAR_SLICE("OK"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("OK"));
         case MOVE_PARSE_ERR_TOO_SHORT:
-            return CharSlice_Write(dst, CHAR_SLICE("TOO_SHORT"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("TOO_SHORT"));
         case MOVE_PARSE_ERR_INVALID_FROM_FORMAT:
-            return CharSlice_Write(dst, CHAR_SLICE("INVALID_FROM_FORMAT"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("INVALID_FROM_FORMAT"));
         case MOVE_PARSE_ERR_INVALID_TO_FORMAT:
-            return CharSlice_Write(dst, CHAR_SLICE("INVALID_TO_FORMAT"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("INVALID_TO_FORMAT"));
         default:
             return CharSlice_WriteF(dst, "UNKNOWN (%d)", err);
     }
@@ -274,7 +285,7 @@ size_t CharSlice_WriteMoveParseResult(CharSlice* dst, const MoveParseResult a) {
     return written;
 }
 
-MoveParseResult Move_Parse(Move* dst, const CharSlice src) {
+MoveParseResult Move_Parse(Move* dst, const Str src) {
     assert(dst != nullptr);
 
     if (src.len < MOVE_STR_LEN) {
@@ -287,7 +298,7 @@ MoveParseResult Move_Parse(Move* dst, const CharSlice src) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_INVALID_FROM_FORMAT};
     }
 
-    const auto toPosSlice    = CharSlice_View(src, fromParseResult.offset, src.len);
+    const auto toPosSlice    = Str_View(src, fromParseResult.offset, src.len);
     const auto toParseResult = Pos_Parse(&to, toPosSlice);
     if (toParseResult.err != POS_PARSE_ERR_OK) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_INVALID_TO_FORMAT};
@@ -313,11 +324,11 @@ size_t CharSlice_WriteMove(CharSlice* dst, const Move a) {
 size_t CharSlice_WriteBoardParseErr(CharSlice* dst, const SquaresParseErr err) {
     switch (err) {
         case SQUARES_PARSE_ERR_OK:
-            return CharSlice_Write(dst, CHAR_SLICE("OK"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("OK"));
         case SQUARES_PARSE_ERR_TOO_SHORT:
-            return CharSlice_Write(dst, CHAR_SLICE("TOO_SHORT"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("TOO_SHORT"));
         case SQUARES_PARSE_ERR_UNEXPECTED_CHAR:
-            return CharSlice_Write(dst, CHAR_SLICE("UNEXPECTED_CHAR"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("UNEXPECTED_CHAR"));
         default:
             return CharSlice_WriteF(dst, "UNKNOWN (%d)", err);
     }
@@ -345,15 +356,15 @@ size_t CharSlice_WriteBoardParseResult(CharSlice* dst, const SquaresParseResult 
 size_t CharSlice_WriteMoveError(CharSlice* dst, const MoveErr a) {
     switch (a) {
         case MOVE_ERR_OK:
-            return CharSlice_Write(dst, CHAR_SLICE("OK"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("OK"));
         case MOVE_ERR_NO_PIECE:
-            return CharSlice_Write(dst, CHAR_SLICE("NO_PIECE"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("NO_PIECE"));
         case MOVE_ERR_NO_MOVEMENT:
-            return CharSlice_Write(dst, CHAR_SLICE("NO_MOVEMENT"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("NO_MOVEMENT"));
         case MOVE_ERR_ILLEGAL_MOVE:
-            return CharSlice_Write(dst, CHAR_SLICE("ILLEGAL_MOVE"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("ILLEGAL_MOVE"));
         case MOVE_ERR_OBSTACLE:
-            return CharSlice_Write(dst, CHAR_SLICE("OBSTACLE"));
+            return CharSlice_WriteStr(dst, CHAR_SLICE("OBSTACLE"));
         default:
             return CharSlice_WriteF(dst, "UNKNOWN (%d)", a);
     }
@@ -441,7 +452,7 @@ size_t CharSlice_WriteMoveResult(CharSlice* dst, const MoveResult* a) {
     return written;
 }
 
-SquaresParseResult Squares_Parse(Squares dst, const CharSlice src) {
+SquaresParseResult Squares_Parse(Squares dst, const Str src) {
     assert(dst != nullptr);
 
     size_t i      = 0;
@@ -454,7 +465,7 @@ SquaresParseResult Squares_Parse(Squares dst, const CharSlice src) {
             };
         }
 
-        const auto ch = CharSlice_At(src, offset++);
+        const auto ch = Str_At(src, offset++);
         if (ch == '\n' || ch == '\r' || ch == ' ' || ch == '\t') {
             continue;
         }

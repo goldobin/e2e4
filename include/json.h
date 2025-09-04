@@ -106,7 +106,7 @@ typedef struct {
 } JsonInterpretResult;
 
 typedef struct {
-    const CharSlice chars;
+    const Str       str;
     const JsonNodes nodes;
     size_t          index;
 } JsonSource;
@@ -124,23 +124,23 @@ typedef enum {
 
 JsonNode       *JsonNodes_At(JsonNodes nodes, size_t index);
 JsonNode       *JsonNodes_Push(JsonNodes *dst);
-JsonParseResult JsonNodes_Parse(JsonNodes *dst, CharSlice src);
+JsonParseResult JsonNodes_Parse(JsonNodes *dst, Str src);
 void            JsonSource_Reset(JsonSource *s);
 bool            JsonSource_Next(JsonSource *s);
 bool            JsonSource_Skip(JsonSource *s);
 JsonType        JsonSource_Type(const JsonSource *s);
 size_t          JsonSource_ChildrenCount(const JsonSource *s);
-CharSlice       JsonSource_Value(const JsonSource *s);
+Str             JsonSource_Value(const JsonSource *s);
 bool            JsonSource_BoolValue(const JsonSource *s);
 size_t          CharSlice_WriteJsonParseErr(CharSlice *dst, JsonParseErr err);
 size_t          CharSlice_WriteJsonParseResult(CharSlice *dst, const JsonParseResult *r);
 size_t          CharSlice_WriteJsonStart(CharSlice *dst, JsonStack *s, char bracket);
 size_t          CharSlice_WriteJsonEnd(CharSlice *dst, JsonStack *s);
-size_t          CharSlice_WriteJsonKey(CharSlice *dst, JsonStack *s, CharSlice key);
-size_t          CharSlice_WriteJsonString(CharSlice *dst, JsonStack *s, CharSlice value);
+size_t          CharSlice_WriteJsonKey(CharSlice *dst, JsonStack *s, Str key);
+size_t          CharSlice_WriteJsonStr(CharSlice *dst, JsonStack *s, Str value);
 size_t          CharSlice_WriteJsonBool(CharSlice *dst, JsonStack *s, bool value);
 size_t          CharSlice_WriteJsonNull(CharSlice *dst, JsonStack *s);
-size_t          CharSlice_WriteJsonNumeric(CharSlice *dst, JsonStack *s, CharSlice value);
+size_t          CharSlice_WriteJsonNumeric(CharSlice *dst, JsonStack *s, Str value);
 
 #define JsonNodes_Make(len1, cap1) \
     (((cap1) > 0) ? (JsonNodes){.arr = (JsonNode[cap1]){}, .len = (len1), .cap = (cap1)} : (JsonNodes){})
