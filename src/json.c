@@ -9,32 +9,32 @@ static bool isHexChar(const char ch) {
         || (ch >= 97 && ch <= 102); /* a-f */
 }
 
-size_t CharSlice_WriteJsonParseErr(CharSlice *dst, const JsonParseErr err) {
+size_t CharBuff_WriteJsonParseErr(CharBuff *dst, const JsonParseErr err) {
     assert(dst != nullptr);
     switch (err) {
         case JSON_PARSE_ERROR_OK:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("OK"));
+            return CharBuff_WriteStr(dst, STR("OK"));
         case JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("NODE_POOL_EXHAUSTED"));
+            return CharBuff_WriteStr(dst, STR("NODE_POOL_EXHAUSTED"));
         case JSON_PARSE_ERROR_INVALID:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("INVALID"));
+            return CharBuff_WriteStr(dst, STR("INVALID"));
         case JSON_PARSE_ERROR_PARTIAL:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("PARTIAL"));
+            return CharBuff_WriteStr(dst, STR("PARTIAL"));
         default:
             return 0;
     }
 }
 
-size_t CharSlice_WriteJsonParseResult(CharSlice *dst, const JsonParseResult *r) {
+size_t CharBuff_WriteJsonParseResult(CharBuff *dst, const JsonParseResult *r) {
     assert(dst != nullptr);
     assert(r != nullptr);
 
     size_t written = 0;
-    written += CharSlice_WriteChar(dst, '{');
-    written += CharSlice_WriteJsonParseErr(dst, r->err);
-    written += CharSlice_WriteChar(dst, ',');
-    written += CharSlice_WriteF(dst, "%zd", r->offset);
-    written += CharSlice_WriteChar(dst, '}');
+    written += CharBuff_WriteChar(dst, '{');
+    written += CharBuff_WriteJsonParseErr(dst, r->err);
+    written += CharBuff_WriteChar(dst, ',');
+    written += CharBuff_WriteF(dst, "%zd", r->offset);
+    written += CharBuff_WriteChar(dst, '}');
     return written;
 }
 
@@ -457,7 +457,7 @@ JsonStackEntry JsonStack_Pull(JsonStack *s) {
     return s->arr[--s->len];
 }
 
-size_t CharSlice_WriteJsonStart(CharSlice *dst, JsonStack *s, const char bracket) {
+size_t CharBuff_WriteJsonStart(CharBuff *dst, JsonStack *s, const char bracket) {
     assert(dst != nullptr);
     assert(s != nullptr);
 
@@ -480,7 +480,7 @@ size_t CharSlice_WriteJsonStart(CharSlice *dst, JsonStack *s, const char bracket
     }
 
     size_t written = 0;
-    written += CharSlice_WriteChar(dst, bracket);
+    written += CharBuff_WriteChar(dst, bracket);
     const auto next = JsonStack_Push(s);
     assert(next != nullptr);
 
@@ -488,7 +488,7 @@ size_t CharSlice_WriteJsonStart(CharSlice *dst, JsonStack *s, const char bracket
     return written;
 }
 
-size_t CharSlice_WriteJsonEnd(CharSlice *dst, JsonStack *s) {
+size_t CharBuff_WriteJsonEnd(CharBuff *dst, JsonStack *s) {
     assert(dst != nullptr);
     assert(s != nullptr);
     assert(s->len > 0);
@@ -498,10 +498,10 @@ size_t CharSlice_WriteJsonEnd(CharSlice *dst, JsonStack *s) {
     size_t written = 0;
     switch (pulled.type) {
         case JSON_STACK_ENTRY_TYPE_OBJECT:
-            written += CharSlice_WriteChar(dst, '}');
+            written += CharBuff_WriteChar(dst, '}');
             break;
         case JSON_STACK_ENTRY_TYPE_ARRAY:
-            written += CharSlice_WriteChar(dst, ']');
+            written += CharBuff_WriteChar(dst, ']');
             break;
         default:
             assert(false);
@@ -514,7 +514,7 @@ size_t CharSlice_WriteJsonEnd(CharSlice *dst, JsonStack *s) {
     return written;
 }
 
-size_t CharSlice_WriteJsonKey(CharSlice *dst, JsonStack *s, Str key) {
+size_t CharBuff_WriteJsonKey(CharBuff *dst, JsonStack *s, Str key) {
     assert(dst != nullptr);
     assert(s != nullptr);
     assert(Str_IsValid(key));
@@ -526,7 +526,7 @@ size_t CharSlice_WriteJsonKey(CharSlice *dst, JsonStack *s, Str key) {
     size_t written = 0;
 
     if (parent->needsComma) {
-        written += CharSlice_WriteChar(dst, ',');
+        written += CharBuff_WriteChar(dst, ',');
     }
     parent->needsComma = true;
 
@@ -535,15 +535,15 @@ size_t CharSlice_WriteJsonKey(CharSlice *dst, JsonStack *s, Str key) {
 
     *next = (JsonStackEntry){.type = JSON_STACK_ENTRY_TYPE_FIELD};
 
-    written += CharSlice_WriteChar(dst, '\"');
-    written += CharSlice_WriteStr(dst, key);
-    written += CharSlice_WriteChar(dst, '\"');
-    written += CharSlice_WriteChar(dst, ':');
+    written += CharBuff_WriteChar(dst, '\"');
+    written += CharBuff_WriteStr(dst, key);
+    written += CharBuff_WriteChar(dst, '\"');
+    written += CharBuff_WriteChar(dst, ':');
 
     return written;
 }
 
-size_t CharSlice_WritePrimitivePreamble(CharSlice *dst, JsonStack *s) {
+size_t CharBuff_WritePrimitivePreamble(CharBuff *dst, JsonStack *s) {
     assert(dst != nullptr);
     assert(s != nullptr);
     assert(s->len > 0);
@@ -557,7 +557,7 @@ size_t CharSlice_WritePrimitivePreamble(CharSlice *dst, JsonStack *s) {
             break;
         case JSON_STACK_ENTRY_TYPE_ARRAY:
             if (parent->needsComma) {
-                written += CharSlice_WriteChar(dst, ',');
+                written += CharBuff_WriteChar(dst, ',');
             }
             parent->needsComma = true;
             break;
@@ -568,37 +568,37 @@ size_t CharSlice_WritePrimitivePreamble(CharSlice *dst, JsonStack *s) {
     return written;
 }
 
-size_t CharSlice_WriteJsonValue(CharSlice *dst, JsonStack *s, const bool isString, const Str value) {
+size_t CharBuff_WriteJsonValue(CharBuff *dst, JsonStack *s, const bool isString, const Str value) {
     assert(dst != nullptr);
     assert(s != nullptr);
 
     size_t written = 0;
-    written += CharSlice_WritePrimitivePreamble(dst, s);
+    written += CharBuff_WritePrimitivePreamble(dst, s);
     if (isString) {
-        written += CharSlice_WriteChar(dst, '\"');
+        written += CharBuff_WriteChar(dst, '\"');
         for (size_t i = 0; i < value.len; ++i) {
             const auto ch = Str_At(value, i);
             switch (ch) {
                 case '\"':
-                    written += CharSlice_WriteStr(dst, CHAR_SLICE("\\\""));
+                    written += CharBuff_WriteStr(dst, STR("\\\""));
                     break;
                 case '\\':
-                    written += CharSlice_WriteStr(dst, CHAR_SLICE("\\\\"));
+                    written += CharBuff_WriteStr(dst, STR("\\\\"));
                 case '\b':
-                    written += CharSlice_WriteStr(dst, CHAR_SLICE("\\\b"));
+                    written += CharBuff_WriteStr(dst, STR("\\\b"));
                 case '\f':
-                    written += CharSlice_WriteStr(dst, CHAR_SLICE("\\\f"));
+                    written += CharBuff_WriteStr(dst, STR("\\\f"));
                 case '\n':
-                    written += CharSlice_WriteStr(dst, CHAR_SLICE("\\\n"));
+                    written += CharBuff_WriteStr(dst, STR("\\\n"));
                 case '\r':
-                    written += CharSlice_WriteStr(dst, CHAR_SLICE("\\\r"));
+                    written += CharBuff_WriteStr(dst, STR("\\\r"));
                 case '\t':
-                    written += CharSlice_WriteStr(dst, CHAR_SLICE("\\\t"));
+                    written += CharBuff_WriteStr(dst, STR("\\\t"));
                 default:
-                    written += CharSlice_WriteChar(dst, ch);
+                    written += CharBuff_WriteChar(dst, ch);
             }
         }
-        written += CharSlice_WriteChar(dst, '\"');
+        written += CharBuff_WriteChar(dst, '\"');
         return written;
     }
 
@@ -606,19 +606,19 @@ size_t CharSlice_WriteJsonValue(CharSlice *dst, JsonStack *s, const bool isStrin
     const auto firstCh = Str_At(value, 0);
     switch (firstCh) {
         case 'n':
-            assert(Str_Equals(value, CHAR_SLICE("null")));
-            return CharSlice_WriteStr(dst, CHAR_SLICE("null"));
+            assert(Str_Equals(value, STR("null")));
+            return CharBuff_WriteStr(dst, STR("null"));
         case 't':
-            assert(Str_Equals(value, CHAR_SLICE("true")));
-            return CharSlice_WriteStr(dst, CHAR_SLICE("true"));
+            assert(Str_Equals(value, STR("true")));
+            return CharBuff_WriteStr(dst, STR("true"));
         case 'f':
-            assert(Str_Equals(value, CHAR_SLICE("false")));
-            return CharSlice_WriteStr(dst, CHAR_SLICE("false"));
+            assert(Str_Equals(value, STR("false")));
+            return CharBuff_WriteStr(dst, STR("false"));
         default:
             if (!(firstCh == '-' || (firstCh >= '0' && firstCh <= '9'))) {
                 assert(false);
             }
-            written += CharSlice_WriteChar(dst, firstCh);
+            written += CharBuff_WriteChar(dst, firstCh);
             bool wasPoint = false;
             for (size_t i = 1; i < value.len; ++i) {
                 const auto ch = Str_At(value, i);
@@ -627,9 +627,9 @@ size_t CharSlice_WriteJsonValue(CharSlice *dst, JsonStack *s, const bool isStrin
                         assert(false);
                     }
                     wasPoint = true;
-                    written += CharSlice_WriteChar(dst, '.');
+                    written += CharBuff_WriteChar(dst, '.');
                 } else if (ch >= '0' && ch <= '9') {
-                    written += CharSlice_WriteChar(dst, ch);
+                    written += CharBuff_WriteChar(dst, ch);
                 } else {
                     assert(false);
                 }
@@ -638,27 +638,27 @@ size_t CharSlice_WriteJsonValue(CharSlice *dst, JsonStack *s, const bool isStrin
     }
 }
 
-size_t CharSlice_WriteJsonStr(CharSlice *dst, JsonStack *s, const Str value) {
-    return CharSlice_WriteJsonValue(dst, s, true, value);
+size_t CharBuff_WriteJsonStr(CharBuff *dst, JsonStack *s, const Str value) {
+    return CharBuff_WriteJsonValue(dst, s, true, value);
 }
 
-size_t CharSlice_WriteJsonBool(CharSlice *dst, JsonStack *s, const bool value) {
+size_t CharBuff_WriteJsonBool(CharBuff *dst, JsonStack *s, const bool value) {
     assert(dst != nullptr);
     assert(s != nullptr);
-    return CharSlice_WriteJsonValue(dst, s, false, value ? CHAR_SLICE("true") : CHAR_SLICE("false"));
+    return CharBuff_WriteJsonValue(dst, s, false, value ? STR("true") : STR("false"));
 }
 
-size_t CharSlice_WriteJsonNull(CharSlice *dst, JsonStack *s) {
+size_t CharBuff_WriteJsonNull(CharBuff *dst, JsonStack *s) {
     assert(dst != nullptr);
     assert(s != nullptr);
-    return CharSlice_WriteJsonValue(dst, s, false, CHAR_SLICE("null"));
+    return CharBuff_WriteJsonValue(dst, s, false, STR("null"));
 }
 
-size_t CharSlice_WriteJsonNumeric(CharSlice *dst, JsonStack *s, const Str value) {
+size_t CharBuf_WriteJsonNumeric(CharBuff *dst, JsonStack *s, const Str value) {
     assert(dst != nullptr);
     assert(s != nullptr);
 
-    return CharSlice_WriteJsonValue(dst, s, false, value);
+    return CharBuff_WriteJsonValue(dst, s, false, value);
 }
 
 void JsonSource_Reset(JsonSource *s) { s->index = 0; }

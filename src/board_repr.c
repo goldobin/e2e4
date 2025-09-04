@@ -93,15 +93,15 @@ const char* Piece_ToUnicodeChar(Piece p) {
     }
 }
 
-size_t CharSlice_WritePiece(CharSlice* dst, const Piece p) {
+size_t CharBuff_WritePiece(CharBuff* dst, const Piece p) {
     assert(dst != nullptr);
 
     size_t written = 0;
-    written += CharSlice_WriteChar(dst, '{');
-    written += CharSlice_WritePieceType(dst, p.type);
-    written += CharSlice_WriteChar(dst, ',');
-    written += CharSlice_WriteSide(dst, p.side);
-    written += CharSlice_WriteChar(dst, '}');
+    written += CharBuff_WriteChar(dst, '{');
+    written += CharBuff_WritePieceType(dst, p.type);
+    written += CharBuff_WriteChar(dst, ',');
+    written += CharBuff_WriteSide(dst, p.side);
+    written += CharBuff_WriteChar(dst, '}');
     return written;
 }
 
@@ -111,26 +111,26 @@ PieceType PieceType_Parse(const Str src) {
         return PIECE_TYPE_UNSPECIFIED;
     }
 
-    if (Str_Equals(src, CHAR_SLICE("PAWN"))) {
+    if (Str_Equals(src, STR("PAWN"))) {
         return PIECE_TYPE_PAWN;
     }
 
-    if (Str_Equals(src, CHAR_SLICE("ROOK"))) {
+    if (Str_Equals(src, STR("ROOK"))) {
         return PIECE_TYPE_ROOK;
     }
 
-    if (Str_Equals(src, CHAR_SLICE("KNIGHT"))) {
+    if (Str_Equals(src, STR("KNIGHT"))) {
         return PIECE_TYPE_KNIGHT;
     }
 
-    if (Str_Equals(src, CHAR_SLICE("BISHOP"))) {
+    if (Str_Equals(src, STR("BISHOP"))) {
         return PIECE_TYPE_BISHOP;
     }
 
-    if (Str_Equals(src, CHAR_SLICE("QUEEN"))) {
+    if (Str_Equals(src, STR("QUEEN"))) {
         return PIECE_TYPE_QUEEN;
     }
-    if (Str_Equals(src, CHAR_SLICE("KING"))) {
+    if (Str_Equals(src, STR("KING"))) {
         return PIECE_TYPE_KING;
     }
 
@@ -144,46 +144,46 @@ Side Side_Parse(Str src) {
 
     const auto firstChar = Str_At(src, 0);
 
-    if (firstChar == 'B' && Str_Equals(src, CHAR_SLICE("BLACK"))) {
+    if (firstChar == 'B' && Str_Equals(src, STR("BLACK"))) {
         return SIDE_BLACK;
     }
 
-    if (firstChar == 'W' && Str_Equals(src, CHAR_SLICE("WHITE"))) {
+    if (firstChar == 'W' && Str_Equals(src, STR("WHITE"))) {
         return SIDE_WHITE;
     }
 
     return SIDE_UNSPECIFIED;
 }
 
-size_t CharSlice_WritePieceType(CharSlice* dst, const PieceType t) {
+size_t CharBuff_WritePieceType(CharBuff* dst, const PieceType t) {
     assert(dst != nullptr);
     switch (t) {
         case PIECE_TYPE_PAWN:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("PAWN"));
+            return CharBuff_WriteStr(dst, STR("PAWN"));
         case PIECE_TYPE_ROOK:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("ROOK"));
+            return CharBuff_WriteStr(dst, STR("ROOK"));
         case PIECE_TYPE_KNIGHT:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("KNIGHT"));
+            return CharBuff_WriteStr(dst, STR("KNIGHT"));
         case PIECE_TYPE_BISHOP:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("BISHOP"));
+            return CharBuff_WriteStr(dst, STR("BISHOP"));
         case PIECE_TYPE_QUEEN:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("QUEEN"));
+            return CharBuff_WriteStr(dst, STR("QUEEN"));
         case PIECE_TYPE_KING:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("KING"));
+            return CharBuff_WriteStr(dst, STR("KING"));
         case PIECE_TYPE_UNSPECIFIED:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("NONE"));
+            return CharBuff_WriteStr(dst, STR("NONE"));
         default:
             return 0;
     }
 }
 
-size_t CharSlice_WriteSide(CharSlice* dst, const Side s) {
+size_t CharBuff_WriteSide(CharBuff* dst, const Side s) {
     assert(dst != nullptr);
     switch (s) {
         case SIDE_WHITE:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("WHITE"));
+            return CharBuff_WriteStr(dst, STR("WHITE"));
         case SIDE_BLACK:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("BLACK"));
+            return CharBuff_WriteStr(dst, STR("BLACK"));
         default:
             return 0;
     }
@@ -192,11 +192,11 @@ size_t CharSlice_WriteSide(CharSlice* dst, const Side s) {
 Str Side_ToStr(Side s) {
     switch (s) {
         case SIDE_WHITE:
-            return CHAR_SLICE("WHITE");
+            return STR("WHITE");
         case SIDE_BLACK:
-            return CHAR_SLICE("BLACK");
+            return STR("BLACK");
         default:
-            return CHAR_SLICE("");
+            return STR("");
     }
 }
 
@@ -219,16 +219,16 @@ PosParseResult Pos_Parse(Pos* dst, const Str src) {
     return (PosParseResult){.offset = 2};
 }
 
-size_t CharSlice_WritePosParseErr(CharSlice* dst, const PosParseErr err) {
+size_t CharBuff_WritePosParseErr(CharBuff* dst, const PosParseErr err) {
     switch (err) {
         case POS_PARSE_ERR_OK:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("OK"));
+            return CharBuff_WriteStr(dst, STR("OK"));
         case POS_PARSE_ERR_TOO_SHORT:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("TOO_SHORT"));
+            return CharBuff_WriteStr(dst, STR("TOO_SHORT"));
         case POS_PARSE_ERR_INVALID_FORMAT:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("INVALID_FORMAT"));
+            return CharBuff_WriteStr(dst, STR("INVALID_FORMAT"));
         default:
-            return CharSlice_WriteF(dst, "UNKNOWN (%d)", err);
+            return CharBuff_WriteF(dst, "UNKNOWN (%d)", err);
     }
 }
 
@@ -236,37 +236,37 @@ bool PosParseResult_Equals(const PosParseResult a, const PosParseResult b) {
     return a.err == b.err && a.offset == b.offset;
 }
 
-size_t CharSlice_WritePosParseResult(CharSlice* dst, const PosParseResult a) {
+size_t CharBuff_WritePosParseResult(CharBuff* dst, const PosParseResult a) {
     assert(dst != nullptr);
     size_t written = 0;
-    written += CharSlice_WriteChar(dst, '{');
-    written += CharSlice_WritePosParseErr(dst, a.err);
-    written += CharSlice_WriteChar(dst, ',');
-    written += CharSlice_WriteF(dst, "%zd", a.offset);
-    written += CharSlice_WriteChar(dst, '}');
+    written += CharBuff_WriteChar(dst, '{');
+    written += CharBuff_WritePosParseErr(dst, a.err);
+    written += CharBuff_WriteChar(dst, ',');
+    written += CharBuff_WriteF(dst, "%zd", a.offset);
+    written += CharBuff_WriteChar(dst, '}');
     return written;
 }
 
-size_t CharSlice_WritePos(CharSlice* dst, const Pos a) {
+size_t CharBuff_WritePos(CharBuff* dst, const Pos a) {
     assert(dst != nullptr);
     assert(Pos_IsValid(a));
     const char col = (char)(COL_CHAR_MIN + a.col);
     const char row = (char)(ROW_CHAR_MIN + BOARD_SIDE_LEN - a.row - 1);
-    return CharSlice_WriteF(dst, "%c%c", col, row);
+    return CharBuff_WriteF(dst, "%c%c", col, row);
 }
 
-size_t CharSlice_WriteMoveParseErr(CharSlice* dst, const MoveParseErr err) {
+size_t CharBuff_WriteMoveParseErr(CharBuff* dst, const MoveParseErr err) {
     switch (err) {
         case MOVE_PARSE_ERR_OK:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("OK"));
+            return CharBuff_WriteStr(dst, STR("OK"));
         case MOVE_PARSE_ERR_TOO_SHORT:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("TOO_SHORT"));
+            return CharBuff_WriteStr(dst, STR("TOO_SHORT"));
         case MOVE_PARSE_ERR_INVALID_FROM_FORMAT:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("INVALID_FROM_FORMAT"));
+            return CharBuff_WriteStr(dst, STR("INVALID_FROM_FORMAT"));
         case MOVE_PARSE_ERR_INVALID_TO_FORMAT:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("INVALID_TO_FORMAT"));
+            return CharBuff_WriteStr(dst, STR("INVALID_TO_FORMAT"));
         default:
-            return CharSlice_WriteF(dst, "UNKNOWN (%d)", err);
+            return CharBuff_WriteF(dst, "UNKNOWN (%d)", err);
     }
 }
 
@@ -274,14 +274,14 @@ bool MoveParseResult_Equals(const MoveParseResult a, const MoveParseResult b) {
     return a.err == b.err && a.offset == b.offset;
 }
 
-size_t CharSlice_WriteMoveParseResult(CharSlice* dst, const MoveParseResult a) {
+size_t CharBuff_WriteMoveParseResult(CharBuff* dst, const MoveParseResult a) {
     assert(dst != nullptr);
     size_t written = 0;
-    written += CharSlice_WriteChar(dst, '{');
-    written += CharSlice_WriteMoveParseErr(dst, a.err);
-    written += CharSlice_WriteChar(dst, ',');
-    written += CharSlice_WriteF(dst, "%zd", a.offset);
-    written += CharSlice_WriteChar(dst, '}');
+    written += CharBuff_WriteChar(dst, '{');
+    written += CharBuff_WriteMoveParseErr(dst, a.err);
+    written += CharBuff_WriteChar(dst, ',');
+    written += CharBuff_WriteF(dst, "%zd", a.offset);
+    written += CharBuff_WriteChar(dst, '}');
     return written;
 }
 
@@ -311,26 +311,26 @@ MoveParseResult Move_Parse(Move* dst, const Str src) {
     };
 }
 
-size_t CharSlice_WriteMove(CharSlice* dst, const Move a) {
+size_t CharBuff_WriteMove(CharBuff* dst, const Move a) {
     assert(dst != nullptr);
     assert(Move_IsValid(a));
 
     size_t written = 0;
-    written += CharSlice_WritePos(dst, a.from);
-    written += CharSlice_WritePos(dst, a.to);
+    written += CharBuff_WritePos(dst, a.from);
+    written += CharBuff_WritePos(dst, a.to);
     return written;
 }
 
-size_t CharSlice_WriteBoardParseErr(CharSlice* dst, const SquaresParseErr err) {
+size_t CharBuff_WriteBoardParseErr(CharBuff* dst, const SquaresParseErr err) {
     switch (err) {
         case SQUARES_PARSE_ERR_OK:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("OK"));
+            return CharBuff_WriteStr(dst, STR("OK"));
         case SQUARES_PARSE_ERR_TOO_SHORT:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("TOO_SHORT"));
+            return CharBuff_WriteStr(dst, STR("TOO_SHORT"));
         case SQUARES_PARSE_ERR_UNEXPECTED_CHAR:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("UNEXPECTED_CHAR"));
+            return CharBuff_WriteStr(dst, STR("UNEXPECTED_CHAR"));
         default:
-            return CharSlice_WriteF(dst, "UNKNOWN (%d)", err);
+            return CharBuff_WriteF(dst, "UNKNOWN (%d)", err);
     }
 }
 
@@ -338,35 +338,35 @@ bool SquaresParseResult_Equals(const SquaresParseResult a, const SquaresParseRes
     return a.err == b.err && a.offset == b.offset && a.unexpectedChar == b.unexpectedChar;
 }
 
-size_t CharSlice_WriteBoardParseResult(CharSlice* dst, const SquaresParseResult err) {
+size_t CharBuff_WriteBoardParseResult(CharBuff* dst, const SquaresParseResult err) {
     assert(dst != nullptr);
     size_t written = 0;
-    written += CharSlice_WriteChar(dst, '{');
-    written += CharSlice_WriteBoardParseErr(dst, err.err);
-    written += CharSlice_WriteChar(dst, ',');
-    written += CharSlice_WriteF(dst, "%zd", err.offset);
+    written += CharBuff_WriteChar(dst, '{');
+    written += CharBuff_WriteBoardParseErr(dst, err.err);
+    written += CharBuff_WriteChar(dst, ',');
+    written += CharBuff_WriteF(dst, "%zd", err.offset);
     if (err.err == SQUARES_PARSE_ERR_UNEXPECTED_CHAR) {
-        written += CharSlice_WriteChar(dst, ',');
-        written += CharSlice_WriteChar(dst, err.unexpectedChar);
+        written += CharBuff_WriteChar(dst, ',');
+        written += CharBuff_WriteChar(dst, err.unexpectedChar);
     }
-    written += CharSlice_WriteChar(dst, '}');
+    written += CharBuff_WriteChar(dst, '}');
     return written;
 }
 
-size_t CharSlice_WriteMoveError(CharSlice* dst, const MoveErr a) {
+size_t CharBuff_WriteMoveError(CharBuff* dst, const MoveErr a) {
     switch (a) {
         case MOVE_ERR_OK:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("OK"));
+            return CharBuff_WriteStr(dst, STR("OK"));
         case MOVE_ERR_NO_PIECE:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("NO_PIECE"));
+            return CharBuff_WriteStr(dst, STR("NO_PIECE"));
         case MOVE_ERR_NO_MOVEMENT:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("NO_MOVEMENT"));
+            return CharBuff_WriteStr(dst, STR("NO_MOVEMENT"));
         case MOVE_ERR_ILLEGAL_MOVE:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("ILLEGAL_MOVE"));
+            return CharBuff_WriteStr(dst, STR("ILLEGAL_MOVE"));
         case MOVE_ERR_OBSTACLE:
-            return CharSlice_WriteStr(dst, CHAR_SLICE("OBSTACLE"));
+            return CharBuff_WriteStr(dst, STR("OBSTACLE"));
         default:
-            return CharSlice_WriteF(dst, "UNKNOWN (%d)", a);
+            return CharBuff_WriteF(dst, "UNKNOWN (%d)", a);
     }
 }
 
@@ -429,26 +429,26 @@ bool Piece_FromChar(Piece* t, const char ch) {
     }
 }
 
-size_t CharSlice_WriteMoveResult(CharSlice* dst, const MoveResult* a) {
+size_t CharBuff_WriteMoveResult(CharBuff* dst, const MoveResult* a) {
     assert(dst != nullptr);
     assert(a != nullptr);
 
     size_t written = 0;
 
-    written += CharSlice_WriteChar(dst, '{');
-    written += CharSlice_WriteMoveError(dst, a->err);
+    written += CharBuff_WriteChar(dst, '{');
+    written += CharBuff_WriteMoveError(dst, a->err);
 
     if (a->err == MOVE_ERR_OBSTACLE) {
-        written += CharSlice_WriteChar(dst, ',');
-        written += CharSlice_WritePos(dst, a->obstacleAt);
+        written += CharBuff_WriteChar(dst, ',');
+        written += CharBuff_WritePos(dst, a->obstacleAt);
     }
 
     if (a->taken != PIECE_TYPE_UNSPECIFIED) {
-        written += CharSlice_WriteChar(dst, ',');
-        written += CharSlice_WritePieceType(dst, a->taken);
+        written += CharBuff_WriteChar(dst, ',');
+        written += CharBuff_WritePieceType(dst, a->taken);
     }
 
-    written += CharSlice_WriteChar(dst, '}');
+    written += CharBuff_WriteChar(dst, '}');
     return written;
 }
 
@@ -487,21 +487,21 @@ SquaresParseResult Squares_Parse(Squares dst, const Str src) {
     return (SquaresParseResult){.offset = offset};
 }
 
-size_t CharSlice_WriteBoard(CharSlice* dst, const Board* b) {
+size_t CharBuff_WriteSquares(CharBuff* dst, const Squares ss) {
     size_t written = 0;
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; ++j) {
             const Pos  pos   = {.row = i, .col = j};
-            const auto piece = Squares_At(b->squares, pos);
+            const auto piece = Squares_At(ss, pos);
             char       pieceChar;
             if (piece.side == SIDE_WHITE) {
                 pieceChar = PieceType_ToUpperCaseChar(piece.type);
             } else {
                 pieceChar = PieceType_ToLowerCaseChar(piece.type);
             }
-            written += CharSlice_WriteChar(dst, pieceChar);
+            written += CharBuff_WriteChar(dst, pieceChar);
         }
-        written += CharSlice_WriteChar(dst, '\n');
+        written += CharBuff_WriteChar(dst, '\n');
     }
 
     return written;

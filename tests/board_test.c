@@ -59,61 +59,61 @@ void Test_Pos_Parse(void) {
     const test tests[] = {
         {
             .name    = "case 0.1",
-            .str     = CHAR_SLICE("a"),
+            .str     = STR("a"),
             .want    = {.err = POS_PARSE_ERR_TOO_SHORT, .offset = 0},
             .wantPos = {.col = 0, .row = 0},
         },
         {
             .name    = "case 0.2",
-            .str     = CHAR_SLICE("1"),
+            .str     = STR("1"),
             .want    = {.err = POS_PARSE_ERR_TOO_SHORT, .offset = 0},
             .wantPos = {.col = 0, .row = 0},
         },
         {
             .name    = "case 0.3",
-            .str     = CHAR_SLICE("k1"),
+            .str     = STR("k1"),
             .want    = {.err = POS_PARSE_ERR_INVALID_FORMAT, .offset = 0},
             .wantPos = {.col = 0, .row = 0},
         },
         {
 
             .name    = "case 1.1",
-            .str     = CHAR_SLICE("a1"),
+            .str     = STR("a1"),
             .want    = {.err = POS_PARSE_ERR_OK, .offset = 2},
             .wantPos = {.col = 0, .row = 7},
         },
         {
 
             .name    = "case 1.1.1",
-            .str     = CHAR_SLICE("a1a2"),
+            .str     = STR("a1a2"),
             .want    = {.err = POS_PARSE_ERR_OK, .offset = 2},
             .wantPos = {.col = 0, .row = 7},
         },
         {
 
             .name    = "case 1.2",
-            .str     = CHAR_SLICE("a8"),
+            .str     = STR("a8"),
             .want    = {.err = POS_PARSE_ERR_OK, .offset = 2},
             .wantPos = {.col = 0, .row = 0},
         },
         {
 
             .name    = "case 1.3",
-            .str     = CHAR_SLICE("h8"),
+            .str     = STR("h8"),
             .want    = {.err = POS_PARSE_ERR_OK, .offset = 2},
             .wantPos = {.col = 7, .row = 0},
         },
         {
 
             .name    = "case 1.4",
-            .str     = CHAR_SLICE("h1"),
+            .str     = STR("h1"),
             .want    = {.err = POS_PARSE_ERR_OK, .offset = 2},
             .wantPos = {.col = 7, .row = 7},
         },
         {
 
             .name    = "case 1.5",
-            .str     = CHAR_SLICE("e2"),
+            .str     = STR("e2"),
             .want    = {.err = POS_PARSE_ERR_OK, .offset = 2},
             .wantPos = {.col = 4, .row = 6},
         },
@@ -128,22 +128,22 @@ void Test_Pos_Parse(void) {
         const auto got    = Pos_Parse(&gotPos, tt.str);
 
         if (!PosParseResult_Equals(got, tt.want)) {
-            auto wantStr = CharSlice_OnStack(0, 128);
-            auto gotStr  = CharSlice_OnStack(0, 128);
+            auto wantStr = CharBuff_OnStack(0, 128);
+            auto gotStr  = CharBuff_OnStack(0, 128);
 
-            CharSlice_WritePosParseResult(&wantStr, tt.want);
-            CharSlice_WritePosParseResult(&gotStr, got);
+            CharBuff_WritePosParseResult(&wantStr, tt.want);
+            CharBuff_WritePosParseResult(&gotStr, got);
 
             TEST_PRINTF("%s - incorrect parse result want: %s, got: %s", tt.name, wantStr.arr, gotStr.arr);
             failed = true;
         }
 
         if (!Pos_Equals(gotPos, tt.wantPos)) {
-            auto wantStr = CharSlice_OnStack(0, 128);
-            auto gotStr  = CharSlice_OnStack(0, 128);
+            auto wantStr = CharBuff_OnStack(0, 128);
+            auto gotStr  = CharBuff_OnStack(0, 128);
 
-            CharSlice_WritePos(&wantStr, tt.wantPos);
-            CharSlice_WritePos(&gotStr, gotPos);
+            CharBuff_WritePos(&wantStr, tt.wantPos);
+            CharBuff_WritePos(&gotStr, gotPos);
 
             TEST_PRINTF("%s - incorrect pos want: %s, got: %s", tt.name, wantStr.arr, gotStr.arr);
             failed = true;
@@ -167,39 +167,39 @@ void Test_Move_Parse(void) {
     const test tests[] = {
         {
             .name     = "case 0.1",
-            .str      = CHAR_SLICE("a"),
+            .str      = STR("a"),
             .want     = {.err = MOVE_PARSE_ERR_TOO_SHORT, .offset = 0},
             .wantMove = {},
         },
         {
             .name     = "case 0.2",
-            .str      = CHAR_SLICE("a1"),
+            .str      = STR("a1"),
             .want     = {.err = MOVE_PARSE_ERR_TOO_SHORT, .offset = 0},
             .wantMove = {},
         },
         {
             .name     = "case 0.3",
-            .str      = CHAR_SLICE("k1h1"),
+            .str      = STR("k1h1"),
             .want     = {.err = MOVE_PARSE_ERR_INVALID_FROM_FORMAT, .offset = 0},
             .wantMove = {},
         },
         {
             .name     = "case 0.4",
-            .str      = CHAR_SLICE("b1i1"),
+            .str      = STR("b1i1"),
             .want     = {.err = MOVE_PARSE_ERR_INVALID_TO_FORMAT, .offset = 0},
             .wantMove = {},
         },
         {
 
             .name     = "case 1.1",
-            .str      = CHAR_SLICE("e2e4"),
+            .str      = STR("e2e4"),
             .want     = {.err = MOVE_PARSE_ERR_OK, .offset = 4},
             .wantMove = {.from = {.col = 4, .row = 6}, .to = {.col = 4, .row = 4}},
         },
         {
 
             .name     = "case 1.1.1",
-            .str      = CHAR_SLICE("e2e4k1k2"),
+            .str      = STR("e2e4k1k2"),
             .want     = {.err = MOVE_PARSE_ERR_OK, .offset = 4},
             .wantMove = {.from = {.col = 4, .row = 6}, .to = {.col = 4, .row = 4}},
         },
@@ -214,22 +214,22 @@ void Test_Move_Parse(void) {
         const auto got     = Move_Parse(&gotMove, tt.str);
 
         if (!MoveParseResult_Equals(got, tt.want)) {
-            auto wantStr = CharSlice_OnStack(0, 128);
-            auto gotStr  = CharSlice_OnStack(0, 128);
+            auto wantStr = CharBuff_OnStack(0, 128);
+            auto gotStr  = CharBuff_OnStack(0, 128);
 
-            CharSlice_WriteMoveParseResult(&wantStr, tt.want);
-            CharSlice_WriteMoveParseResult(&gotStr, got);
+            CharBuff_WriteMoveParseResult(&wantStr, tt.want);
+            CharBuff_WriteMoveParseResult(&gotStr, got);
 
             TEST_PRINTF("%s - incorrect parse result want: %s, got: %s", tt.name, wantStr.arr, gotStr.arr);
             failed = true;
         }
 
         if (!Move_Equals(gotMove, tt.wantMove)) {
-            auto wantStr = CharSlice_OnStack(0, 128);
-            auto gotStr  = CharSlice_OnStack(0, 128);
+            auto wantStr = CharBuff_OnStack(0, 128);
+            auto gotStr  = CharBuff_OnStack(0, 128);
 
-            CharSlice_WriteMove(&wantStr, tt.wantMove);
-            CharSlice_WriteMove(&gotStr, gotMove);
+            CharBuff_WriteMove(&wantStr, tt.wantMove);
+            CharBuff_WriteMove(&gotStr, gotMove);
 
             TEST_PRINTF("%s - incorrect pos want: %s, got: %s", tt.name, wantStr.arr, gotStr.arr);
             failed = true;
@@ -252,58 +252,55 @@ void Test_Board_Parse(void) {
     const test tests[] = {
         {
             .name      = "case 0.1",
-            .str       = CHAR_SLICE("."),
+            .str       = STR("."),
             .want      = {.err = SQUARES_PARSE_ERR_TOO_SHORT, .offset = 1},
             .wantBoard = {},
         },
         {
             .name      = "case 0.2",
-            .str       = CHAR_SLICE(".k"),
+            .str       = STR(".k"),
             .want      = {.err = SQUARES_PARSE_ERR_TOO_SHORT, .offset = 2},
             .wantBoard = {.squares = {[0][1] = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING}}},
         },
         {
             .name = "case 0.2",
-            .str  = CHAR_SLICE(
-                "........"
-                 "........"
-                 ".....i.."
-                 "........"
-                 "........"
-                 "........"
-                 "........"
-                 "........"
-            ),
+            .str =
+                STR("........"
+                    "........"
+                    ".....i.."
+                    "........"
+                    "........"
+                    "........"
+                    "........"
+                    "........"),
             .want      = {.err = SQUARES_PARSE_ERR_UNEXPECTED_CHAR, .offset = 22, .unexpectedChar = 'i'},
             .wantBoard = {},
         },
         {
             .name = "case 1.1 empty",
-            .str  = CHAR_SLICE(
-                "........"
-                 "........"
-                 "........"
-                 "........"
-                 "........"
-                 "........"
-                 "........"
-                 "........"
-            ),
+            .str =
+                STR("........"
+                    "........"
+                    "........"
+                    "........"
+                    "........"
+                    "........"
+                    "........"
+                    "........"),
             .want      = {.err = SQUARES_PARSE_ERR_OK, .offset = 64},
             .wantBoard = {},
         },
         {
             .name = "case 1.2 empty empty with end lines",
-            .str  = CHAR_SLICE(
-                "........\n"
-                 "........\n"
-                 "........\n"
-                 "........\n"
-                 "........\n"
-                 "........\n"
-                 "........\n"
-                 "........\n"
-            ),
+            .str =
+                STR("........\n"
+                    "........\n"
+                    "........\n"
+                    "........\n"
+                    "........\n"
+                    "........\n"
+                    "........\n"
+                    "........\n"),
             .want      = {.err = SQUARES_PARSE_ERR_OK, .offset = 64 + 7},
             .wantBoard = {},
         },
@@ -319,22 +316,22 @@ void Test_Board_Parse(void) {
         const auto got      = Squares_Parse(gotBoard.squares, tt.str);
 
         if (!SquaresParseResult_Equals(got, tt.want)) {
-            auto wantStr = CharSlice_OnStack(0, 128);
-            auto gotStr  = CharSlice_OnStack(0, 128);
+            auto wantStr = CharBuff_OnStack(0, 128);
+            auto gotStr  = CharBuff_OnStack(0, 128);
 
-            CharSlice_WriteBoardParseResult(&wantStr, tt.want);
-            CharSlice_WriteBoardParseResult(&gotStr, got);
+            CharBuff_WriteBoardParseResult(&wantStr, tt.want);
+            CharBuff_WriteBoardParseResult(&gotStr, got);
 
             TEST_PRINTF("%s - incorrect parse result want: %s, got: %s", tt.name, wantStr.arr, gotStr.arr);
             failed = true;
         }
 
         if (!Board_Equals(&gotBoard, &tt.wantBoard)) {
-            auto wantStr = CharSlice_OnStack(0, 128);
-            auto gotStr  = CharSlice_OnStack(0, 128);
+            auto wantStr = CharBuff_OnStack(0, 128);
+            auto gotStr  = CharBuff_OnStack(0, 128);
 
-            CharSlice_WriteBoard(&wantStr, &tt.wantBoard);
-            CharSlice_WriteBoard(&gotStr, &gotBoard);
+            CharBuff_WriteSquares(&wantStr, tt.wantBoard.squares);
+            CharBuff_WriteSquares(&gotStr, gotBoard.squares);
 
             TEST_PRINTF("%s - incorrect pos want: %s, got: %s", tt.name, wantStr.arr, gotStr.arr);
             failed = true;
@@ -359,7 +356,7 @@ void Test_Board_MakeMove(void) {
         {
             {
                 .name = "case 1.1: rook, a1a2",
-                .m    = parseMove(CHAR_SLICE("a1a2")),
+                .m    = parseMove(STR("a1a2")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -376,7 +373,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 1.2: rook, a1a8",
-                .m    = parseMove(CHAR_SLICE("a1a8")),
+                .m    = parseMove(STR("a1a8")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -393,7 +390,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 1.3: rook, no obstacle a1h1",
-                .m    = parseMove(CHAR_SLICE("a1h1")),
+                .m    = parseMove(STR("a1h1")),
                 .b =
                     {.state   = BOARD_STATE_IN_PROGRESS,
                      .side    = SIDE_WHITE,
@@ -406,18 +403,18 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 1.4: rook a1g1 obstacle",
-                .m    = parseMove(CHAR_SLICE("a1g1")),
+                .m    = parseMove(STR("a1g1")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
                         .side    = SIDE_WHITE,
                         .squares = {[7][0] = WHITE_ROOK, [7][1] = WHITE_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(CHAR_SLICE("b1"))},
+                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(STR("b1"))},
             },
             {
                 .name = "case 1.5: rook, take piece",
-                .m    = parseMove(CHAR_SLICE("a2e2")),
+                .m    = parseMove(STR("a2e2")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -434,7 +431,7 @@ void Test_Board_MakeMove(void) {
                     },
             },
             {.name = "case 2.1: bishop, no obstacle",
-             .m    = parseMove(CHAR_SLICE("a1b2")),
+             .m    = parseMove(STR("a1b2")),
              .b =
                  {
                      .state   = BOARD_STATE_IN_PROGRESS,
@@ -450,7 +447,7 @@ void Test_Board_MakeMove(void) {
                  }},
             {
                 .name = "case 2.2: bishop no obstacle",
-                .m    = parseMove(CHAR_SLICE("a1h8")),
+                .m    = parseMove(STR("a1h8")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -467,7 +464,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 2.3: bishop, obstacle",
-                .m    = parseMove(CHAR_SLICE("a1c3")),
+                .m    = parseMove(STR("a1c3")),
                 .b =
                     {
                         .state = BOARD_STATE_IN_PROGRESS,
@@ -475,11 +472,11 @@ void Test_Board_MakeMove(void) {
                         .squares =
                             {[7][0] = WHITE_BISHOP, [6][1] = WHITE_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(CHAR_SLICE("b2"))},
+                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(STR("b2"))},
             },
             {
                 .name = "case 2.4: bishop, take piece",
-                .m    = parseMove(CHAR_SLICE("a1c3")),
+                .m    = parseMove(STR("a1c3")),
                 .b =
                     {
                         .state = BOARD_STATE_IN_PROGRESS,
@@ -498,7 +495,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 4.1 queen, no obstacle",
-                .m    = parseMove(CHAR_SLICE("a2a3")),
+                .m    = parseMove(STR("a2a3")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -515,7 +512,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 4.2 queen, no obstacle",
-                .m    = parseMove(CHAR_SLICE("a2b3")),
+                .m    = parseMove(STR("a2b3")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -532,7 +529,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 4.3 queen, no obstacle",
-                .m    = parseMove(CHAR_SLICE("a2g8")),
+                .m    = parseMove(STR("a2g8")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -549,7 +546,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 4.4 queen, obstacle",
-                .m    = parseMove(CHAR_SLICE("a1c3")),
+                .m    = parseMove(STR("a1c3")),
                 .b =
                     {
                         .state = BOARD_STATE_IN_PROGRESS,
@@ -557,11 +554,11 @@ void Test_Board_MakeMove(void) {
                         .squares =
                             {[7][0] = WHITE_QUEEN, [6][1] = WHITE_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(CHAR_SLICE("b2"))},
+                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(STR("b2"))},
             },
             {
                 .name = "case 4.5 queen, take piece",
-                .m    = parseMove(CHAR_SLICE("a1e5")),
+                .m    = parseMove(STR("a1e5")),
                 .b =
                     {
                         .state = BOARD_STATE_IN_PROGRESS,
@@ -580,7 +577,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 5.1: knight, no obstacle",
-                .m    = parseMove(CHAR_SLICE("a1b3")),
+                .m    = parseMove(STR("a1b3")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -597,7 +594,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 5.3: knight, no obstacle",
-                .m    = parseMove(CHAR_SLICE("a1c2")),
+                .m    = parseMove(STR("a1c2")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -614,7 +611,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 5.4: knight, take piece",
-                .m    = parseMove(CHAR_SLICE("a1b3")),
+                .m    = parseMove(STR("a1b3")),
                 .b =
                     {
                         .state = BOARD_STATE_IN_PROGRESS,
@@ -633,7 +630,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 6.1 pawn, no obstacle",
-                .m    = parseMove(CHAR_SLICE("a2a3")),
+                .m    = parseMove(STR("a2a3")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -650,7 +647,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 6.3 pawn, no obstacle",
-                .m    = parseMove(CHAR_SLICE("e2e4")),
+                .m    = parseMove(STR("e2e4")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -670,7 +667,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 6.4 pawn, no obstacle, illegal move",
-                .m    = parseMove(CHAR_SLICE("e2a5")),
+                .m    = parseMove(STR("e2a5")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -681,7 +678,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 6.5 pawn, obstacle",
-                .m    = parseMove(CHAR_SLICE("e2e4")),
+                .m    = parseMove(STR("e2e4")),
                 .b =
                     {
                         .state = BOARD_STATE_IN_PROGRESS,
@@ -689,23 +686,23 @@ void Test_Board_MakeMove(void) {
                         .squares =
                             {[6][4] = WHITE_PAWN, [5][4] = BLACK_QUEEN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(CHAR_SLICE("e3"))},
+                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(STR("e3"))},
             },
             {
                 .name = "case 6.6 pawn, obstacle",
-                .m    = parseMove(CHAR_SLICE("e2e4")),
+                .m    = parseMove(STR("e2e4")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
                         .side    = SIDE_WHITE,
                         .squares = {[6][4] = WHITE_PAWN, [4][4] = WHITE_PAWN, [0][7] = WHITE_KING, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(CHAR_SLICE("e4"))},
+                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(STR("e4"))},
 
             },
             {
                 .name = "case 6.7 pawn, take piece",
-                .m    = parseMove(CHAR_SLICE("d3e4")),
+                .m    = parseMove(STR("d3e4")),
                 .b =
                     {
                         .state = BOARD_STATE_IN_PROGRESS,
@@ -736,7 +733,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 7.1 king, no obstacle",
-                .m    = parseMove(CHAR_SLICE("a1b2")),
+                .m    = parseMove(STR("a1b2")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -753,7 +750,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 7.2 king, no obstacle",
-                .m    = parseMove(CHAR_SLICE("a1a2")),
+                .m    = parseMove(STR("a1a2")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -770,7 +767,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 7.3 king, illegal move",
-                .m    = parseMove(CHAR_SLICE("a1c3")),
+                .m    = parseMove(STR("a1c3")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -781,18 +778,18 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 7.4 king, obstacle",
-                .m    = parseMove(CHAR_SLICE("a1b2")),
+                .m    = parseMove(STR("a1b2")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
                         .side    = SIDE_WHITE,
                         .squares = {[7][0] = WHITE_KING, [6][1] = WHITE_PAWN, [7][7] = BLACK_KING},
                     },
-                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(CHAR_SLICE("b2"))},
+                .want = {.err = MOVE_ERR_OBSTACLE, .obstacleAt = parsePos(STR("b2"))},
             },
             {
                 .name = "case 7.5 king, take piece",
-                .m    = parseMove(CHAR_SLICE("a1b2")),
+                .m    = parseMove(STR("a1b2")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -810,7 +807,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 7.6 king, check",
-                .m    = parseMove(CHAR_SLICE("b3b2")),
+                .m    = parseMove(STR("b3b2")),
                 .b =
                     {
                         .state   = BOARD_STATE_IN_PROGRESS,
@@ -828,7 +825,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 7.7 king, remove check",
-                .m    = parseMove(CHAR_SLICE("a1b2")),
+                .m    = parseMove(STR("a1b2")),
                 .b =
                     {
                         .state       = BOARD_STATE_IN_PROGRESS,
@@ -847,7 +844,7 @@ void Test_Board_MakeMove(void) {
             },
             {
                 .name = "case 7.8 king, checkmate",
-                .m    = parseMove(CHAR_SLICE("b3b2")),
+                .m    = parseMove(STR("b3b2")),
                 .b =
                     {
                         .state = BOARD_STATE_IN_PROGRESS,
@@ -889,48 +886,46 @@ void Test_Board_MakeMove(void) {
 }
 
 void Test_WriteAsJson() {
-    auto src = parseBoard(CHAR_SLICE(
-        "...k...."
-        "........"
-        "........"
-        "........"
-        "........"
-        "........"
-        "....P..."
-        "........"
-    ));
+    auto src = parseBoard(
+        STR("...k...."
+            "........"
+            "........"
+            "........"
+            "........"
+            "........"
+            "....P..."
+            "........")
+    );
 
     src.side        = SIDE_BLACK;
     src.white.taken = (PieceTypes){.arr = {[0] = PIECE_TYPE_KNIGHT}, .len = 1};
 
-    const auto expected = CHAR_SLICE(
-        "{"
-        "\"next_move_side\":\"BLACK\","
-        "\"squares\":{"
-        "\"d8\":{\"type\":\"KING\",\"side\":\"BLACK\"},"
-        "\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}"
-        "},"
-        "\"black\":{\"king_castled\":false,\"taken\":[]},"
-        "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
-        "}"
-    );
-    auto       dst     = CharSlice_OnStack(0, 1024);
+    const auto expected =
+        STR("{"
+            "\"next_move_side\":\"BLACK\","
+            "\"squares\":{"
+            "\"d8\":{\"type\":\"KING\",\"side\":\"BLACK\"},"
+            "\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}"
+            "},"
+            "\"black\":{\"king_castled\":false,\"taken\":[]},"
+            "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
+            "}");
+    auto       dst     = CharBuff_OnStack(0, 1024);
     auto       js      = JsonStack_Make(0, 128);
-    const auto written = CharSlice_WriteBoardAsJson(&dst, &js, &src);
+    const auto written = CharBuff_WriteBoardAsJson(&dst, &js, &src);
 
     TEST_ASSERT_GREATER_THAN(0, written);
-    TEST_ASSERT_TRUE(CharSlice_EqualsStr(dst, expected));
+    TEST_ASSERT_TRUE(CharBuff_EqualsStr(dst, expected));
 }
 
 void Test_InterpretJson() {
-    const auto src = CHAR_SLICE(
-        "{"
-        "\"next_move_side\":\"BLACK\","
-        "\"squares\":{\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}},"
-        "\"black\":{\"king_castled\":false,\"taken\":[]},"
-        "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
-        "}"
-    );
+    const auto src =
+        STR("{"
+            "\"next_move_side\":\"BLACK\","
+            "\"squares\":{\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}},"
+            "\"black\":{\"king_castled\":false,\"taken\":[]},"
+            "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
+            "}");
     Board      dst             = {};
     JsonNodes  nodes           = JsonNodes_Make(0, 128);
     const auto jsonParseResult = JsonNodes_Parse(&nodes, src);

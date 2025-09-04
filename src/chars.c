@@ -1,4 +1,4 @@
-#include "char_slice.h"
+#include "chars.h"
 
 #include <assert.h>
 #include <stdarg.h>
@@ -39,7 +39,7 @@ bool Str_IsValid(const Str s) {
     }
     return s.arr != nullptr;
 }
-bool CharSlice_Alloc(CharSlice* dst, size_t cap, Arena* src) {
+bool CharBuff_Alloc(CharBuff* dst, size_t cap, Arena* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
     assert(cap > 0);
@@ -55,9 +55,9 @@ bool CharSlice_Alloc(CharSlice* dst, size_t cap, Arena* src) {
     return true;
 }
 
-bool CharSlice_Equals(const CharSlice a, const CharSlice b) {
-    assert(CharSlice_IsValid(a));
-    assert(CharSlice_IsValid(b));
+bool CharBuff_Equals(const CharBuff a, const CharBuff b) {
+    assert(CharBuff_IsValid(a));
+    assert(CharBuff_IsValid(b));
 
     if (a.len != b.len) {
         return false;
@@ -70,8 +70,8 @@ bool CharSlice_Equals(const CharSlice a, const CharSlice b) {
 
     return true;
 }
-bool CharSlice_EqualsStr(const CharSlice a, const Str b) {
-    assert(CharSlice_IsValid(a));
+bool CharBuff_EqualsStr(const CharBuff a, const Str b) {
+    assert(CharBuff_IsValid(a));
 
     if (a.len != b.len) {
         return false;
@@ -85,12 +85,12 @@ bool CharSlice_EqualsStr(const CharSlice a, const Str b) {
     return true;
 }
 
-char CharSlice_At(const CharSlice s, const size_t i) {
+char CharBuff_At(const CharBuff s, const size_t i) {
     assert(i < s.len);
     return s.arr[i];
 }
 
-Str CharSlice_View(const CharSlice s, const size_t start, const size_t end) {
+Str CharBuff_View(const CharBuff s, const size_t start, const size_t end) {
     assert(start <= end);
     assert(end <= s.len);
     const auto len = end - start;
@@ -99,9 +99,9 @@ Str CharSlice_View(const CharSlice s, const size_t start, const size_t end) {
         .len = len,
     };
 }
-Str CharSlice_ToStr(const CharSlice s) { return CharSlice_View(s, 0, s.len); }
+Str CharBuff_ToStr(const CharBuff s) { return CharBuff_View(s, 0, s.len); }
 
-size_t CharSlice_WriteCharAt(CharSlice* dst, const size_t i, const char v) {
+size_t CharBuff_WriteCharAt(CharBuff* dst, const size_t i, const char v) {
     assert(dst != nullptr);
     if (i > dst->len || i >= dst->cap) {
         return 0;
@@ -113,7 +113,7 @@ size_t CharSlice_WriteCharAt(CharSlice* dst, const size_t i, const char v) {
     return 1;
 }
 
-size_t CharSlice_WriteAt(CharSlice* dst, const size_t offset, const CharSlice src) {
+size_t CharBuff_WriteAt(CharBuff* dst, const size_t offset, const CharBuff src) {
     assert(dst != nullptr);
     if (offset > dst->len || offset >= dst->cap) {
         return 0;
@@ -129,7 +129,7 @@ size_t CharSlice_WriteAt(CharSlice* dst, const size_t offset, const CharSlice sr
     return itemsToCopy;
 }
 
-size_t CharSlice_WriteStrAt(CharSlice* dst, const size_t offset, const Str src) {
+size_t CharBuff_WriteStrAt(CharBuff* dst, const size_t offset, const Str src) {
     assert(dst != nullptr);
     if (offset > dst->len || offset >= dst->cap) {
         return 0;
@@ -145,13 +145,13 @@ size_t CharSlice_WriteStrAt(CharSlice* dst, const size_t offset, const Str src) 
     return itemsToCopy;
 }
 
-size_t CharSlice_WriteChar(CharSlice* dst, const char v) { return CharSlice_WriteCharAt(dst, dst->len, v); }
+size_t CharBuff_WriteChar(CharBuff* dst, const char v) { return CharBuff_WriteCharAt(dst, dst->len, v); }
 
-size_t CharSlice_Write(CharSlice* dst, const CharSlice other) {
+size_t CharBuff_Write(CharBuff* dst, const CharBuff other) {
     assert(dst != nullptr);
-    return CharSlice_WriteAt(dst, dst->len, other);
+    return CharBuff_WriteAt(dst, dst->len, other);
 }
-size_t CharSlice_WriteStr(CharSlice* dst, const Str src) {
+size_t CharBuff_WriteStr(CharBuff* dst, const Str src) {
     assert(dst != nullptr);
 
     if (src.len == 0 || dst->len == dst->cap) {
@@ -169,10 +169,10 @@ size_t CharSlice_WriteStr(CharSlice* dst, const Str src) {
     return len;
 }
 
-size_t CharSlice_WriteZeroStr(CharSlice* dst, const char* src) {
+size_t CharBuff_WriteZeroStr(CharBuff* dst, const char* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
-    assert(CharSlice_IsValid(*dst));
+    assert(CharBuff_IsValid(*dst));
 
     const auto remaining = dst->cap - dst->len;
     if (remaining < 1) {
@@ -189,7 +189,7 @@ size_t CharSlice_WriteZeroStr(CharSlice* dst, const char* src) {
     return len;
 }
 
-bool CharSlice_StartsWith(const CharSlice s, const CharSlice prefix) {
+bool CharBuff_StartsWith(const CharBuff s, const CharBuff prefix) {
     if (prefix.len > s.len) {
         return false;
     }
@@ -197,19 +197,10 @@ bool CharSlice_StartsWith(const CharSlice s, const CharSlice prefix) {
     return memcmp(s.arr, prefix.arr, prefix.len) == 0;
 }
 
-size_t CharSlice_ToString(char* dst, const size_t maxLen, const CharSlice slice) {
-    assert(dst != nullptr);
-
-    const auto dstLen = MinSizeT(slice.len, maxLen - 1);
-    memcpy(dst, slice.arr, dstLen);
-    dst[dstLen] = '\0';
-    return dstLen;
-}
-
-size_t CharSlice_ReadLine(CharSlice* dst, FILE* src, const char separator) {
+size_t CharBuff_WriteLineFromFile(CharBuff* dst, FILE* src, const char separator) {
     assert(dst != nullptr);
     assert(src != nullptr);
-    assert(CharSlice_IsValid(*dst));
+    assert(CharBuff_IsValid(*dst));
 
     const auto remaining = (int)(dst->cap - dst->len);
     if (remaining < 1) {
@@ -235,7 +226,7 @@ size_t CharSlice_ReadLine(CharSlice* dst, FILE* src, const char separator) {
     return written;
 }
 
-size_t CharSlice_ReadFile(CharSlice* dst, FILE* src) {
+size_t CharBuff_WriteFile(CharBuff* dst, FILE* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
@@ -249,22 +240,22 @@ size_t CharSlice_ReadFile(CharSlice* dst, FILE* src) {
     return read;
 }
 
-bool CharSlice_IsValid(const CharSlice s) {
+bool CharBuff_IsValid(const CharBuff s) {
     if (s.arr == nullptr && s.len == 0 && s.cap == 0) {
         return true;
     }
     return s.arr != nullptr && s.len <= s.cap;
 }
 
-size_t File_WriteCharSlice(FILE* dst, const CharSlice src) {
+size_t File_WriteCharBuff(FILE* dst, const CharBuff src) {
     assert(dst != nullptr);
     return fwrite(src.arr, sizeof(char), src.len, dst);
 }
 
-size_t CharSlice_WriteF(CharSlice* dst, const char* format, ...) {
+size_t CharBuff_WriteF(CharBuff* dst, const char* format, ...) {
     assert(dst != nullptr);
     assert(format != nullptr);
-    assert(CharSlice_IsValid(*dst));
+    assert(CharBuff_IsValid(*dst));
 
     const auto remaining = dst->cap - dst->len;
 
@@ -291,7 +282,7 @@ size_t Str_NoDiffLen(const Str s1, const Str s2) {
     return i;
 }
 
-void CharSlice_WriteDiff(CharSlice* dst, const Str s1, const Str s2) {
+void CharBuff_WriteDiff(CharBuff* dst, const Str s1, const Str s2) {
     const auto dstRemCap = dst->cap - dst->len;
     if (dstRemCap < 5 + 1 + 2 + 1 + 2 + 1 + 5) {
         return;
@@ -313,14 +304,14 @@ void CharSlice_WriteDiff(CharSlice* dst, const Str s1, const Str s2) {
     }
 
     const auto srcView = Str_View(s1, srcViewOffset, srcViewOffset + srcViewLen);
-    CharSlice_WriteStr(dst, srcView);
+    CharBuff_WriteStr(dst, srcView);
 
     if (srcViewLen - 3 > noDiffLen) {
-        CharSlice_WriteStrAt(dst, 0, CHAR_SLICE("..."));
+        CharBuff_WriteStrAt(dst, 0, STR("..."));
     }
 
     if (noDiffLen == srcMinLen) {
-        CharSlice_WriteChar(dst, '{');
+        CharBuff_WriteChar(dst, '{');
 
         if (s1.len < s2.len) {
             size_t diffViewLen = s2.len - s1.len;
@@ -328,10 +319,10 @@ void CharSlice_WriteDiff(CharSlice* dst, const Str s1, const Str s2) {
                 diffViewLen = contextHalfLen;
             }
 
-            CharSlice_WriteStr(dst, CHAR_SLICE("\\0|"));
+            CharBuff_WriteStr(dst, STR("\\0|"));
             const auto diffView = Str_View(s2, s1.len, s1.len + diffViewLen);
-            CharSlice_WriteStr(dst, diffView);
-            CharSlice_WriteChar(dst, '}');
+            CharBuff_WriteStr(dst, diffView);
+            CharBuff_WriteChar(dst, '}');
         } else {
             size_t diffViewLen = s1.len - s2.len;
             if (diffViewLen > contextHalfLen) {
@@ -339,8 +330,8 @@ void CharSlice_WriteDiff(CharSlice* dst, const Str s1, const Str s2) {
             }
 
             const auto diffView = Str_View(s1, s2.len, s2.len + diffViewLen);
-            CharSlice_WriteStr(dst, diffView);
-            CharSlice_WriteStr(dst, CHAR_SLICE("|\\0}"));
+            CharBuff_WriteStr(dst, diffView);
+            CharBuff_WriteStr(dst, STR("|\\0}"));
         }
         return;
     }
@@ -352,22 +343,22 @@ void CharSlice_WriteDiff(CharSlice* dst, const Str s1, const Str s2) {
     const auto s1ContextView = Str_View(s1DiffView, 0, s1ContextLen);
     const auto s2ContextView = Str_View(s2DiffView, 0, s2ContextLen);
 
-    CharSlice_WriteChar(dst, '{');
-    CharSlice_WriteStr(dst, s1ContextView);
+    CharBuff_WriteChar(dst, '{');
+    CharBuff_WriteStr(dst, s1ContextView);
 
     if (s1DiffView.len - 3 > s1ContextView.len) {
-        CharSlice_WriteStrAt(dst, dst->len - 3, CHAR_SLICE("..."));
+        CharBuff_WriteStrAt(dst, dst->len - 3, STR("..."));
     }
 
-    CharSlice_WriteChar(dst, '|');
-    CharSlice_WriteStr(dst, s2ContextView);
+    CharBuff_WriteChar(dst, '|');
+    CharBuff_WriteStr(dst, s2ContextView);
     if (s2DiffView.len - 3 > s2ContextView.len) {
-        CharSlice_WriteStrAt(dst, dst->len - 3, CHAR_SLICE("..."));
+        CharBuff_WriteStrAt(dst, dst->len - 3, STR("..."));
     }
-    CharSlice_WriteChar(dst, '}');
+    CharBuff_WriteChar(dst, '}');
 }
 
-int CharSlice_Cmp(const CharSlice a, const CharSlice b) {
+int CharBuff_Cmp(const CharBuff a, const CharBuff b) {
     const auto minLen = MinSizeT(a.len, b.len);
     const auto result = strncmp(a.arr, b.arr, minLen);
     if (result != 0) {
