@@ -1,7 +1,7 @@
 #ifndef JSON_H
 #define JSON_H
 
-#include "char_slice.h"
+#include "chars.h"
 
 /**
  * JSON Parse Functions
@@ -132,15 +132,15 @@ JsonType        JsonSource_Type(const JsonSource *s);
 size_t          JsonSource_ChildrenCount(const JsonSource *s);
 Str             JsonSource_Value(const JsonSource *s);
 bool            JsonSource_BoolValue(const JsonSource *s);
-size_t          CharSlice_WriteJsonParseErr(CharSlice *dst, JsonParseErr err);
-size_t          CharSlice_WriteJsonParseResult(CharSlice *dst, const JsonParseResult *r);
-size_t          CharSlice_WriteJsonStart(CharSlice *dst, JsonStack *s, char bracket);
-size_t          CharSlice_WriteJsonEnd(CharSlice *dst, JsonStack *s);
-size_t          CharSlice_WriteJsonKey(CharSlice *dst, JsonStack *s, Str key);
-size_t          CharSlice_WriteJsonStr(CharSlice *dst, JsonStack *s, Str value);
-size_t          CharSlice_WriteJsonBool(CharSlice *dst, JsonStack *s, bool value);
-size_t          CharSlice_WriteJsonNull(CharSlice *dst, JsonStack *s);
-size_t          CharSlice_WriteJsonNumeric(CharSlice *dst, JsonStack *s, Str value);
+size_t          CharBuff_WriteJsonParseErr(CharBuff *dst, JsonParseErr err);
+size_t          CharBuff_WriteJsonParseResult(CharBuff *dst, const JsonParseResult *r);
+size_t          CharBuff_WriteJsonStart(CharBuff *dst, JsonStack *s, char bracket);
+size_t          CharBuff_WriteJsonEnd(CharBuff *dst, JsonStack *s);
+size_t          CharBuff_WriteJsonKey(CharBuff *dst, JsonStack *s, Str key);
+size_t          CharBuff_WriteJsonStr(CharBuff *dst, JsonStack *s, Str value);
+size_t          CharBuff_WriteJsonBool(CharBuff *dst, JsonStack *s, bool value);
+size_t          CharBuff_WriteJsonNull(CharBuff *dst, JsonStack *s);
+size_t          CharBuf_WriteJsonNumeric(CharBuff *dst, JsonStack *s, Str value);
 
 #define JsonNodes_Make(len1, cap1) \
     (((cap1) > 0) ? (JsonNodes){.arr = (JsonNode[cap1]){}, .len = (len1), .cap = (cap1)} : (JsonNodes){})

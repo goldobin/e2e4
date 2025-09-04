@@ -62,7 +62,7 @@ target_link_libraries(e2e4_cli PRIVATE
 # e2e4 LIB
 add_library(e2e4 STATIC
         src/arena.c
-        src/char_slice.c
+        src/chars.c
         src/move_slice.c
         src/board.c
         src/json.c
@@ -77,13 +77,13 @@ add_dependencies(e2e4 format)
 # Testing
 include(CTest)
 
-add_executable(char_slice_test
-        tests/char_slice_test.c
+add_executable(chars_test
+        tests/chars_test.c
 )
 
-target_compile_features(char_slice_test PRIVATE ${C_STANDARD})
-target_compile_options(char_slice_test PRIVATE ${CC_TEST_PARAMS})
-target_link_libraries(char_slice_test PRIVATE
+target_compile_features(chars_test PRIVATE ${C_STANDARD})
+target_compile_options(chars_test PRIVATE ${CC_TEST_PARAMS})
+target_link_libraries(chars_test PRIVATE
         e2e4
         unity
 )
@@ -124,7 +124,7 @@ target_link_libraries(json_test PRIVATE
 )
 
 add_test(NAME "Arena" COMMAND arena_test)
-add_test(NAME "CharSlice" COMMAND char_slice_test)
+add_test(NAME "Chars" COMMAND chars_test)
 add_test(NAME "Board" COMMAND board_test)
 add_test(NAME "JSON" COMMAND json_test)
 

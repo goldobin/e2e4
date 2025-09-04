@@ -110,21 +110,21 @@ void ParseTest_Run(const ParseTest tt) {
 void Test_Empty() {
     const ParseTest tests[] = {
         {
-            .src           = CHAR_SLICE("{}"),
+            .src           = STR("{}"),
             .poolSize      = 1,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 1,
             .rules         = {{.type = JSON_NODE_TYPE_OBJECT, .other = {.offset = 0, .len = 2, .childrenCount = 0}}},
         },
         {
-            .src           = CHAR_SLICE("[]"),
+            .src           = STR("[]"),
             .poolSize      = 1,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 1,
             .rules         = {{.type = JSON_NODE_TYPE_ARRAY, .other = {.offset = 0, .len = 2, .childrenCount = 0}}},
         },
         {
-            .src           = CHAR_SLICE("[{},{}]"),
+            .src           = STR("[{},{}]"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
@@ -146,121 +146,121 @@ void Test_Empty() {
 void Test_Object() {
     const ParseTest tests[] = {
         {
-            .src           = CHAR_SLICE("{\"a\":0}"),
+            .src           = STR("{\"a\":0}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.offset = 0, .len = 7, .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("a"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("0")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("0")}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"a\":[]}"),
+            .src           = STR("{\"a\":[]}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.offset = 0, .len = 8, .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("a"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
                     {.type = JSON_NODE_TYPE_ARRAY, .other = {.offset = 5, .len = 2, .childrenCount = 0}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"a\":{},\"b\":{}}"),
+            .src           = STR("{\"a\":{},\"b\":{}}"),
             .poolSize      = 5,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 5,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.offset = 0, .len = 15, .childrenCount = 2}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("a"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 0}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("b"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("b"), .childrenCount = 1}},
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 0}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\n \"Day\": 26,\n \"Month\": 9,\n \"Year\": 12\n }"),
+            .src           = STR("{\n \"Day\": 26,\n \"Month\": 9,\n \"Year\": 12\n }"),
             .poolSize      = 7,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 7,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 3}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("Day"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("26")}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("Month"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("9")}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("Year"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("12")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("Day"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("26")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("Month"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("9")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("Year"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("12")}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"a\": 0, \"b\": \"c\"}"),
+            .src           = STR("{\"a\": 0, \"b\": \"c\"}"),
             .poolSize      = 5,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 5,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 2}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("a"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("0")}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("b"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("c"), .childrenCount = 0}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("0")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("b"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("c"), .childrenCount = 0}},
                 },
         },
         {
-            .src      = CHAR_SLICE("{\"a\"\n0}"),
+            .src      = STR("{\"a\"\n0}"),
             .poolSize = 3,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("{\"a\", 0}"),
+            .src      = STR("{\"a\", 0}"),
             .poolSize = 3,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("{\"a\": {2: 3}}"),
+            .src      = STR("{\"a\": {2: 3}}"),
             .poolSize = 3,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("{\"a\": {\"a\": 2 3}}"),
+            .src      = STR("{\"a\": {\"a\": 2 3}}"),
             .poolSize = 5,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         // FIXME
         // {
-        //     .src      = CHAR_SLICE("{\"a\"}"),
+        //     .src      = STR("{\"a\"}"),
         //     .poolSize = 2,
         //     .wantErr  = JSON_PARSE_ERROR_INVALID,
         // },
         // {
-        //     .src      = CHAR_SLICE("{\"a\": 1, \"b\"}"),
+        //     .src      = STR("{\"a\": 1, \"b\"}"),
         //     .poolSize = 7,
         //     .wantErr  = JSON_PARSE_ERROR_INVALID,
         // },
         // {
-        //     .src      = CHAR_SLICE("{\"a\",\"b\":1}"),
+        //     .src      = STR("{\"a\",\"b\":1}"),
         //     .poolSize = 7,
         //     .wantErr  = JSON_PARSE_ERROR_INVALID,
         // },
         // {
-        //     .src      = CHAR_SLICE("{\"a\":1,}"),
+        //     .src      = STR("{\"a\":1,}"),
         //     .poolSize = 7,
         //     .wantErr  = JSON_PARSE_ERROR_INVALID,
         // },
         // {
-        //     .src      = CHAR_SLICE("{\"a\":\"b\":\"c\"}"),
+        //     .src      = STR("{\"a\":\"b\":\"c\"}"),
         //     .poolSize = 7,
         //     .wantErr  = JSON_PARSE_ERROR_INVALID,
         // },
         // {
-        //     .src      = CHAR_SLICE("{,}"),
+        //     .src      = STR("{,}"),
         //     .poolSize = 7,
         //     .wantErr  = JSON_PARSE_ERROR_INVALID,
         // },
@@ -275,33 +275,33 @@ void Test_Object() {
 
 void test_array(void) {
     const ParseTest tests[] = {
-        {.src           = CHAR_SLICE("[10]"),
+        {.src           = STR("[10]"),
          .poolSize      = 2,
          .wantErr       = JSON_PARSE_ERROR_OK,
          .wantNodeCount = 2,
          .rules =
              {
                  {.type = JSON_NODE_TYPE_ARRAY, .other = {.childrenCount = 1}},
-                 {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("10")}},
+                 {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("10")}},
              }},
         {
-            .src      = CHAR_SLICE("{\"a\": 1]"),
+            .src      = STR("{\"a\": 1]"),
             .poolSize = 3,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("[10}"),
+            .src      = STR("[10}"),
             .poolSize = 2,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         // FIXME
         //  {
-        //      .src      = CHAR_SLICE("[1,,3]"),
+        //      .src      = STR("[1,,3]"),
         //      .poolSize = 4,
         //      .wantErr  = JSON_PARSE_ERROR_INVALID,
         //  }
         //  {
-        //      .src      = CHAR_SLICE("[\"a\": 1]"),
+        //      .src      = STR("[\"a\": 1]"),
         //      .poolSize = 3,
         //      .wantErr  = JSON_PARSE_ERROR_INVALID,
         //  },
@@ -316,60 +316,60 @@ void test_array(void) {
 
 void Test_Primitive() {
     const ParseTest tests[] = {
-        {.src           = CHAR_SLICE("{\"boolVar\" : true }"),
+        {.src           = STR("{\"boolVar\" : true }"),
          .poolSize      = 3,
          .wantErr       = JSON_PARSE_ERROR_OK,
          .wantNodeCount = 3,
          .rules =
              {
                  {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                 {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("boolVar"), .childrenCount = 1}},
-                 {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("true")}},
+                 {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("boolVar"), .childrenCount = 1}},
+                 {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("true")}},
              }},
         {
-            .src           = CHAR_SLICE("{\"boolVar\" : false }"),
+            .src           = STR("{\"boolVar\" : false }"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("boolVar"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("false")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("boolVar"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("false")}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"nullVar\" : null }"),
+            .src           = STR("{\"nullVar\" : null }"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("nullVar"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("null")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("nullVar"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("null")}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"intVar\" : 12 }"),
+            .src           = STR("{\"intVar\" : 12 }"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("intVar"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("12")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("intVar"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("12")}},
                 },
         },
-        {.src           = CHAR_SLICE("{\"floatVar\" : 12.345 }"),
+        {.src           = STR("{\"floatVar\" : 12.345 }"),
          .poolSize      = 3,
          .wantErr       = JSON_PARSE_ERROR_OK,
          .wantNodeCount = 3,
          .rules         = {
              {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-             {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("floatVar"), .childrenCount = 1}},
-             {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("12.345")}},
+             {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("floatVar"), .childrenCount = 1}},
+             {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("12.345")}},
          }},
     };
 
@@ -383,107 +383,107 @@ void Test_Primitive() {
 void Test_String(void) {
     const ParseTest tests[] = {
         {
-            .src           = CHAR_SLICE("{\"strVar\" : \"hello world\"}"),
+            .src           = STR("{\"strVar\" : \"hello world\"}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("strVar"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("hello world"), .childrenCount = 0}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("strVar"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("hello world"), .childrenCount = 0}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"strVar\" : \"escapes: \\/\\r\\n\\t\\b\\f\\\"\\\\\"}"),
+            .src           = STR("{\"strVar\" : \"escapes: \\/\\r\\n\\t\\b\\f\\\"\\\\\"}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("strVar"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("strVar"), .childrenCount = 1}},
                     {.type   = JSON_NODE_TYPE_STRING,
-                     .string = {.value = CHAR_SLICE("escapes: \\/\\r\\n\\t\\b\\f\\\"\\\\"), .childrenCount = 0}},
+                     .string = {.value = STR("escapes: \\/\\r\\n\\t\\b\\f\\\"\\\\"), .childrenCount = 0}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"strVar\": \"\"}"),
+            .src           = STR("{\"strVar\": \"\"}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("strVar"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE(""), .childrenCount = 0}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("strVar"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR(""), .childrenCount = 0}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"a\":\"\\uAbcD\"}"),
+            .src           = STR("{\"a\":\"\\uAbcD\"}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("a"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("\\uAbcD"), .childrenCount = 0}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("\\uAbcD"), .childrenCount = 0}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"a\":\"str\\u0000\"}"),
+            .src           = STR("{\"a\":\"str\\u0000\"}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("a"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("str\\u0000"), .childrenCount = 0}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("str\\u0000"), .childrenCount = 0}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"a\":\"\\uFFFFstr\"}"),
+            .src           = STR("{\"a\":\"\\uFFFFstr\"}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("a"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("\\uFFFFstr"), .childrenCount = 0}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("\\uFFFFstr"), .childrenCount = 0}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"a\":[\"\\u0280\"]}"),
+            .src           = STR("{\"a\":[\"\\u0280\"]}"),
             .poolSize      = 4,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 4,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("a"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
                     {.type = JSON_NODE_TYPE_ARRAY, .other = {.childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("\\u0280"), .childrenCount = 0}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("\\u0280"), .childrenCount = 0}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"a\":\"str\\uFFGFstr\"}"),
+            .src           = STR("{\"a\":\"str\\uFFGFstr\"}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_INVALID,
             .wantNodeCount = 0,
             .rules         = {0},
         },
         {
-            .src           = CHAR_SLICE("{\"a\":\"str\\u@FfF\"}"),
+            .src           = STR("{\"a\":\"str\\u@FfF\"}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_INVALID,
             .wantNodeCount = 0,
             .rules         = {0},
         },
         {
-            .src           = CHAR_SLICE("{{\"a\":[\"\\u028\"]}"),
+            .src           = STR("{{\"a\":[\"\\u028\"]}"),
             .poolSize      = 4,
             .wantErr       = JSON_PARSE_ERROR_INVALID,
             .wantNodeCount = 0,
@@ -499,7 +499,7 @@ void Test_String(void) {
 }
 
 // void Test_PartialString(void) {
-//     const auto src = CHAR_SLICE("{\"x\": \"va\\\\ue\", \"y\": \"value y\"}");
+//     const auto src = STR("{\"x\": \"va\\\\ue\", \"y\": \"value y\"}");
 //     JsonNode   arr[5];
 //     JsonNodes  dst = {
 //          .arr = arr,
@@ -507,7 +507,7 @@ void Test_String(void) {
 //     };
 //
 //     for (size_t i = 1; i <= src.len; i++) {
-//         const auto r = JsonNodes_Parse(&dst, CharSlice_View(src, 0, i));
+//         const auto r = JsonNodes_Parse(&dst, CharBuff_View(src, 0, i));
 //         if (i != src.len) {
 //             TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_PARTIAL, r.err);
 //             continue;
@@ -523,7 +523,7 @@ void Test_String(void) {
 // }
 //
 // void Test_PartialArray(void) {
-//     const auto src = CHAR_SLICE("[ 1, true, [123, \"hello\"]]");
+//     const auto src = STR("[ 1, true, [123, \"hello\"]]");
 //     JsonNode   arr[10];
 //     JsonNodes  dst = {
 //          .arr = arr,
@@ -531,7 +531,7 @@ void Test_String(void) {
 //     };
 //
 //     for (size_t i = 1; i <= src.len; i++) {
-//         const auto r = JsonNodes_Parse(&dst, CharSlice_View(src, 0, i));
+//         const auto r = JsonNodes_Parse(&dst, CharBuff_View(src, 0, i));
 //         if (i != src.len) {
 //             TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_PARTIAL, r.err);
 //             continue;
@@ -552,7 +552,7 @@ void Test_ArrayNodesExhausted(void) {
         constexpr size_t arrLen      = 10;
         JsonNode         arr[arrLen] = {};
         JsonNodes        dst         = {.arr = arr, .cap = i};
-        const auto       src         = CHAR_SLICE("  [ 1, true, [123, \"hello\"]]");
+        const auto       src         = STR("  [ 1, true, [123, \"hello\"]]");
         const auto       r1          = JsonNodes_Parse(&dst, src);
         TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED, r1.err);
     }
@@ -561,7 +561,7 @@ void Test_ArrayNodesExhausted(void) {
 void Test_UnquotedKeys(void) {
     JsonNode   arr[10];
     JsonNodes  dst = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
-    const auto src = CHAR_SLICE("key1: \"value\"\nkey2 : 123");
+    const auto src = STR("key1: \"value\"\nkey2 : 123");
     const auto r   = JsonNodes_Parse(&dst, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_INVALID, r.err);
 }
@@ -569,25 +569,24 @@ void Test_UnquotedKeys(void) {
 void Test_Issue22(void) {
     JsonNode   arr[128] = {};
     JsonNodes  dst      = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
-    const auto src      = CHAR_SLICE(
-        "{ \"height\":10, \"layers\":[ { \"data\":[6,6], \"height\":10, "
-             "\"name\":\"Calque de Tile 1\", \"opacity\":1, \"type\":\"tilelayer\", "
-             "\"visible\":true, \"width\":10, \"x\":0, \"y\":0 }], "
-             "\"orientation\":\"orthogonal\", \"properties\": { }, \"tileheight\":32, "
-             "\"tilesets\":[ { \"firstgid\":1, \"image\":\"..\\/images\\/tiles.png\", "
-             "\"imageheight\":64, \"imagewidth\":160, \"margin\":0, "
-             "\"name\":\"Tiles\", "
-             "\"properties\":{}, \"spacing\":0, \"tileheight\":32, \"tilewidth\":32 "
-             "}], "
-             "\"tilewidth\":32, \"version\":1, \"width\":10 }"
-    );
+    const auto src =
+        STR("{ \"height\":10, \"layers\":[ { \"data\":[6,6], \"height\":10, "
+            "\"name\":\"Calque de Tile 1\", \"opacity\":1, \"type\":\"tilelayer\", "
+            "\"visible\":true, \"width\":10, \"x\":0, \"y\":0 }], "
+            "\"orientation\":\"orthogonal\", \"properties\": { }, \"tileheight\":32, "
+            "\"tilesets\":[ { \"firstgid\":1, \"image\":\"..\\/images\\/tiles.png\", "
+            "\"imageheight\":64, \"imagewidth\":160, \"margin\":0, "
+            "\"name\":\"Tiles\", "
+            "\"properties\":{}, \"spacing\":0, \"tileheight\":32, \"tilewidth\":32 "
+            "}], "
+            "\"tilewidth\":32, \"version\":1, \"width\":10 }");
     const auto r = JsonNodes_Parse(&dst, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r.err);
 }
 
 void Test_Issue27(void) {
     const ParseTest test = {
-        .src           = CHAR_SLICE("{ \"name\" : \"Jack\", \"age\" : 27 } { \"name\" : \"Anna\", "),
+        .src           = STR("{ \"name\" : \"Jack\", \"age\" : 27 } { \"name\" : \"Anna\", "),
         .poolSize      = 8,
         .wantErr       = JSON_PARSE_ERROR_OK,
         .wantNodeCount = 5,
@@ -598,19 +597,19 @@ void Test_Issue27(void) {
             },
             {
                         .type   = JSON_NODE_TYPE_STRING,
-                        .string = {.value = CHAR_SLICE("name"), .childrenCount = 1},
+                        .string = {.value = STR("name"), .childrenCount = 1},
             },
             {
                         .type   = JSON_NODE_TYPE_STRING,
-                        .string = {.value = CHAR_SLICE("Jack"), .childrenCount = 0},
+                        .string = {.value = STR("Jack"), .childrenCount = 0},
             },
             {
                         .type   = JSON_NODE_TYPE_STRING,
-                        .string = {.value = CHAR_SLICE("age"), .childrenCount = 1},
+                        .string = {.value = STR("age"), .childrenCount = 1},
             },
             {
                         .type      = JSON_NODE_TYPE_PRIMITIVE,
-                        .primitive = {.value = CHAR_SLICE("27")},
+                        .primitive = {.value = STR("27")},
             },
         },
     };
@@ -624,11 +623,11 @@ void Test_InputLength(void) {
             .arr = arr,
             .cap = sizeof(arr) / sizeof(JsonNode),
     };
-    const auto              src   = CHAR_SLICE("{\"a\": 0}garbage");
+    const auto              src   = STR("{\"a\": 0}garbage");
     const NodeMatchingRules rules = {
         {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
-        {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("a"), .childrenCount = 1}},
-        {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("0")}},
+        {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
+        {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("0")}},
 
     };
     const auto r = JsonNodes_Parse(&dst, src);
@@ -709,17 +708,17 @@ void Test_Count(void) {
 void Test_NonStrict(void) {
     const ParseTest tests[] = {
         {
-            .src      = CHAR_SLICE("a: 0garbage"),
+            .src      = STR("a: 0garbage"),
             .poolSize = 2,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("Day : 26\nMonth : Sep\n\nYear: 12"),
+            .src      = STR("Day : 26\nMonth : Sep\n\nYear: 12"),
             .poolSize = 6,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("\"key {1\": 1234"),
+            .src      = STR("\"key {1\": 1234"),
             .poolSize = 2,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
@@ -736,46 +735,46 @@ void Test_UnmatchedBrackets(void) {
     // C
     const ParseTest tests[] = {
         {
-            .src      = CHAR_SLICE("\"key 1\": 1234}"),
+            .src      = STR("\"key 1\": 1234}"),
             .poolSize = 2,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("{\"key 1\": 1234"),
+            .src      = STR("{\"key 1\": 1234"),
             .poolSize = 3,
             .wantErr  = JSON_PARSE_ERROR_PARTIAL,
         },
         {
-            .src           = CHAR_SLICE("{\"key 1\": 1234}}"),
+            .src           = STR("{\"key 1\": 1234}}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.offset = 0, .len = 15, .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("key 1"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("1234")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("key 1"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("1234")}},
                 },
         },
         {
-            .src      = CHAR_SLICE("\"key 1\"}: 1234"),
+            .src      = STR("\"key 1\"}: 1234"),
             .poolSize = 3,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src           = CHAR_SLICE("{\"key {1\": 1234}"),
+            .src           = STR("{\"key {1\": 1234}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.offset = 0, .len = 16, .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("key {1"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("1234")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("key {1"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("1234")}},
                 },
         },
         {
-            .src           = CHAR_SLICE("{\"key 1\":{\"key 2\": 1234}"),
+            .src           = STR("{\"key 1\":{\"key 2\": 1234}"),
             .poolSize      = 5,
             .wantErr       = JSON_PARSE_ERROR_PARTIAL,
             .wantNodeCount = 5,
@@ -793,34 +792,34 @@ void Test_ObjectKey(void) {
     // C
     const ParseTest tests[] = {
         {
-            .src           = CHAR_SLICE("{\"key\": 1}"),
+            .src           = STR("{\"key\": 1}"),
             .poolSize      = 3,
             .wantErr       = JSON_PARSE_ERROR_OK,
             .wantNodeCount = 3,
             .rules =
                 {
                     {.type = JSON_NODE_TYPE_OBJECT, .other = {.offset = 0, .len = 10, .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = CHAR_SLICE("key"), .childrenCount = 1}},
-                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = CHAR_SLICE("1")}},
+                    {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("key"), .childrenCount = 1}},
+                    {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("1")}},
                 },
         },
         {
-            .src      = CHAR_SLICE("{true: 1}"),
+            .src      = STR("{true: 1}"),
             .poolSize = 3,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("{1: 1}"),
+            .src      = STR("{1: 1}"),
             .poolSize = 3,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("{{\"key\": 1}: 2}"),
+            .src      = STR("{{\"key\": 1}: 2}"),
             .poolSize = 5,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
         {
-            .src      = CHAR_SLICE("{[1,2]: 2}"),
+            .src      = STR("{[1,2]: 2}"),
             .poolSize = 5,
             .wantErr  = JSON_PARSE_ERROR_INVALID,
         },
@@ -834,17 +833,16 @@ void Test_ObjectKey(void) {
 }
 
 void Example_JsonParse() {
-    const auto src = CHAR_SLICE(
-        "{"
-        "\"testStr\": \"Foo\", "
-        "\"testNumber\": 1, "
-        "\"testArray\": [1, 2, 3, 4], "
-        "\"testObject\": { "
-        "    \"prop1\": true, "
-        "    \"prop2\": 1.0"
-        "}"
-        "}"
-    );
+    const auto src =
+        STR("{"
+            "\"testStr\": \"Foo\", "
+            "\"testNumber\": 1, "
+            "\"testArray\": [1, 2, 3, 4], "
+            "\"testObject\": { "
+            "    \"prop1\": true, "
+            "    \"prop2\": 1.0"
+            "}"
+            "}");
     JsonNode  nodes[100] = {};
     JsonNodes dst        = {
                .arr = nodes,
@@ -909,30 +907,30 @@ void Example_JsonParse() {
 }
 
 void Test_JsonWrite() {
-    auto      dst = CharSlice_OnStack(0, 1024);
+    auto      dst = CharBuff_OnStack(0, 1024);
     JsonStack s   = {
           .cap = 16,
           .len = 0,
           .arr = (JsonStackEntry[16]){},
     };
 
-    CharSlice_WriteJsonStart(&dst, &s, '{');
-    CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("objField"));
-    CharSlice_WriteJsonStart(&dst, &s, '{');
-    CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("numericField"));
-    CharSlice_WriteJsonNumeric(&dst, &s, CHAR_SLICE("123"));
-    CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("strField"));
-    CharSlice_WriteJsonStr(&dst, &s, CHAR_SLICE("Foo"));
-    CharSlice_WriteJsonEnd(&dst, &s);
+    CharBuff_WriteJsonStart(&dst, &s, '{');
+    CharBuff_WriteJsonKey(&dst, &s, STR("objField"));
+    CharBuff_WriteJsonStart(&dst, &s, '{');
+    CharBuff_WriteJsonKey(&dst, &s, STR("numericField"));
+    CharBuf_WriteJsonNumeric(&dst, &s, STR("123"));
+    CharBuff_WriteJsonKey(&dst, &s, STR("strField"));
+    CharBuff_WriteJsonStr(&dst, &s, STR("Foo"));
+    CharBuff_WriteJsonEnd(&dst, &s);
 
-    CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("arrField"));
-    CharSlice_WriteJsonStart(&dst, &s, '[');
-    CharSlice_WriteJsonBool(&dst, &s, true);
-    CharSlice_WriteJsonNumeric(&dst, &s, CHAR_SLICE("456"));
-    CharSlice_WriteJsonStr(&dst, &s, CHAR_SLICE("Bar"));
-    CharSlice_WriteJsonEnd(&dst, &s);
+    CharBuff_WriteJsonKey(&dst, &s, STR("arrField"));
+    CharBuff_WriteJsonStart(&dst, &s, '[');
+    CharBuff_WriteJsonBool(&dst, &s, true);
+    CharBuf_WriteJsonNumeric(&dst, &s, STR("456"));
+    CharBuff_WriteJsonStr(&dst, &s, STR("Bar"));
+    CharBuff_WriteJsonEnd(&dst, &s);
 
-    CharSlice_WriteJsonEnd(&dst, &s);
+    CharBuff_WriteJsonEnd(&dst, &s);
 
     TEST_ASSERT_EQUAL_STRING(
         "{\"objField\":{\"numericField\":123,\"strField\":\"Foo\"},\"arrField\":[true,456,\"Bar\"]}", dst.arr

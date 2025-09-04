@@ -59,9 +59,9 @@ bool readBoardFromFile(Board* dst, const Str filePath) {
         return false;
     }
 
-    CharSlice  buff = CharSlice_OnStack1(0, 1024 * 10);
-    const auto read = CharSlice_ReadFile(&buff, f);
-    auto       str  = CharSlice_ToStr(buff);
+    CharBuff   buff = CharBuff_OnStack(0, 1024 * 10);
+    const auto read = CharBuff_WriteFile(&buff, f);
+    auto       str  = CharBuff_ToStr(buff);
 
     if (fclose(f) != 0) {
         fprintf(stderr, "Failed to close file %s: %s\n", filePath.arr, strerror(errno));
@@ -76,8 +76,8 @@ bool readBoardFromFile(Board* dst, const Str filePath) {
     JsonNodes  nodes           = JsonNodes_Make(0, 1024);
     const auto jsonParseResult = JsonNodes_Parse(&nodes, str);
     if (jsonParseResult.err != JSON_PARSE_ERROR_OK) {
-        auto parseResultStr = CharSlice_OnStack(0, 128);
-        CharSlice_WriteJsonParseResult(&parseResultStr, &jsonParseResult);
+        auto parseResultStr = CharBuff_OnStack(0, 128);
+        CharBuff_WriteJsonParseResult(&parseResultStr, &jsonParseResult);
 
         printf("Failed to parse JSON file %s: %s\n", filePath.arr, parseResultStr.arr);
         return false;
@@ -97,9 +97,9 @@ bool writeBoardToFile(const Str filePath, const Board* board) {
     assert(Str_IsValid(filePath));
     assert(board != nullptr);
 
-    auto buff = CharSlice_OnStack(0, 1024 * 10);
+    auto buff = CharBuff_OnStack(0, 1024 * 10);
     auto js   = JsonStack_Make(0, 128);
-    CharSlice_WriteBoardAsJson(&buff, &js, board);
+    CharBuff_WriteBoardAsJson(&buff, &js, board);
 
     // TODO: Convert to zero terminated string. Will require copy.
     const auto f = fopen(filePath.arr, "w");
@@ -107,7 +107,7 @@ bool writeBoardToFile(const Str filePath, const Board* board) {
         fprintf(stderr, "Failed to open file %s save the board: %s\n", filePath.arr, strerror(errno));
         return false;
     }
-    const auto written = File_WriteCharSlice(f, buff);
+    const auto written = File_WriteCharBuff(f, buff);
     if (fclose(f) != 0) {
         fprintf(stderr, "Failed to close file %s: %s\n", filePath.arr, strerror(errno));
         return false;
@@ -134,9 +134,9 @@ int main(const int argc, char* argv[]) {
             Board_Init(&b);
             break;
         case 2:
-            auto filePath = CharSlice_OnStack(0, 256);
-            CharSlice_WriteZeroStr(&filePath, argv[1]);
-            if (!readBoardFromFile(&b, CharSlice_ToStr(filePath))) {
+            auto filePath = CharBuff_OnStack(0, 256);
+            CharBuff_WriteZeroStr(&filePath, argv[1]);
+            if (!readBoardFromFile(&b, CharBuff_ToStr(filePath))) {
                 return 1;
             }
             break;
@@ -154,14 +154,14 @@ int main(const int argc, char* argv[]) {
             "Next turn for" ANSI_COLOR_YELLOW_HIGH " %s " ANSI_COLOR_RESET "or command (save <path> | quit): ", sideStr
         );
 
-        auto in = CharSlice_OnStack(0, 128);
-        if (CharSlice_ReadLine(&in, stdin, '\n') < 4) {
+        auto in = CharBuff_OnStack(0, 128);
+        if (CharBuff_WriteLineFromFile(&in, stdin, '\n') < 4) {
             printf("No move or command entered\n");
             break;
         };
-        const auto inStr = CharSlice_ToStr(in);
-        if (Str_StartsWith(inStr, CHAR_SLICE("save "))) {
-            const auto filePath = CharSlice_View(in, 5, in.len);
+        const auto inStr = CharBuff_ToStr(in);
+        if (Str_StartsWith(inStr, STR("save "))) {
+            const auto filePath = CharBuff_View(in, 5, in.len);
             if (!writeBoardToFile(filePath, &b)) {
                 printf("Failed to save board to %s\n", filePath.arr);
                 continue;
@@ -171,7 +171,7 @@ int main(const int argc, char* argv[]) {
             continue;
         }
 
-        if (Str_StartsWith(inStr, CHAR_SLICE("quit"))) {
+        if (Str_StartsWith(inStr, STR("quit"))) {
             printf("Bye!\n");
             return 0;
         }
@@ -179,8 +179,8 @@ int main(const int argc, char* argv[]) {
         Move       m               = {};
         const auto moveParseResult = Move_Parse(&m, inStr);
         if (moveParseResult.err != MOVE_PARSE_ERR_OK) {
-            auto moveParseResultStr = CharSlice_OnStack(0, 128);
-            CharSlice_WriteMoveParseResult(&moveParseResultStr, moveParseResult);
+            auto moveParseResultStr = CharBuff_OnStack(0, 128);
+            CharBuff_WriteMoveParseResult(&moveParseResultStr, moveParseResult);
             printf("Failed to parse move: %s\n", moveParseResultStr.arr);
             continue;
         }
@@ -198,8 +198,8 @@ int main(const int argc, char* argv[]) {
         }
 
         const auto moveResult    = Board_MakeMove(&b, m);
-        auto       moveResultStr = CharSlice_OnStack(0, 32);
-        CharSlice_WriteMoveResult(&moveResultStr, &moveResult);
+        auto       moveResultStr = CharBuff_OnStack(0, 32);
+        CharBuff_WriteMoveResult(&moveResultStr, &moveResult);
 
         if (moveResult.err != MOVE_ERR_OK) {
             printf("Move result: %s\n", moveResultStr.arr);

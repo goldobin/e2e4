@@ -1,7 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include "char_slice.h"
+#include "chars.h"
 
 constexpr size_t BOARD_SIDE_LEN  = 8;
 constexpr size_t BOARD_SIZE      = BOARD_SIDE_LEN * BOARD_SIDE_LEN;
