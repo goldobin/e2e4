@@ -14,12 +14,12 @@ void setUp() {}
 void tearDown() {}
 
 typedef struct {
-    CharSlice value;
+    Str value;
 } PrimitiveMatchingRule;
 
 typedef struct {
-    CharSlice value;
-    size_t    childrenCount;
+    Str    value;
+    size_t childrenCount;
 } StringMatchingRule;
 
 typedef struct {
@@ -42,7 +42,7 @@ typedef NodeMatchingRule NodeMatchingRules[NODE_MATCH_RULES_CAP];
 
 bool NodeMatchingRule_Empty(const NodeMatchingRule r) { return r.type == JSON_NODE_TYPE_UNSPECIFIED; }
 
-void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const CharSlice src, const JsonNodes nodes) {
+void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const Str src, const JsonNodes nodes) {
     assert(nodes.len <= NODE_MATCH_RULES_CAP);
     if (nodes.len < 1) {
         return;
@@ -57,8 +57,8 @@ void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const CharSl
         TEST_ASSERT_EQUAL_MESSAGE(rule.type, n->type, "node type doesn't match");
 
         if (rule.type == JSON_NODE_TYPE_STRING) {
-            const auto v = CharSlice_View(src, n->offset, n->offset + n->len);
-            TEST_ASSERT_TRUE_MESSAGE(CharSlice_Equals(rule.string.value, v), "string content doesn't match");
+            const auto v = Str_View(src, n->offset, n->offset + n->len);
+            TEST_ASSERT_TRUE_MESSAGE(Str_Equals(rule.string.value, v), "string content doesn't match");
             TEST_ASSERT_EQUAL_MESSAGE(
                 rule.string.childrenCount, n->childrenCount, "string children count doesn't match"
             );
@@ -66,8 +66,8 @@ void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const CharSl
         }
 
         if (rule.type == JSON_NODE_TYPE_PRIMITIVE) {
-            const auto v = CharSlice_View(src, n->offset, n->offset + n->len);
-            TEST_ASSERT_TRUE_MESSAGE(CharSlice_Equals(rule.primitive.value, v), "primitive content doesn't match");
+            const auto v = Str_View(src, n->offset, n->offset + n->len);
+            TEST_ASSERT_TRUE_MESSAGE(Str_Equals(rule.primitive.value, v), "primitive content doesn't match");
             continue;
         }
 
@@ -82,7 +82,7 @@ void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const CharSl
 }
 
 typedef struct {
-    const CharSlice         src;
+    const Str               src;
     const size_t            poolSize;
     const JsonParseErr      wantErr;
     const size_t            wantNodeCount;
@@ -694,12 +694,10 @@ void Test_Count(void) {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
-        const auto tt         = tests[i];
-        JsonNode   arr[10]    = {};
-        JsonNodes  dst        = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
-        char       chars[128] = {};
-        CharSlice  src        = CharSlice_Wrap(chars, 0, 128);
-        CharSlice_WriteString(&src, tt.src);
+        const auto tt      = tests[i];
+        JsonNode   arr[10] = {};
+        JsonNodes  dst     = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
+        const Str  src     = {.arr = tt.src, .len = strlen(tt.src)};
 
         TEST_MESSAGE(tt.name);
         const auto r = JsonNodes_Parse(&dst, src);
@@ -902,7 +900,7 @@ void Example_JsonParse() {
                 typeStr = "Unknown";
         }
 
-        const auto content = CharSlice_View(src, n.offset, n.offset + n.len);
+        const auto content = Str_View(src, n.offset, n.offset + n.len);
         printf(
             "%-10s| %4zd, %4zd, %4zd| \"%.*s\"\n", typeStr, n.offset, n.len, n.childrenCount, (int)content.len,
             content.arr
@@ -911,7 +909,7 @@ void Example_JsonParse() {
 }
 
 void Test_JsonWrite() {
-    auto      dst = CharSlice_Make(0, 1024);
+    auto      dst = CharSlice_OnStack(0, 1024);
     JsonStack s   = {
           .cap = 16,
           .len = 0,
@@ -924,14 +922,14 @@ void Test_JsonWrite() {
     CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("numericField"));
     CharSlice_WriteJsonNumeric(&dst, &s, CHAR_SLICE("123"));
     CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("strField"));
-    CharSlice_WriteJsonString(&dst, &s, CHAR_SLICE("Foo"));
+    CharSlice_WriteJsonStr(&dst, &s, CHAR_SLICE("Foo"));
     CharSlice_WriteJsonEnd(&dst, &s);
 
     CharSlice_WriteJsonKey(&dst, &s, CHAR_SLICE("arrField"));
     CharSlice_WriteJsonStart(&dst, &s, '[');
     CharSlice_WriteJsonBool(&dst, &s, true);
     CharSlice_WriteJsonNumeric(&dst, &s, CHAR_SLICE("456"));
-    CharSlice_WriteJsonString(&dst, &s, CHAR_SLICE("Bar"));
+    CharSlice_WriteJsonStr(&dst, &s, CHAR_SLICE("Bar"));
     CharSlice_WriteJsonEnd(&dst, &s);
 
     CharSlice_WriteJsonEnd(&dst, &s);

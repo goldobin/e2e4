@@ -28,12 +28,12 @@ bool Piece_InterpretJson(Piece* dst, JsonSource* src) {
 
         const auto key = JsonSource_Value(src);
         JsonSource_Next(src);
-        if (CharSlice_Equals(key, CHAR_SLICE("side"))) {
+        if (Str_Equals(key, CHAR_SLICE("side"))) {
             if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
             dst->side = Side_Parse(JsonSource_Value(src));
-        } else if (CharSlice_Equals(key, CHAR_SLICE("type"))) {
+        } else if (Str_Equals(key, CHAR_SLICE("type"))) {
             if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
@@ -89,20 +89,20 @@ bool Board_InterpretJson(Board* dst, JsonSource* src) {
         }
         const auto key = JsonSource_Value(src);
         JsonSource_Next(src);
-        if (CharSlice_Equals(key, CHAR_SLICE("next_move_side"))) {
+        if (Str_Equals(key, CHAR_SLICE("next_move_side"))) {
             if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
             dst->side = Side_Parse(JsonSource_Value(src));
-        } else if (CharSlice_Equals(key, CHAR_SLICE("squares"))) {
+        } else if (Str_Equals(key, CHAR_SLICE("squares"))) {
             if (!Squares_InterpretJson(dst->squares, src)) {
                 return false;
             }
-        } else if (CharSlice_Equals(key, CHAR_SLICE("white"))) {
+        } else if (Str_Equals(key, CHAR_SLICE("white"))) {
             if (!SideState_InterpretJson(&dst->white, src)) {
                 return false;
             }
-        } else if (CharSlice_Equals(key, CHAR_SLICE("black"))) {
+        } else if (Str_Equals(key, CHAR_SLICE("black"))) {
             if (!SideState_InterpretJson(&dst->black, src)) {
                 return false;
             }
@@ -132,12 +132,12 @@ bool SideState_InterpretJson(SideState* dst, JsonSource* src) {
 
         const auto key = JsonSource_Value(src);
         JsonSource_Next(src);
-        if (CharSlice_Equals(key, CHAR_SLICE("king_castled"))) {
+        if (Str_Equals(key, CHAR_SLICE("king_castled"))) {
             if (JsonSource_Type(src) != JSON_TYPE_BOOL) {
                 return false;
             }
             dst->hasKingCastled = JsonSource_BoolValue(src);
-        } else if (CharSlice_Equals(key, CHAR_SLICE("taken"))) {
+        } else if (Str_Equals(key, CHAR_SLICE("taken"))) {
             if (!PieceTypes_InterpretJson(&dst->taken, src)) {
                 return false;
             }
@@ -189,18 +189,21 @@ size_t CharSlice_WritePieceAsJson(CharSlice* dst, JsonStack* js, const Piece p) 
     assert(dst != nullptr);
     assert(js != nullptr);
 
-    auto pieceTypeSlice = CharSlice_Make(0, 32);
-    auto sideSlice      = CharSlice_Make(0, 32);
+    auto pieceTypeSlice = CharSlice_OnStack(0, 32);
+    auto sideSlice      = CharSlice_OnStack(0, 32);
 
     CharSlice_WritePieceType(&pieceTypeSlice, p.type);
     CharSlice_WriteSide(&sideSlice, p.side);
 
+    const auto pieceTypeStr = CharSlice_ToStr(pieceTypeSlice);
+    const auto sideStr      = CharSlice_ToStr(sideSlice);
+
     size_t written = 0;
     written += CharSlice_WriteJsonStart(dst, js, '{');
     written += CharSlice_WriteJsonKey(dst, js, CHAR_SLICE("type"));
-    written += CharSlice_WriteJsonString(dst, js, pieceTypeSlice);
+    written += CharSlice_WriteJsonStr(dst, js, pieceTypeStr);
     written += CharSlice_WriteJsonKey(dst, js, CHAR_SLICE("side"));
-    written += CharSlice_WriteJsonString(dst, js, sideSlice);
+    written += CharSlice_WriteJsonStr(dst, js, sideStr);
     written += CharSlice_WriteJsonEnd(dst, js);
     return written;
 }
@@ -216,10 +219,11 @@ size_t CharSlice_WriteSquaresAsJson(CharSlice* dst, JsonStack* js, const Squares
             const auto piece = Squares_At(src, pos);
 
             if (!Piece_IsEmpty(piece)) {
-                auto posSlice = CharSlice_Make(0, 64);
+                auto posSlice = CharSlice_OnStack(0, 64);
                 CharSlice_WritePos(&posSlice, pos);
+                auto posStr = CharSlice_View(posSlice, 0, posSlice.len);
 
-                written += CharSlice_WriteJsonKey(dst, js, posSlice);
+                written += CharSlice_WriteJsonKey(dst, js, posStr);
                 written += CharSlice_WritePieceAsJson(dst, js, piece);
             }
         }
@@ -236,9 +240,9 @@ size_t CharSlice_WritePieceTypesAsJson(CharSlice* dst, JsonStack* js, const Piec
     written += CharSlice_WriteJsonStart(dst, js, '[');
     for (size_t i = 0; i < src.len; i++) {
         const auto t          = PieceTypes_At(src, i);
-        auto       pieceSlice = CharSlice_Make(0, 64);
+        auto       pieceSlice = CharSlice_OnStack(0, 64);
         CharSlice_WritePieceType(&pieceSlice, t);
-        written += CharSlice_WriteJsonString(dst, js, pieceSlice);
+        written += CharSlice_WriteJsonStr(dst, js, CharSlice_ToStr(pieceSlice));
     }
     written += CharSlice_WriteJsonEnd(dst, js);
     return written;
@@ -263,13 +267,10 @@ size_t CharSlice_WriteBoardAsJson(CharSlice* dst, JsonStack* js, const Board* sr
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    auto nextMoveSideSlice = CharSlice_Make(0, 64);
-    CharSlice_WriteSide(&nextMoveSideSlice, src->side);
-
     size_t written = 0;
     written += CharSlice_WriteJsonStart(dst, js, '{');
     written += CharSlice_WriteJsonKey(dst, js, CHAR_SLICE("next_move_side"));
-    written += CharSlice_WriteJsonString(dst, js, nextMoveSideSlice);
+    written += CharSlice_WriteJsonStr(dst, js, Side_ToStr(src->side));
     written += CharSlice_WriteJsonKey(dst, js, CHAR_SLICE("squares"));
     written += CharSlice_WriteSquaresAsJson(dst, js, src->squares);
     written += CharSlice_WriteJsonKey(dst, js, CHAR_SLICE("black"));

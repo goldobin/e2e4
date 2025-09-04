@@ -18,19 +18,21 @@ void Test_CharSlice_At(void) {
     const auto s = CHAR_SLICE("hello");
 
     // Test valid indices
-    TEST_ASSERT_EQUAL_CHAR('h', CharSlice_At(s, 0));
-    TEST_ASSERT_EQUAL_CHAR('e', CharSlice_At(s, 1));
-    TEST_ASSERT_EQUAL_CHAR('l', CharSlice_At(s, 2));
-    TEST_ASSERT_EQUAL_CHAR('l', CharSlice_At(s, 3));
-    TEST_ASSERT_EQUAL_CHAR('o', CharSlice_At(s, 4));
+    TEST_ASSERT_EQUAL_CHAR('h', Str_At(s, 0));
+    TEST_ASSERT_EQUAL_CHAR('e', Str_At(s, 1));
+    TEST_ASSERT_EQUAL_CHAR('l', Str_At(s, 2));
+    TEST_ASSERT_EQUAL_CHAR('l', Str_At(s, 3));
+    TEST_ASSERT_EQUAL_CHAR('o', Str_At(s, 4));
 
     // Test boundary
     TEST_ASSERT_EQUAL_CHAR('\0', s.arr[5]);
 }
 
+CharSlice createSlice() { return CharSlice_OnStack(0, 10); }
+
 void Test_CharSlice_WriteOne(void) {
-    CharSlice s = CharSlice_Make(0, 10);
-    CharSlice_Write(&s, CHAR_SLICE("hello"));
+    CharSlice s = CharSlice_OnStack(0, 10);
+    CharSlice_WriteStr(&s, CHAR_SLICE("hello"));
 
     // Update valid indices
     CharSlice_WriteCharAt(&s, 0, 'H');
@@ -43,11 +45,19 @@ void Test_CharSlice_WriteOne(void) {
     TEST_ASSERT_EQUAL_CHAR('e', CharSlice_At(s, 1));
     TEST_ASSERT_EQUAL_CHAR('l', CharSlice_At(s, 2));
     TEST_ASSERT_EQUAL_CHAR('l', CharSlice_At(s, 3));
+
+    // CharSlice s2 = CHAR_SLICE("test0123456789");
+    // CharSlice_WriteCharAt(&s2, 0, 'v');
+    //
+    // printf("%s\n", s2.arr);
+
+    // CharSlice s3 = createSlice();
+    // CharSlice_WriteChar(&s3, 'v');
 }
 
 void Test_CharSlice_WriteOneBack(void) {
-    CharSlice s = CharSlice_Make(0, 10);
-    CharSlice_Write(&s, CHAR_SLICE("hell"));
+    CharSlice s = CharSlice_OnStack(0, 10);
+    CharSlice_WriteStr(&s, CHAR_SLICE("hell"));
 
     // Test successful append
     const auto appended01 = CharSlice_WriteChar(&s, 'o');
@@ -56,66 +66,62 @@ void Test_CharSlice_WriteOneBack(void) {
     TEST_ASSERT_EQUAL_CHAR('o', CharSlice_At(s, 4));
 
     // Test appending when at capacity
-    CharSlice  fullSlice  = CHAR_SLICE("12345");
+    auto       fullSlice  = CharSlice_OnStack(5, 5);
     const auto appended02 = CharSlice_WriteChar(&fullSlice, 'x');
     TEST_ASSERT_EQUAL(0, appended02);
     TEST_ASSERT_EQUAL(5, fullSlice.len);
 }
 
 void Test_CharSlice_WriteBack(void) {
-    CharSlice       slice01 = CharSlice_Make(0, 20);
-    const CharSlice slice02 = CHAR_SLICE(" world");
+    CharSlice  slice01 = CharSlice_OnStack(0, 20);
+    const auto slice02 = CHAR_SLICE(" world");
 
-    CharSlice_Write(&slice01, CHAR_SLICE("hello"));
+    CharSlice_WriteStr(&slice01, CHAR_SLICE("hello"));
 
     // Test successful append
-    const auto writen01 = CharSlice_Write(&slice01, slice02);
+    const auto writen01 = CharSlice_WriteStr(&slice01, slice02);
     TEST_ASSERT_EQUAL_size_t(6, writen01);
     TEST_ASSERT_EQUAL(11, slice01.len);
 
     TEST_ASSERT_EQUAL_STRING("hello world", slice01.arr);
 
     // Test append when it would exceed capacity
-    CharSlice smallSlice = CharSlice_Make(0, 5);
-    CharSlice_Write(&smallSlice, CHAR_SLICE("hi"));
-    const CharSlice largeSlice = CHAR_SLICE(" there!");
-    const auto      appended02 = CharSlice_Write(&smallSlice, largeSlice);
+    CharSlice smallSlice = CharSlice_OnStack(0, 5);
+    CharSlice_WriteStr(&smallSlice, CHAR_SLICE("hi"));
+    const auto largeSlice = CHAR_SLICE(" there!");
+    const auto appended02 = CharSlice_WriteStr(&smallSlice, largeSlice);
     TEST_ASSERT_EQUAL(3, appended02);
     TEST_ASSERT_EQUAL(5, smallSlice.len);
     TEST_ASSERT_EQUAL_STRING_LEN("hi th", smallSlice.arr, 5);
 }
 
 void Test_CharSlice_View(void) {
-    const CharSlice s = CHAR_SLICE("hello world");
+    const auto s = CHAR_SLICE("hello world");
 
     // Test normal view
-    const CharSlice view1 = CharSlice_View(s, 0, 5);
+    const auto view1 = Str_View(s, 0, 5);
     TEST_ASSERT_EQUAL_PTR(s.arr, view1.arr);
     TEST_ASSERT_EQUAL(5, view1.len);
-    TEST_ASSERT_EQUAL(11, view1.cap);
 
     // Test substring view
-    const CharSlice view2 = CharSlice_View(s, 6, 11);
+    const auto view2 = Str_View(s, 6, 11);
     TEST_ASSERT_EQUAL_PTR(s.arr + 6, view2.arr);
     TEST_ASSERT_EQUAL(5, view2.len);
-    TEST_ASSERT_EQUAL(5, view2.cap);
 
     // Test single character view
-    const CharSlice view3 = CharSlice_View(s, 0, 1);
+    const auto view3 = Str_View(s, 0, 1);
     TEST_ASSERT_EQUAL_PTR(s.arr, view3.arr);
     TEST_ASSERT_EQUAL(1, view3.len);
-    TEST_ASSERT_EQUAL(11, view3.cap);
 
     // Test empty view
-    const CharSlice view4 = CharSlice_View(s, 5, 5);
+    const auto view4 = Str_View(s, 5, 5);
     TEST_ASSERT_EQUAL_PTR(s.arr + 5, view4.arr);
     TEST_ASSERT_EQUAL(0, view4.len);
-    TEST_ASSERT_EQUAL(6, view4.cap);
 }
 
 void Test_CharSlice_EdgeCases(void) {
     // Test empty slice
-    CharSlice empty = CharSlice_Make(0, 10);
+    CharSlice empty = CharSlice_OnStack(0, 10);
 
     const auto writen = CharSlice_WriteChar(&empty, 'a');
     TEST_ASSERT_EQUAL(1, writen);
@@ -123,20 +129,20 @@ void Test_CharSlice_EdgeCases(void) {
     TEST_ASSERT_EQUAL_CHAR('a', CharSlice_At(empty, 0));
 
     // Test a single character slice
-    CharSlice single = CharSlice_Make(0, 5);
+    CharSlice single = CharSlice_OnStack(0, 5);
     CharSlice_WriteChar(&single, 'x');
-    const CharSlice view = CharSlice_View(single, 0, 1);
+    const auto view = CharSlice_View(single, 0, 1);
     TEST_ASSERT_EQUAL(1, view.len);
     TEST_ASSERT_EQUAL_CHAR('x', view.arr[0]);
 }
 
-void Test_CharSlice_Diff(void) {
+void Test_CharSlice_WriteDiff(void) {
     typedef struct {
-        const char*     name;
-        const CharSlice s1;
-        const CharSlice s2;
-        const size_t    dstCap;
-        const char*     wantDiff;
+        const char*  name;
+        const Str    s1;
+        const Str    s2;
+        const size_t dstCap;
+        const char*  wantDiff;
     } test;
 
     const test tests[] = {
@@ -180,16 +186,20 @@ void Test_CharSlice_Diff(void) {
     for (size_t i = 0; i < sizeof(tests) / sizeof(test); i++) {
         const test tt = tests[i];
         TEST_MESSAGE(tt.name);
-        auto dst = CharSlice_Wrap(Arena_Alloc(&mem, tt.dstCap), 0, tt.dstCap);
-        CharSlice_Diff(&dst, tt.s1, tt.s2);
+        CharSlice dst = {};
+        if (!CharSlice_Alloc(&dst, tt.dstCap, &mem)) {
+            TEST_MESSAGE("not enough memory in arena");
+            TEST_FAIL();
+        }
+        CharSlice_WriteDiff(&dst, tt.s1, tt.s2);
 
         TEST_ASSERT_EQUAL_STRING(tt.wantDiff, dst.arr);
     }
 }
 
 void Test_CharSlice_WriteF(void) {
-    CharSlice dst1 = CharSlice_Make(0, 64);
-    CharSlice dst2 = CharSlice_Make(0, 8);
+    CharSlice dst1 = CharSlice_OnStack(0, 64);
+    CharSlice dst2 = CharSlice_OnStack(0, 8);
 
     const auto printed1 = CharSlice_WriteF(&dst1, "test %d, %d, %d", 1, 2, 3);
     const auto printed2 = CharSlice_WriteF(&dst2, "test %d, %d, %d", 1, 2, 3);
@@ -201,16 +211,17 @@ void Test_CharSlice_WriteF(void) {
 }
 
 void Test_CharSlice_ReadWriteFile(void) {
-    char       fileBuf[1024] = {};
-    const auto in            = CHAR_SLICE("arbitrary text");
-    CharSlice  out           = CharSlice_Make(0, 64);
-    FILE*      f             = fmemopen(fileBuf, sizeof(fileBuf), "w+");
+    char  fileBuf[1024] = {};
+    auto  in            = CharSlice_OnStack(0, 64);
+    auto  out           = CharSlice_OnStack(0, 64);
+    FILE* f             = fmemopen(fileBuf, sizeof(fileBuf), "w+");
 
+    CharSlice_WriteStr(&in, CHAR_SLICE("arbitrary text"));
     File_WriteCharSlice(f, in);
     fseek(f, 0, SEEK_SET);
     CharSlice_ReadFile(&out, f);
 
-    TEST_ASSERT_EQUAL(0, CharSlice_Cmp(in, out));
+    TEST_ASSERT_TRUE(CharSlice_Equals(in, out));
 }
 
 int main(void) {
@@ -223,7 +234,7 @@ int main(void) {
     RUN_TEST(Test_CharSlice_WriteBack);
     RUN_TEST(Test_CharSlice_View);
     RUN_TEST(Test_CharSlice_EdgeCases);
-    RUN_TEST(Test_CharSlice_Diff);
+    RUN_TEST(Test_CharSlice_WriteDiff);
     RUN_TEST(Test_CharSlice_WriteF);
     RUN_TEST(Test_CharSlice_ReadWriteFile);
 
