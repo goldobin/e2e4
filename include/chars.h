@@ -19,6 +19,7 @@ typedef struct {
     size_t cap;
 } CharBuff;
 
+Str    Str_FromCStr(const char* s, size_t maxLen);
 char   Str_At(Str s, size_t i);
 Str    Str_View(Str s, size_t start, size_t end);
 int    Str_Cmp(Str a, Str b);
@@ -42,7 +43,6 @@ size_t CharBuff_WriteStrAt(CharBuff* dst, size_t offset, Str src);
 size_t CharBuff_WriteChar(CharBuff* dst, char v);
 size_t CharBuff_Write(CharBuff* dst, CharBuff other);
 size_t CharBuff_WriteStr(CharBuff* dst, Str src);
-size_t CharBuff_WriteZeroStr(CharBuff* dst, const char* src);
 void   CharBuff_WriteDiff(CharBuff* dst, Str s1, Str s2);
 size_t CharBuff_WriteF(CharBuff* dst, const char* format, ...);
 size_t CharBuff_WriteFile(CharBuff* dst, FILE* src);

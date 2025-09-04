@@ -134,9 +134,8 @@ int main(const int argc, char* argv[]) {
             Board_Init(&b);
             break;
         case 2:
-            auto filePath = CharBuff_OnStack(0, 256);
-            CharBuff_WriteZeroStr(&filePath, argv[1]);
-            if (!readBoardFromFile(&b, CharBuff_ToStr(filePath))) {
+            const Str filePath = Str_FromCStr(argv[1], 64);
+            if (!readBoardFromFile(&b, filePath)) {
                 return 1;
             }
             break;
