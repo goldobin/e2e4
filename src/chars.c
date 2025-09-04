@@ -7,6 +7,13 @@
 
 #include "func.h"
 
+Str Str_FromCStr(const char* s, const size_t maxLen) {
+    assert(s != nullptr);
+    assert(maxLen > 0);
+    size_t len = strnlen(s, maxLen);
+    return (Str){s, len};
+}
+
 char Str_At(const Str s, size_t i) {
     assert(i < s.len);
     return s.arr[i];
@@ -165,26 +172,6 @@ size_t CharBuff_WriteStr(CharBuff* dst, const Str src) {
 
     const size_t len = MinSizeT(remaining, src.len);
     memcpy(dst->arr + dst->len, src.arr, len);
-    dst->len = dst->len + len;
-    return len;
-}
-
-size_t CharBuff_WriteZeroStr(CharBuff* dst, const char* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
-    assert(CharBuff_IsValid(*dst));
-
-    const auto remaining = dst->cap - dst->len;
-    if (remaining < 1) {
-        return 0;
-    }
-
-    const auto len = strnlen(src, remaining);
-    if (len < 1) {
-        return 0;
-    }
-
-    memcpy(dst->arr + dst->len, src, len);
     dst->len = dst->len + len;
     return len;
 }
