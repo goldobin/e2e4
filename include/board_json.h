@@ -14,7 +14,9 @@ bool Board_InterpretJson(Board* dst, JsonSource* src);
 
 // Write
 
+size_t CharBuff_WriteSideAsJson(CharBuff* dst, JsonStack* js, Side s);
 size_t CharBuff_WritePieceAsJson(CharBuff* dst, JsonStack* js, Piece p);
+size_t CharBuff_WritePieceTypeAsJson(CharBuff* dst, JsonStack* js, PieceType t);
 size_t CharBuff_WriteSquaresAsJson(CharBuff* dst, JsonStack* js, const Squares src);
 size_t CharBuff_WritePieceTypesAsJson(CharBuff* dst, JsonStack* js, PieceTypes src);
 size_t CharBuff_WriteSideStateAsJson(CharBuff* dst, JsonStack* js, const SideState* src);

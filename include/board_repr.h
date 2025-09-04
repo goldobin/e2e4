@@ -44,7 +44,6 @@ bool               PosParseResult_Equals(PosParseResult a, PosParseResult b);
 bool               MoveParseResult_Equals(MoveParseResult a, MoveParseResult b);
 PieceType          PieceType_Parse(Str src);
 Side               Side_Parse(Str src);
-Str                Side_ToStr(Side s);
 bool               Piece_FromChar(Piece* t, char ch);
 const char*        Piece_ToUnicodeChar(Piece p);
 PosParseResult     Pos_Parse(Pos* dst, Str src);
