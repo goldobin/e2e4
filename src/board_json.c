@@ -114,6 +114,16 @@ bool Board_InterpretJson(Board* dst, JsonSource* src) {
 
     return true;
 }
+size_t CharBuff_WriteSideAsJson(CharBuff* dst, JsonStack* js, Side s) {
+    switch (s) {
+        case SIDE_WHITE:
+            return CharBuff_WriteJsonStr(dst, js, STR("WHITE"));
+        case SIDE_BLACK:
+            return CharBuff_WriteJsonStr(dst, js, STR("BLACK"));
+        default:
+            return CharBuff_WriteJsonNull(dst, js);
+    }
+}
 
 bool SideState_InterpretJson(SideState* dst, JsonSource* src) {
     assert(dst != nullptr);
@@ -189,23 +199,35 @@ size_t CharBuff_WritePieceAsJson(CharBuff* dst, JsonStack* js, const Piece p) {
     assert(dst != nullptr);
     assert(js != nullptr);
 
-    auto pieceTypeSlice = CharBuff_OnStack(0, 32);
-    auto sideSlice      = CharBuff_OnStack(0, 32);
-
-    CharBuff_WritePieceType(&pieceTypeSlice, p.type);
-    CharBuff_WriteSide(&sideSlice, p.side);
-
-    const auto pieceTypeStr = CharBuff_ToStr(pieceTypeSlice);
-    const auto sideStr      = CharBuff_ToStr(sideSlice);
-
     size_t written = 0;
     written += CharBuff_WriteJsonStart(dst, js, '{');
     written += CharBuff_WriteJsonKey(dst, js, STR("type"));
-    written += CharBuff_WriteJsonStr(dst, js, pieceTypeStr);
+    written += CharBuff_WritePieceTypeAsJson(dst, js, p.type);
     written += CharBuff_WriteJsonKey(dst, js, STR("side"));
-    written += CharBuff_WriteJsonStr(dst, js, sideStr);
+    written += CharBuff_WriteSideAsJson(dst, js, p.side);
     written += CharBuff_WriteJsonEnd(dst, js);
     return written;
+}
+size_t CharBuff_WritePieceTypeAsJson(CharBuff* dst, JsonStack* js, const PieceType t) {
+    assert(dst != nullptr);
+    assert(js != nullptr);
+
+    switch (t) {
+        case PIECE_TYPE_PAWN:
+            return CharBuff_WriteJsonStr(dst, js, STR("PAWN"));
+        case PIECE_TYPE_ROOK:
+            return CharBuff_WriteJsonStr(dst, js, STR("ROOK"));
+        case PIECE_TYPE_KNIGHT:
+            return CharBuff_WriteJsonStr(dst, js, STR("KNIGHT"));
+        case PIECE_TYPE_BISHOP:
+            return CharBuff_WriteJsonStr(dst, js, STR("BISHOP"));
+        case PIECE_TYPE_QUEEN:
+            return CharBuff_WriteJsonStr(dst, js, STR("QUEEN"));
+        case PIECE_TYPE_KING:
+            return CharBuff_WriteJsonStr(dst, js, STR("KING"));
+        default:
+            return CharBuff_WriteJsonNull(dst, js);
+    }
 }
 
 size_t CharBuff_WriteSquaresAsJson(CharBuff* dst, JsonStack* js, const Squares src) {
@@ -217,13 +239,10 @@ size_t CharBuff_WriteSquaresAsJson(CharBuff* dst, JsonStack* js, const Squares s
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
             const Pos  pos   = {.row = i, .col = j};
             const auto piece = Squares_At(src, pos);
-
             if (!Piece_IsEmpty(piece)) {
-                auto posSlice = CharBuff_OnStack(0, 64);
-                CharBuff_WritePos(&posSlice, pos);
-                auto posStr = CharBuff_View(posSlice, 0, posSlice.len);
-
-                written += CharBuff_WriteJsonKey(dst, js, posStr);
+                auto posBuff = CharBuff_OnStack(0, 64);
+                CharBuff_WritePos(&posBuff, pos);
+                written += CharBuff_WriteJsonKey(dst, js, CharBuff_ToStr(posBuff));
                 written += CharBuff_WritePieceAsJson(dst, js, piece);
             }
         }
@@ -239,10 +258,8 @@ size_t CharBuff_WritePieceTypesAsJson(CharBuff* dst, JsonStack* js, const PieceT
     size_t written = 0;
     written += CharBuff_WriteJsonStart(dst, js, '[');
     for (size_t i = 0; i < src.len; i++) {
-        const auto t          = PieceTypes_At(src, i);
-        auto       pieceSlice = CharBuff_OnStack(0, 64);
-        CharBuff_WritePieceType(&pieceSlice, t);
-        written += CharBuff_WriteJsonStr(dst, js, CharBuff_ToStr(pieceSlice));
+        const auto t = PieceTypes_At(src, i);
+        written += CharBuff_WritePieceTypeAsJson(dst, js, t);
     }
     written += CharBuff_WriteJsonEnd(dst, js);
     return written;
@@ -270,7 +287,7 @@ size_t CharBuff_WriteBoardAsJson(CharBuff* dst, JsonStack* js, const Board* src)
     size_t written = 0;
     written += CharBuff_WriteJsonStart(dst, js, '{');
     written += CharBuff_WriteJsonKey(dst, js, STR("next_move_side"));
-    written += CharBuff_WriteJsonStr(dst, js, Side_ToStr(src->side));
+    written += CharBuff_WriteSideAsJson(dst, js, src->side);
     written += CharBuff_WriteJsonKey(dst, js, STR("squares"));
     written += CharBuff_WriteSquaresAsJson(dst, js, src->squares);
     written += CharBuff_WriteJsonKey(dst, js, STR("black"));

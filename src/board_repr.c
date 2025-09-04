@@ -137,18 +137,15 @@ PieceType PieceType_Parse(const Str src) {
     return PIECE_TYPE_UNSPECIFIED;
 }
 
-Side Side_Parse(Str src) {
+Side Side_Parse(const Str src) {
     if (src.len < 1) {
         return SIDE_UNSPECIFIED;
     }
 
-    const auto firstChar = Str_At(src, 0);
-
-    if (firstChar == 'B' && Str_Equals(src, STR("BLACK"))) {
+    if (Str_Equals(src, STR("BLACK"))) {
         return SIDE_BLACK;
     }
-
-    if (firstChar == 'W' && Str_Equals(src, STR("WHITE"))) {
+    if (Str_Equals(src, STR("WHITE"))) {
         return SIDE_WHITE;
     }
 
@@ -171,9 +168,9 @@ size_t CharBuff_WritePieceType(CharBuff* dst, const PieceType t) {
         case PIECE_TYPE_KING:
             return CharBuff_WriteStr(dst, STR("KING"));
         case PIECE_TYPE_UNSPECIFIED:
-            return CharBuff_WriteStr(dst, STR("NONE"));
+            return CharBuff_WriteStr(dst, STR("UNSPECIFIED"));
         default:
-            return 0;
+            return CharBuff_WriteF(dst, "INVALID (%d)", t);
     }
 }
 
@@ -185,18 +182,8 @@ size_t CharBuff_WriteSide(CharBuff* dst, const Side s) {
         case SIDE_BLACK:
             return CharBuff_WriteStr(dst, STR("BLACK"));
         default:
-            return 0;
-    }
-}
-
-Str Side_ToStr(Side s) {
-    switch (s) {
-        case SIDE_WHITE:
-            return STR("WHITE");
-        case SIDE_BLACK:
-            return STR("BLACK");
-        default:
-            return STR("");
+            return CharBuff_WriteF(dst, "INVALID (%d)", s);
+            ;
     }
 }
 
@@ -228,7 +215,7 @@ size_t CharBuff_WritePosParseErr(CharBuff* dst, const PosParseErr err) {
         case POS_PARSE_ERR_INVALID_FORMAT:
             return CharBuff_WriteStr(dst, STR("INVALID_FORMAT"));
         default:
-            return CharBuff_WriteF(dst, "UNKNOWN (%d)", err);
+            return CharBuff_WriteF(dst, "INVALID (%d)", err);
     }
 }
 
@@ -266,7 +253,7 @@ size_t CharBuff_WriteMoveParseErr(CharBuff* dst, const MoveParseErr err) {
         case MOVE_PARSE_ERR_INVALID_TO_FORMAT:
             return CharBuff_WriteStr(dst, STR("INVALID_TO_FORMAT"));
         default:
-            return CharBuff_WriteF(dst, "UNKNOWN (%d)", err);
+            return CharBuff_WriteF(dst, "INVALID (%d)", err);
     }
 }
 
@@ -330,7 +317,7 @@ size_t CharBuff_WriteBoardParseErr(CharBuff* dst, const SquaresParseErr err) {
         case SQUARES_PARSE_ERR_UNEXPECTED_CHAR:
             return CharBuff_WriteStr(dst, STR("UNEXPECTED_CHAR"));
         default:
-            return CharBuff_WriteF(dst, "UNKNOWN (%d)", err);
+            return CharBuff_WriteF(dst, "INVALID (%d)", err);
     }
 }
 
@@ -366,7 +353,7 @@ size_t CharBuff_WriteMoveError(CharBuff* dst, const MoveErr a) {
         case MOVE_ERR_OBSTACLE:
             return CharBuff_WriteStr(dst, STR("OBSTACLE"));
         default:
-            return CharBuff_WriteF(dst, "UNKNOWN (%d)", a);
+            return CharBuff_WriteF(dst, "INVALID (%d)", a);
     }
 }
 
