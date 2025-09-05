@@ -5,8 +5,7 @@
 
 #include "arena.h"
 
-constexpr size_t CHAR_SLICE_DIFF_MAX_SIZE = 32;
-constexpr size_t CHAR_SLICE_DIFF_DP_SIZE  = CHAR_SLICE_DIFF_MAX_SIZE + 1;
+constexpr size_t CHAR_BUFF_DIFF_MAX_SIZE = 32;
 
 typedef struct {
     const char*  arr;

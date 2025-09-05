@@ -10,7 +10,7 @@
 Str Str_FromCStr(const char* s, const size_t maxLen) {
     assert(s != nullptr);
     assert(maxLen > 0);
-    size_t len = strnlen(s, maxLen);
+    const size_t len = strnlen(s, maxLen);
     return (Str){s, len};
 }
 

@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <errno.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "board.h"
@@ -158,6 +157,7 @@ int main(const int argc, char* argv[]) {
             printf("No move or command entered\n");
             break;
         };
+
         const auto inStr = CharBuff_ToStr(in);
         if (Str_StartsWith(inStr, STR("save "))) {
             const auto filePath = CharBuff_View(in, 5, in.len);

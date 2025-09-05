@@ -7,8 +7,7 @@
 
 #include "arena.h"
 
-uint8_t buffer[1024 * 32] = {};
-Arena   mem               = {};
+auto mem = Arena_OnStack(1024 * 32);
 
 void setUp() {}
 void tearDown() {}
@@ -938,8 +937,6 @@ void Test_JsonWrite() {
 }
 
 int main(void) {
-    mem = Arena_Wrap(buffer);
-
     UNITY_BEGIN();
 
     RUN_TEST(Test_Empty);
