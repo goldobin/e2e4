@@ -278,7 +278,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes *dst, const Str src) {
                     };
                 }
 
-                const JsonNodeType type = (c == '}' ? JSON_NODE_TYPE_OBJECT : JSON_NODE_TYPE_ARRAY);
+                const JsonNodeType type = c == '}' ? JSON_NODE_TYPE_OBJECT : JSON_NODE_TYPE_ARRAY;
                 int                i    = (int)dst->len - 1;
                 for (; i >= 0; i--) {
                     const auto n = JsonNodes_At(*dst, i);

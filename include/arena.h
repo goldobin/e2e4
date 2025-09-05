@@ -1,5 +1,6 @@
 #ifndef ARENA_H
 #define ARENA_H
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -13,12 +14,11 @@ typedef struct Arena {
     bool          autoGrow;
 } Arena;
 
-Arena Arena_New(void* buffer, size_t cap);
 Arena Arena_NewAutoGrow(size_t cap);
 void* Arena_Alloc(Arena* a, size_t size);
 void  Arena_Reset(Arena* a);
 void  Arena_Free(Arena* a);
 
-#define Arena_Wrap(buffer) Arena_New(buffer, sizeof(buffer))
+#define Arena_OnStack(cap1) ((Arena){.buff = (uint8_t[(cap1)]){}, .cap = (cap1)})
 
 #endif  // ARENA_H

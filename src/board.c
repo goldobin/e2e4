@@ -88,12 +88,12 @@ void PieceTypes_Push(PieceTypes* dst, PieceType t) {
     dst->arr[dst->len++] = t;
 }
 
-PieceType PieceTypes_At(PieceTypes slice, size_t i) {
-    assert(i < slice.len);
-    return slice.arr[i];
+PieceType PieceTypes_At(const PieceTypes ts, const size_t i) {
+    assert(i < ts.len);
+    return ts.arr[i];
 }
 
-void PieceTypes_UpdateAt(PieceTypes* dst, size_t i, PieceType t) {
+void PieceTypes_UpdateAt(PieceTypes* dst, const size_t i, const PieceType t) {
     assert(dst != nullptr);
     assert(i < dst->len);
 
@@ -393,17 +393,14 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
         PieceTypes_Push(&sideState->taken, result.taken);
     }
 
-    const Piece kingPiece = {.side = side, .type = PIECE_TYPE_KING};
-    Pos         kingPos   = {};
-    if (!Pos_Find(&kingPos, dst->squares, kingPiece)) {
-        assert(false);
-    };
-
+    const Piece kingPiece         = {.side = side, .type = PIECE_TYPE_KING};
+    Pos         kingPos           = {};
+    const auto  kingFound         = Pos_Find(&kingPos, dst->squares, kingPiece);
     const Piece oppositeKingPiece = {.side = oppositeSide, .type = PIECE_TYPE_KING};
     Pos         oppositeKingPos   = {};
-    if (!Pos_Find(&oppositeKingPos, dst->squares, oppositeKingPiece)) {
-        assert(false);
-    };
+    const auto  oppositeKingFound = Pos_Find(&oppositeKingPos, dst->squares, oppositeKingPiece);
+    assert(kingFound);
+    assert(oppositeKingFound);
 
     sideState->check         = Squares_IsThreatened(dst->squares, kingPos);
     oppositeSideState->check = Squares_IsThreatened(dst->squares, oppositeKingPos);

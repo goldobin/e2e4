@@ -30,7 +30,7 @@ Declined:
 
 - [x] For CharSlice write zero where possible, so the necessity for to string
   method is eliminated. Implement a method to terminate a string at a known
-  length. Decided to use char arr directly assuming that slice is allways
+  length. Decided to use char arr directly assuming that the slice is always 
   initialized with zeros.
 - [x] ~~Implement support for CharSlice in WriteF (PrintF)~~ (As soon as I can
   always access CharSlice.arr field it is no longer necessary)

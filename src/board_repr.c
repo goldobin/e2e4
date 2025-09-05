@@ -285,8 +285,8 @@ MoveParseResult Move_Parse(Move* dst, const Str src) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_INVALID_FROM_FORMAT};
     }
 
-    const auto toPosSlice    = Str_View(src, fromParseResult.offset, src.len);
-    const auto toParseResult = Pos_Parse(&to, toPosSlice);
+    const auto toPosStr      = Str_View(src, fromParseResult.offset, src.len);
+    const auto toParseResult = Pos_Parse(&to, toPosStr);
     if (toParseResult.err != POS_PARSE_ERR_OK) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_INVALID_TO_FORMAT};
     }
