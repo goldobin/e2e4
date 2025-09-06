@@ -11,15 +11,21 @@ bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSource* src);
 bool SideState_InterpretJson(SideState* dst, JsonSource* src);
 bool Squares_InterpretJson(Squares dst, JsonSource* src);
 bool Board_InterpretJson(Board* dst, JsonSource* src);
+bool Step_InterpretJson(Step* dst, JsonSource* src);
+bool Steps_InterpretJson(Steps* dst, JsonSource* src);
 
 // Write
 
+size_t CharBuff_WriteMoveAsJson(CharBuff* dst, JsonStack* js, Move m);
 size_t CharBuff_WriteSideAsJson(CharBuff* dst, JsonStack* js, Side s);
 size_t CharBuff_WritePieceAsJson(CharBuff* dst, JsonStack* js, Piece p);
 size_t CharBuff_WritePieceTypeAsJson(CharBuff* dst, JsonStack* js, PieceType t);
 size_t CharBuff_WriteSquaresAsJson(CharBuff* dst, JsonStack* js, const Squares src);
 size_t CharBuff_WritePieceTypesAsJson(CharBuff* dst, JsonStack* js, PieceTypes src);
 size_t CharBuff_WriteSideStateAsJson(CharBuff* dst, JsonStack* js, const SideState* src);
+size_t CharBuff_WriteStepAsJson(CharBuff* dst, JsonStack* js, const Step* src);
+size_t CharBuff_WriteStepsAsJson(CharBuff* dst, JsonStack* js, const Steps* src);
+size_t CharBuff_WriteBoardStateAsJson(CharBuff* dst, JsonStack* js, BoardState s);
 size_t CharBuff_WriteBoardAsJson(CharBuff* dst, JsonStack* js, const Board* src);
 
 #endif  // BOARD_JSON_H

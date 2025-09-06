@@ -473,13 +473,26 @@ size_t CharBuff_WriteJsonStart(CharBuff *dst, JsonStack *s, const char bracket) 
             assert(false);
     }
 
+    size_t written = 0;
     if (s->len > 0) {
-        const auto n = JsonStack_Top(s);
-        assert(n != nullptr);
-        assert(n->type == JSON_STACK_ENTRY_TYPE_FIELD);
+        const auto parent = JsonStack_Top(s);
+        assert(parent != nullptr);
+
+        switch (parent->type) {
+            case JSON_STACK_ENTRY_TYPE_FIELD:
+                break;
+            case JSON_STACK_ENTRY_TYPE_ARRAY:
+                if (parent->needsComma) {
+                    written += CharBuff_WriteChar(dst, ',');
+                    break;
+                }
+                parent->needsComma = true;
+                break;
+            default:
+                assert(false);
+        }
     }
 
-    size_t written = 0;
     written += CharBuff_WriteChar(dst, bracket);
     const auto next = JsonStack_Push(s);
     assert(next != nullptr);
@@ -558,6 +571,7 @@ size_t CharBuff_WritePrimitivePreamble(CharBuff *dst, JsonStack *s) {
         case JSON_STACK_ENTRY_TYPE_ARRAY:
             if (parent->needsComma) {
                 written += CharBuff_WriteChar(dst, ',');
+                break;
             }
             parent->needsComma = true;
             break;
@@ -652,6 +666,16 @@ size_t CharBuff_WriteJsonNull(CharBuff *dst, JsonStack *s) {
     assert(dst != nullptr);
     assert(s != nullptr);
     return CharBuff_WriteJsonValue(dst, s, false, STR("null"));
+}
+size_t CharBuff_WriteJsonTime(CharBuff *dst, JsonStack *s, const time_t t) {
+    assert(dst != nullptr);
+    assert(s != nullptr);
+
+    char       buff[64];
+    const auto tm  = gmtime(&t);
+    const auto len = strftime(buff, sizeof(buff), "%Y-%m-%dT%H:%M:%S.000Z", tm);
+    assert(len > 0);
+    return CharBuff_WriteJsonStr(dst, s, (Str){buff, len});
 }
 
 size_t CharBuf_WriteJsonNumeric(CharBuff *dst, JsonStack *s, const Str value) {

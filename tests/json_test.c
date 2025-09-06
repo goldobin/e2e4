@@ -920,6 +920,8 @@ void Test_JsonWrite() {
     CharBuf_WriteJsonNumeric(&dst, &s, STR("123"));
     CharBuff_WriteJsonKey(&dst, &s, STR("strField"));
     CharBuff_WriteJsonStr(&dst, &s, STR("Foo"));
+    CharBuff_WriteJsonKey(&dst, &s, STR("timeField"));
+    CharBuff_WriteJsonTime(&dst, &s, 10);
     CharBuff_WriteJsonEnd(&dst, &s);
 
     CharBuff_WriteJsonKey(&dst, &s, STR("arrField"));
@@ -927,12 +929,20 @@ void Test_JsonWrite() {
     CharBuff_WriteJsonBool(&dst, &s, true);
     CharBuf_WriteJsonNumeric(&dst, &s, STR("456"));
     CharBuff_WriteJsonStr(&dst, &s, STR("Bar"));
+    CharBuff_WriteJsonStart(&dst, &s, '{');
+
+    CharBuff_WriteJsonKey(&dst, &s, STR("strField2"));
+    CharBuff_WriteJsonStr(&dst, &s, STR("Boo"));
+    CharBuff_WriteJsonEnd(&dst, &s);
+
     CharBuff_WriteJsonEnd(&dst, &s);
 
     CharBuff_WriteJsonEnd(&dst, &s);
 
     TEST_ASSERT_EQUAL_STRING(
-        "{\"objField\":{\"numericField\":123,\"strField\":\"Foo\"},\"arrField\":[true,456,\"Bar\"]}", dst.arr
+        "{\"objField\":{\"numericField\":123,\"strField\":\"Foo\",\"timeField\":\"1970-01-01T00:00:10.000Z\"},"
+        "\"arrField\":[true,456,\"Bar\",{\"strField2\":\"Boo\"}]}",
+        dst.arr
     );
 }
 
