@@ -311,11 +311,18 @@ void SideState_Copy(const SideState* src, SideState* dst) {
     dst->hasKingCastled = src->hasKingCastled;
     PieceTypes_Copy(&dst->taken, &src->taken);
 }
-void Board_Init(Board* dst) {
+void Board_Init(Board* dst, const Steps steps) {
     assert(dst != nullptr);
+    dst->steps = steps;
+}
 
-    dst->side  = SIDE_WHITE;
-    dst->state = BOARD_STATE_IN_PROGRESS;
+void Board_StartNewGame(Board* dst) {
+    assert(dst != nullptr);
+    *dst = (Board){
+        .side  = SIDE_WHITE,
+        .state = BOARD_STATE_IN_PROGRESS,
+        .steps = Steps_Slice(&dst->steps, 0, 0),
+    };
     Squares_InitDefaultLayout(dst->squares);
 }
 
@@ -338,7 +345,9 @@ bool Board_Equals(const Board* a, const Board* b) {
     if (!Squares_Equals(a->squares, b->squares)) {
         return false;
     }
-
+    if (!Steps_Equals(b->steps, a->steps)) {
+        return false;
+    }
     return true;
 }
 
@@ -409,7 +418,16 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
         return result;
     }
 
-    dst->side = oppositeSide;
+    dst->side       = oppositeSide;
+    const auto step = Steps_Append(&dst->steps, 1);
+    if (step != nullptr) {
+        *step = (Step){
+            .move = m,
+            .pice = piece,
+            .time = time(nullptr),
+        };
+    }
+
     return result;
 }
 
@@ -679,4 +697,87 @@ void Threats_Collect(Threats* dst, const Squares ss, const Pos p) {
             }
         }
     }
+}
+bool Step_Equals(const Step* a, const Step* b) {
+    assert(a != nullptr);
+    assert(b != nullptr);
+    return Move_Equals(a->move, b->move) && Piece_Equals(a->pice, b->pice);
+}
+
+Steps Arena_AllocSteps(Arena* a, const size_t len, size_t cap, bool autoGrow) {
+    assert(a != nullptr);
+    assert(len <= cap);
+    Step* arr = Arena_Alloc(a, cap * sizeof(Step));
+    return (Steps){.arr = arr, .len = len, .cap = cap, .a = autoGrow ? a : nullptr};
+}
+
+Step* Steps_AtRef(Steps* s, const size_t i) {
+    assert(s != nullptr);
+    assert(i < s->len);
+    return &s->arr[i];
+}
+
+const Step* Steps_At(const Steps* s, const size_t i) {
+    assert(s != nullptr);
+    assert(i < s->len);
+    return &s->arr[i];
+}
+
+Steps Steps_Slice(const Steps* s, const size_t start, const size_t end) {
+    assert(s != nullptr);
+    assert(start <= end);
+    assert(end <= s->len);
+    const auto len = end - start;
+    return (Steps){
+        .arr = &s->arr[start],
+        .cap = s->cap - start,
+        .len = len,
+        .a   = s->a,
+    };
+}
+
+Step* Steps_Append(Steps* dst, const size_t len) {
+    assert(dst != nullptr);
+    const auto needToGrow = dst->len + len > dst->cap;
+
+    if (!needToGrow) {
+        memset(&dst->arr[dst->len], 0, len * sizeof(Step));
+        const auto result = &dst->arr[dst->len];
+        dst->len += len;
+        return result;
+    }
+
+    if (dst->a == nullptr) {
+        return nullptr;
+    }
+
+    const auto newCap = dst->cap * MOVE_SLICE_GROW_FACTOR;
+
+    Step* newArr = Arena_Alloc(dst->a, newCap * sizeof(Step));
+    if (newArr == nullptr) {
+        return nullptr;
+    }
+
+    for (size_t i = 0; i < dst->len; i++) {
+        newArr[i] = dst->arr[i];
+    }
+
+    dst->arr          = newArr;
+    dst->cap          = newCap;
+    const auto result = &dst->arr[dst->len];
+    dst->len += len;
+    return result;
+}
+
+bool Steps_Equals(const Steps a, const Steps b) {
+    if (a.len != b.len) {
+        return false;
+    }
+
+    for (size_t i = 0; i < a.len; i++) {
+        if (!Step_Equals(&a.arr[i], &b.arr[i])) {
+            return false;
+        }
+    }
+    return true;
 }

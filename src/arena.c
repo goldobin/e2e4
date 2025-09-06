@@ -13,13 +13,13 @@ Arena Arena_New(void* buffer, const size_t cap) {
     return (Arena){.buff = (uint8_t*)buffer, .cap = cap, .offset = 0};
 }
 
-Arena Arena_NewAutoGrow(const size_t cap) {
+Arena Arena_OnHeap(const size_t cap, const bool autoGrow) {
     assert(cap > 0);
     return (Arena){
         .buff     = nullptr,
         .cap      = cap,
         .offset   = 0,
-        .autoGrow = true,
+        .autoGrow = autoGrow,
     };
 }
 
@@ -59,7 +59,7 @@ void* Arena_Alloc(Arena* a, const size_t size) {
         }
 
         const auto newBlockCap = MaxSizeT(totalCap * ARENA_GROW_FACTOR, size);
-        *newBlock              = Arena_NewAutoGrow(newBlockCap);
+        *newBlock              = Arena_OnHeap(newBlockCap, cur->autoGrow);
         cur->next              = newBlock;
         cur                    = newBlock;
     }

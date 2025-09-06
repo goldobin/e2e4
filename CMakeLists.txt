@@ -63,7 +63,6 @@ target_link_libraries(e2e4_cli PRIVATE
 add_library(e2e4 STATIC
         src/arena.c
         src/chars.c
-        src/move_slice.c
         src/board.c
         src/json.c
         src/board_json.c

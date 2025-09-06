@@ -14,7 +14,7 @@ typedef struct Arena {
     bool          autoGrow;
 } Arena;
 
-Arena Arena_NewAutoGrow(size_t cap);
+Arena Arena_OnHeap(size_t cap, bool autoGrow);
 void* Arena_Alloc(Arena* a, size_t size);
 void  Arena_Reset(Arena* a);
 void  Arena_Free(Arena* a);

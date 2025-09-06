@@ -1,6 +1,8 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include <time.h>
+
 #include "chars.h"
 
 constexpr size_t BOARD_SIDE_LEN  = 8;
@@ -83,6 +85,21 @@ typedef struct {
 
 typedef Piece Squares[BOARD_SIDE_LEN][BOARD_SIDE_LEN];
 
+constexpr size_t MOVE_SLICE_GROW_FACTOR = 2;
+
+typedef struct {
+    Move   move;
+    Piece  pice;
+    time_t time;
+} Step;
+
+typedef struct {
+    Step*  arr;
+    size_t len;
+    size_t cap;
+    Arena* a;
+} Steps;
+
 typedef enum {
     BOARD_STATE_IN_UNSPECIFIED = 0,
     BOARD_STATE_IN_PROGRESS,
@@ -96,6 +113,7 @@ typedef struct {
     Side       side;
     SideState  white;
     SideState  black;
+    Steps      steps;
 } Board;
 
 typedef struct {
@@ -143,7 +161,8 @@ MoveResult       Squares_CheckQueenMove(const Squares ss, Move m);
 MoveResult       Squares_CheckKingMove(const Squares ss, Move m);
 bool             SideState_Equals(const SideState* a, SideState const* b);
 void             SideState_Copy(const SideState* src, SideState* dst);
-void             Board_Init(Board* dst);
+void             Board_Init(Board* dst, Steps steps);
+void             Board_StartNewGame(Board* dst);
 bool             Board_Equals(const Board* a, const Board* b);
 void             Board_Copy(Board* dst, const Board* src);
 SideState*       Board_SideStateRef(Board* b, Side s);
@@ -152,5 +171,13 @@ MoveResult       Board_MakeMove(Board* dst, Move m);
 bool             Threat_IsValid(Threat t);
 void             Threats_Append(Threats* dst, Threat t);
 void             Threats_Collect(Threats* dst, const Squares ss, Pos p);
+bool             Step_Equals(const Step* a, const Step* b);
+Steps            Steps_Slice(const Steps* s, size_t start, size_t end);
+Step*            Steps_AtRef(Steps* s, size_t i);
+const Step*      Steps_At(const Steps* s, size_t i);
+Step*            Steps_Append(Steps* dst, size_t len);
+bool             Steps_Equals(Steps a, Steps b);
+Steps            Arena_AllocSteps(Arena* a, size_t len, size_t cap, bool autoGrow);
 
+#define Steps_OnStack(len1, cap1) ((Steps){.arr = (Step[(cap1)]){}, .len = (len1), .cap = (cap1)})
 #endif  // BOARD_H

@@ -114,6 +114,15 @@ bool Board_InterpretJson(Board* dst, JsonSource* src) {
 
     return true;
 }
+size_t CharBuff_WriteMoveAsJson(CharBuff* dst, JsonStack* js, Move m) {
+    assert(dst != nullptr);
+    assert(js != nullptr);
+
+    auto buff = CharBuff_OnStack(0, 4);
+    CharBuff_WriteMove(&buff, m);
+    return CharBuff_WriteJsonStr(dst, js, CharBuff_ToStr(buff));
+}
+
 size_t CharBuff_WriteSideAsJson(CharBuff* dst, JsonStack* js, Side s) {
     switch (s) {
         case SIDE_WHITE:
@@ -270,6 +279,10 @@ size_t CharBuff_WriteSideStateAsJson(CharBuff* dst, JsonStack* js, const SideSta
     assert(js != nullptr);
     assert(src != nullptr);
 
+    if (src == nullptr) {
+        return CharBuff_WriteJsonNull(dst, js);
+    }
+
     size_t written = 0;
     written += CharBuff_WriteJsonStart(dst, js, '{');
     written += CharBuff_WriteJsonKey(dst, js, STR("king_castled"));
@@ -284,8 +297,14 @@ size_t CharBuff_WriteBoardAsJson(CharBuff* dst, JsonStack* js, const Board* src)
     assert(dst != nullptr);
     assert(src != nullptr);
 
+    if (src == nullptr) {
+        return CharBuff_WriteJsonNull(dst, js);
+    }
+
     size_t written = 0;
     written += CharBuff_WriteJsonStart(dst, js, '{');
+    written += CharBuff_WriteJsonKey(dst, js, STR("state"));
+    written += CharBuff_WriteBoardStateAsJson(dst, js, src->state);
     written += CharBuff_WriteJsonKey(dst, js, STR("next_move_side"));
     written += CharBuff_WriteSideAsJson(dst, js, src->side);
     written += CharBuff_WriteJsonKey(dst, js, STR("squares"));
@@ -294,6 +313,60 @@ size_t CharBuff_WriteBoardAsJson(CharBuff* dst, JsonStack* js, const Board* src)
     written += CharBuff_WriteSideStateAsJson(dst, js, &src->black);
     written += CharBuff_WriteJsonKey(dst, js, STR("white"));
     written += CharBuff_WriteSideStateAsJson(dst, js, &src->white);
+    written += CharBuff_WriteJsonKey(dst, js, STR("steps"));
+    written += CharBuff_WriteStepsAsJson(dst, js, &src->steps);
     written += CharBuff_WriteJsonEnd(dst, js);
     return written;
+}
+size_t CharBuff_WriteStepAsJson(CharBuff* dst, JsonStack* js, const Step* src) {
+    assert(dst != nullptr);
+    assert(js != nullptr);
+
+    if (src == nullptr) {
+        return CharBuff_WriteJsonNull(dst, js);
+    }
+
+    size_t written = 0;
+    written += CharBuff_WriteJsonStart(dst, js, '{');
+    written += CharBuff_WriteJsonKey(dst, js, STR("move"));
+    written += CharBuff_WriteMoveAsJson(dst, js, src->move);
+    written += CharBuff_WriteJsonKey(dst, js, STR("piece"));
+    written += CharBuff_WritePieceAsJson(dst, js, src->pice);
+    written += CharBuff_WriteJsonKey(dst, js, STR("time"));
+    written += CharBuff_WriteJsonTime(dst, js, src->time);
+    written += CharBuff_WriteJsonEnd(dst, js);
+
+    return written;
+}
+size_t CharBuff_WriteStepsAsJson(CharBuff* dst, JsonStack* js, const Steps* src) {
+    assert(dst != nullptr);
+    assert(js != nullptr);
+    assert(src != nullptr);
+
+    if (src == nullptr) {
+        return CharBuff_WriteJsonNull(dst, js);
+    }
+
+    size_t written = 0;
+    written += CharBuff_WriteJsonStart(dst, js, '[');
+    for (size_t i = 0; i < src->len; i++) {
+        written += CharBuff_WriteStepAsJson(dst, js, Steps_At(src, i));
+    }
+    written += CharBuff_WriteJsonEnd(dst, js);
+    return written;
+}
+size_t CharBuff_WriteBoardStateAsJson(CharBuff* dst, JsonStack* js, BoardState s) {
+    assert(dst != nullptr);
+    assert(js != nullptr);
+
+    switch (s) {
+        case BOARD_STATE_IN_PROGRESS:
+            return CharBuff_WriteJsonStr(dst, js, STR("IN_PROGRESS"));
+        case BOARD_STATE_CHECKMATE:
+            return CharBuff_WriteJsonStr(dst, js, STR("CHECKMATE"));
+        case BOARD_STATE_STALEMATE:
+            return CharBuff_WriteJsonStr(dst, js, STR("STALEMATE"));
+        default:
+            return CharBuff_WriteJsonNull(dst, js);
+    }
 }

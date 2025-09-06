@@ -45,7 +45,7 @@ void test_Arena_Allocate_Consecutively(void) {
 }
 
 void test_Arena_Grow1(void) {
-    Arena arena = Arena_NewAutoGrow(32);
+    Arena arena = Arena_OnHeap(32, true);
     char* a1    = Arena_Alloc(&arena, sizeof(char) * 30);
     TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[30]){}, a1, 30);
 
@@ -71,7 +71,7 @@ void test_Arena_Grow1(void) {
 }
 
 void test_Arena_Grow2(void) {
-    Arena       arena = Arena_NewAutoGrow(32);
+    Arena       arena = Arena_OnHeap(32, true);
     const char* a1    = Arena_Alloc(&arena, sizeof(char) * 128);
     TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[128]){}, a1, 128);
 

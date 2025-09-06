@@ -125,12 +125,14 @@ bool writeBoardToFile(const Str filePath, const Board* board) {
 void printUsage(const char* progName) { printf("Usage: %s [file]\n", progName); }
 
 int main(const int argc, char* argv[]) {
-    Board b = {};
+    const auto steps = Steps_OnStack(0, 128);
+    Board      b     = {};
+    Board_Init(&b, steps);
 
     switch (argc) {
         case 0:
         case 1:
-            Board_Init(&b);
+            Board_StartNewGame(&b);
             break;
         case 2:
             const Str filePath = Str_FromCStr(argv[1], 64);

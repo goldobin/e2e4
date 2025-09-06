@@ -896,18 +896,21 @@ void Test_WriteAsJson() {
             "........")
     );
 
+    src.state       = BOARD_STATE_IN_PROGRESS;
     src.side        = SIDE_BLACK;
     src.white.taken = (PieceTypes){.arr = {[0] = PIECE_TYPE_KNIGHT}, .len = 1};
 
     const auto expected =
         STR("{"
+            "\"state\":\"IN_PROGRESS\","
             "\"next_move_side\":\"BLACK\","
             "\"squares\":{"
             "\"d8\":{\"type\":\"KING\",\"side\":\"BLACK\"},"
             "\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}"
             "},"
             "\"black\":{\"king_castled\":false,\"taken\":[]},"
-            "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
+            "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]},"
+            "\"steps\":[]"
             "}");
     auto       dst     = CharBuff_OnStack(0, 1024);
     auto       js      = JsonStack_Make(0, 128);
