@@ -15,6 +15,7 @@ set(CC_PARAMS
         -Wpedantic
         -Wformat-security
         -Wstrict-prototypes
+        -D_XOPEN_SOURCE=700
 )
 
 set(CC_TEST_PARAMS
