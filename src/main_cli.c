@@ -6,26 +6,16 @@
 #include "board_json.h"
 #include "board_repr.h"
 
-#define ANSI_COLOR_RESET       "\x1b[0m"
-#define ANSI_COLOR_RED_LOW     "\x1b[0;31m"
-#define ANSI_COLOR_GREEN_LOW   "\x1b[0;32m"
-#define ANSI_COLOR_YELLOW_LOW  "\x1b[0;33m"
-#define ANSI_COLOR_BLUE_LOW    "\x1b[0;34m"
-#define ANSI_COLOR_MAGENTA_LOW "\x1b[0;35m"
-#define ANSI_COLOR_CYAN_LOW    "\x1b[0;36m"
-#define ANSI_COLOR_WHITE_LOW   "\x1b[0;37m"
-
-#define ANSI_COLOR_RED_HIGH     "\x1b[0;91m"
-#define ANSI_COLOR_GREEN_HIGH   "\x1b[0;92m"
-#define ANSI_COLOR_YELLOW_HIGH  "\x1b[0;93m"
-#define ANSI_COLOR_BLUE_HIGH    "\x1b[0;94m"
-#define ANSI_COLOR_MAGENTA_HIGH "\x1b[0;95m"
-#define ANSI_COLOR_CYAN_HIGH    "\x1b[0;96m"
-#define ANSI_COLOR_WHITE_HIGH   "\x1b[0;97m"
+#define HEADER_COLOUR    "\x1b[0;93m"   // High-intensity yellow
+#define HIGHLIGHT_COLOUR "\x1b[1;97m"   // High-intensity white
+#define PIECE_COLOUR     "\x1b[1;90m"   // High-intensity black
+#define BLACK_BG_COLOUR  "\x1b[47m"     // Low-intensity white
+#define WHITE_BG_COLOUR  "\x1b[0;107m"  // High-intensity white
+#define RESET_COLOUR     "\x1b[0m"      // Reset color
 
 void printBoard(const Board* b) {
     assert(b != nullptr);
-    printf(ANSI_COLOR_YELLOW_LOW "  a b c d e f g h " ANSI_COLOR_RESET "\n");
+    printf(HEADER_COLOUR "   a  b  c  d  e  f  g  h " RESET_COLOUR "\n");
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; ++j) {
@@ -33,17 +23,14 @@ void printBoard(const Board* b) {
             const auto  piece     = Squares_At(b->squares, pos);
             const char  rowChar   = (char)(ROW_CHAR_MIN + (BOARD_SIDE_LEN - i - 1));
             const char* pieceChar = Piece_ToUnicodeChar(piece);
-            auto        color     = ANSI_COLOR_WHITE_HIGH;
-            if ((piece.type == PIECE_TYPE_UNSPECIFIED && (i + j) % 2 == 0) || piece.side == SIDE_BLACK) {
-                color = ANSI_COLOR_WHITE_LOW;
-            }
+            auto        bg        = (i + j) % 2 == 0 ? BLACK_BG_COLOUR : WHITE_BG_COLOUR;
 
             if (j == 0) {
-                printf(ANSI_COLOR_YELLOW_LOW "%c " ANSI_COLOR_RESET, rowChar);
+                printf(HEADER_COLOUR "%c ", rowChar);
             }
-            printf("%s%s" ANSI_COLOR_RESET " ", color, pieceChar);
+            printf("%s%s %s ", bg, PIECE_COLOUR, pieceChar);
         }
-        printf("\n");
+        printf(RESET_COLOUR "\n");
     }
 }
 
@@ -150,9 +137,7 @@ int main(const int argc, char* argv[]) {
         printBoard(&b);
 
         const char* sideStr = b.side == SIDE_WHITE ? "white" : "black";
-        printf(
-            "Next turn for" ANSI_COLOR_YELLOW_HIGH " %s " ANSI_COLOR_RESET "or command (save <path> | quit): ", sideStr
-        );
+        printf("Next turn for" HIGHLIGHT_COLOUR " %s " RESET_COLOUR "or command (save <path> | quit): ", sideStr);
 
         auto in = CharBuff_OnStack(0, 128);
         if (CharBuff_WriteLineFromFile(&in, stdin, '\n') < 4) {

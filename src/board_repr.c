@@ -72,7 +72,7 @@ const char* Piece_ToUnicodeChar(Piece p) {
             case PIECE_TYPE_PAWN:
                 return UNICODE_WHITE_PAWN;
             default:
-                return ".";
+                return " ";
         }
     }
     switch (p.type) {
@@ -89,7 +89,7 @@ const char* Piece_ToUnicodeChar(Piece p) {
         case PIECE_TYPE_PAWN:
             return UNICODE_BLACK_PAWN;
         default:
-            return ".";
+            return " ";
     }
 }
 
