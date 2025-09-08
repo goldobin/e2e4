@@ -16,13 +16,13 @@
   - [x] Check the "Checkmate" state
   - [ ] Implement pawn exchange move
   - [ ] Implement king's castle move
-- [ ] Move history. Requires dynamically resizable **slice**
-  - [ ] Save to JSON file
-  - [ ] Load from JSON file
-  - [ ] Print history to the screen
-- [ ] Command history file persistence and scroll through history with arrow
-- [ ] Use white background when printing the board
-  keys (probably tough without libs)
+- [x] Move history. Requires dynamically resizable **slice**
+  - [x] Save to JSON file
+  - [x] Load from a JSON file
+  - [x] Print history on the screen
+- [x] Use white background when printing the board
+- [ ] Command history file persistence and scroll through history with arrow keys (libcurses perhaps?)
+  
 
 Arena:
 
