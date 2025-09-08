@@ -1,3 +1,4 @@
+#include <_stdlib.h>
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
@@ -19,17 +20,32 @@ void printBoard(const Board* b) {
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; ++j) {
-            const Pos   pos       = {.row = i, .col = j};
-            const auto  piece     = Squares_At(b->squares, pos);
-            const char  rowChar   = (char)(ROW_CHAR_MIN + (BOARD_SIDE_LEN - i - 1));
-            const char* pieceChar = Piece_ToUnicodeChar(piece);
-            auto        bg        = (i + j) % 2 == 0 ? BLACK_BG_COLOUR : WHITE_BG_COLOUR;
+            const Pos  pos       = {.row = i, .col = j};
+            const auto piece     = Squares_At(b->squares, pos);
+            const char rowChar   = (char)(ROW_CHAR_MIN + (BOARD_SIDE_LEN - i - 1));
+            const auto pieceChar = Piece_ToUnicodeChar(piece);
+            const auto bg        = (i + j) % 2 == 0 ? BLACK_BG_COLOUR : WHITE_BG_COLOUR;
 
             if (j == 0) {
                 printf(HEADER_COLOUR "%c ", rowChar);
             }
-            printf("%s%s %s ", bg, PIECE_COLOUR, pieceChar);
+            printf("%s" PIECE_COLOUR " %s ", bg, pieceChar);
         }
+
+        if (i < b->steps.len) {
+            const auto s         = Steps_At(&b->steps, b->steps.len - i - 1);
+            const auto pieceChar = Piece_ToUnicodeChar(s->pice);
+            const auto bg2       = s->pice.side == SIDE_BLACK ? BLACK_BG_COLOUR : WHITE_BG_COLOUR;
+            auto       moveStr   = CharBuff_OnStack(0, 16);
+
+            CharBuff_WritePos(&moveStr, s->move.from);
+            CharBuff_WriteStr(&moveStr, STR(" \u2192 "));
+            CharBuff_WritePos(&moveStr, s->move.to);
+            CharBuff_WriteChar(&moveStr, '\0');
+
+            printf(RESET_COLOUR "    %s" PIECE_COLOUR " %s " RESET_COLOUR "  %s", bg2, pieceChar, moveStr.arr);
+        }
+
         printf(RESET_COLOUR "\n");
     }
 }
@@ -124,13 +140,13 @@ int main(const int argc, char* argv[]) {
         case 2:
             const Str filePath = Str_FromCStr(argv[1], 64);
             if (!readBoardFromFile(&b, filePath)) {
-                return 1;
+                return EXIT_FAILURE;
             }
             break;
 
         default:
             printUsage(argv[0]);
-            return 1;
+            return EXIT_FAILURE;
     }
 
     while (true) {
@@ -191,16 +207,26 @@ int main(const int argc, char* argv[]) {
             printf("Move result: %s\n", moveResultStr.arr);
         }
 
-        if (b.state == BOARD_STATE_CHECKMATE) {
-            printf("Checkmate!\n");
-            break;
-        }
-
-        if (b.state == BOARD_STATE_STALEMATE) {
-            printf("Stalemate!\n");
+        if (b.state != BOARD_STATE_IN_PROGRESS) {
             break;
         }
     }
 
-    return 0;
+    switch (b.state) {
+        case BOARD_STATE_CHECKMATE:
+            printBoard(&b);
+            printf("Checkmate!\n");
+            break;
+
+        case BOARD_STATE_STALEMATE:
+            printBoard(&b);
+            printf("Stalemate!\n");
+            break;
+
+        default:
+            printf("Unknown state: %d\n", b.state);
+            return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }

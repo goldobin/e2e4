@@ -424,6 +424,15 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
         *PieceTypes_Append(&sideState->taken) = result.taken;
     }
 
+    const auto step = Steps_Append(&dst->steps, 1);
+    if (step != nullptr) {
+        *step = (Step){
+            .move = m,
+            .pice = piece,
+            .time = time(nullptr),
+        };
+    }
+
     const Piece kingPiece         = {.side = side, .type = PIECE_TYPE_KING};
     Pos         kingPos           = {};
     const auto  kingFound         = Pos_Find(&kingPos, dst->squares, kingPiece);
@@ -440,16 +449,7 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
         return result;
     }
 
-    dst->side       = oppositeSide;
-    const auto step = Steps_Append(&dst->steps, 1);
-    if (step != nullptr) {
-        *step = (Step){
-            .move = m,
-            .pice = piece,
-            .time = time(nullptr),
-        };
-    }
-
+    dst->side = oppositeSide;
     return result;
 }
 
