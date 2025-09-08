@@ -1,6 +1,7 @@
 #include "json.h"
 
 #include <assert.h>
+#include <string.h>
 
 static bool isVisibleChar(const char ch) { return ch >= 32 && ch <= 126; /* ' ' - ~ */ }
 static bool isHexChar(const char ch) {
@@ -36,6 +37,25 @@ size_t CharBuff_WriteJsonParseResult(CharBuff *dst, const JsonParseResult *r) {
     written += CharBuff_WriteF(dst, "%zd", r->offset);
     written += CharBuff_WriteChar(dst, '}');
     return written;
+}
+
+constexpr char TIME_FORMAT_ISO8601[] = "%Y-%m-%dT%H:%M:%S.000Z";
+
+bool Time_ParseISO8601(time_t *dst, Str src) {
+    constexpr size_t buffLen = 64;
+    assert(src.len < buffLen);
+    char      buff[buffLen] = {};
+    struct tm tm            = {};
+
+    memcpy(buff, src.arr, src.len * sizeof(char));
+    buff[src.len] = '\0';
+
+    if (strptime(buff, TIME_FORMAT_ISO8601, &tm) == nullptr) {
+        return false;
+    }
+
+    *dst = mktime(&tm);
+    return true;
 }
 
 JsonNode *JsonNodes_At(const JsonNodes nodes, const size_t index) {
@@ -667,15 +687,18 @@ size_t CharBuff_WriteJsonNull(CharBuff *dst, JsonStack *s) {
     assert(s != nullptr);
     return CharBuff_WriteJsonValue(dst, s, false, STR("null"));
 }
-size_t CharBuff_WriteJsonTime(CharBuff *dst, JsonStack *s, const time_t t) {
+size_t CharBuff_WriteTimeAsJson(CharBuff *dst, JsonStack *s, const time_t t) {
     assert(dst != nullptr);
     assert(s != nullptr);
 
-    char       buff[64];
-    const auto tm  = gmtime(&t);
-    const auto len = strftime(buff, sizeof(buff), "%Y-%m-%dT%H:%M:%S.000Z", tm);
-    assert(len > 0);
-    return CharBuff_WriteJsonStr(dst, s, (Str){buff, len});
+    constexpr size_t BUFF_SIZE = 64;
+    auto             v         = CharBuff_OnStack(0, BUFF_SIZE);
+    const auto       written   = CharBuff_WriteTimeISO8601(&v, t);
+    if (written == 0) {
+        return 0;
+    }
+
+    return CharBuff_WriteJsonStr(dst, s, CharBuff_ToStr(v));
 }
 
 size_t CharBuf_WriteJsonNumeric(CharBuff *dst, JsonStack *s, const Str value) {
@@ -683,6 +706,13 @@ size_t CharBuf_WriteJsonNumeric(CharBuff *dst, JsonStack *s, const Str value) {
     assert(s != nullptr);
 
     return CharBuff_WriteJsonValue(dst, s, false, value);
+}
+size_t CharBuff_WriteTimeISO8601(CharBuff *dst, const time_t t) {
+    const auto tm        = gmtime(&t);
+    const auto remaining = dst->cap - dst->len;
+    const auto len       = strftime(dst->arr, remaining, TIME_FORMAT_ISO8601, tm);
+    dst->len += len;
+    return len;
 }
 
 void JsonSource_Reset(JsonSource *s) { s->index = 0; }

@@ -311,6 +311,33 @@ void SideState_Copy(const SideState* src, SideState* dst) {
     dst->hasKingCastled = src->hasKingCastled;
     PieceTypes_Copy(&dst->taken, &src->taken);
 }
+
+bool BoardState_Parse(BoardState* dst, Str src) {
+    assert(dst != nullptr);
+
+    if (src.len == 0) {
+        *dst = BOARD_STATE_UNSPECIFIED;
+        return true;
+    }
+
+    if (Str_Equals(src, STR("IN_PROGRESS"))) {
+        *dst = BOARD_STATE_IN_PROGRESS;
+        return true;
+    }
+
+    if (Str_Equals(src, STR("CHECKMATE"))) {
+        *dst = BOARD_STATE_CHECKMATE;
+        return true;
+    }
+
+    if (Str_Equals(src, STR("STALEMATE"))) {
+        *dst = BOARD_STATE_STALEMATE;
+        return true;
+    }
+
+    return false;
+}
+
 void Board_Init(Board* dst, const Steps steps) {
     assert(dst != nullptr);
     dst->steps = steps;
@@ -738,35 +765,45 @@ Steps Steps_Slice(const Steps* s, const size_t start, const size_t end) {
 
 Step* Steps_Append(Steps* dst, const size_t len) {
     assert(dst != nullptr);
-    const auto needToGrow = dst->len + len > dst->cap;
+
+    const auto result = &dst->arr[dst->len];
+    if (!Steps_Resize(dst, dst->len + len)) {
+        return nullptr;
+    };
+
+    return result;
+}
+bool Steps_Resize(Steps* dst, size_t len) {
+    assert(dst != nullptr);
+    const auto needToGrow = len > dst->cap;
 
     if (!needToGrow) {
-        memset(&dst->arr[dst->len], 0, len * sizeof(Step));
-        const auto result = &dst->arr[dst->len];
-        dst->len += len;
-        return result;
+        if (len < dst->len) {
+            memset(&dst->arr[len], 0, (dst->len - len) * sizeof(Step));
+        }
+
+        dst->len = len;
+        return true;
     }
 
     if (dst->a == nullptr) {
-        return nullptr;
+        return false;
     }
 
     const auto newCap = dst->cap * MOVE_SLICE_GROW_FACTOR;
-
-    Step* newArr = Arena_Alloc(dst->a, newCap * sizeof(Step));
+    Step*      newArr = Arena_Alloc(dst->a, newCap * sizeof(Step));
     if (newArr == nullptr) {
-        return nullptr;
+        return false;
     }
 
     for (size_t i = 0; i < dst->len; i++) {
         newArr[i] = dst->arr[i];
     }
 
-    dst->arr          = newArr;
-    dst->cap          = newCap;
-    const auto result = &dst->arr[dst->len];
-    dst->len += len;
-    return result;
+    dst->arr = newArr;
+    dst->cap = newCap;
+    dst->len = len;
+    return true;
 }
 
 bool Steps_Equals(const Steps a, const Steps b) {
