@@ -32,12 +32,18 @@ bool Piece_InterpretJson(Piece* dst, JsonSource* src) {
             if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            dst->side = Side_Parse(JsonSource_Value(src));
+            auto r = Side_Parse(&dst->side, JsonSource_Value(src));
+            if (r.err != SIDE_PARSE_ERR_OK) {
+                return false;
+            }
         } else if (Str_Equals(key, STR("type"))) {
             if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            dst->type = PieceType_Parse(JsonSource_Value(src));
+            const auto r = PieceType_Parse(&dst->type, JsonSource_Value(src));
+            if (r.err != PIECE_TYPE_PARSE_ERR_OK) {
+                return false;
+            }
         } else {
             JsonSource_Skip(src);
         }
@@ -65,8 +71,10 @@ bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSource* src) {
             return false;
         }
 
-        const auto pieceType = PieceType_Parse(JsonSource_Value(src));
-        PieceTypes_UpdateAt(dst, i, pieceType);
+        const auto r = PieceType_Parse(PieceTypes_AtRef(dst, i), JsonSource_Value(src));
+        if (r.err != PIECE_TYPE_PARSE_ERR_OK) {
+            return false;
+        }
     }
 
     return true;
@@ -93,14 +101,18 @@ bool Board_InterpretJson(Board* dst, JsonSource* src) {
             if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            if (!BoardState_Parse(&dst->state, JsonSource_Value(src))) {
+            const auto r = BoardState_Parse(&dst->state, JsonSource_Value(src));
+            if (r.err != BOARD_STATE_PARSE_ERR_OK) {
                 return false;
             };
         } else if (Str_Equals(key, STR("next_move_side"))) {
             if (JsonSource_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            dst->side = Side_Parse(JsonSource_Value(src));
+            const auto r = Side_Parse(&dst->side, JsonSource_Value(src));
+            if (r.err != SIDE_PARSE_ERR_OK) {
+                return false;
+            }
         } else if (Str_Equals(key, STR("squares"))) {
             if (!Squares_InterpretJson(dst->squares, src)) {
                 return false;
@@ -340,15 +352,16 @@ size_t CharBuff_WriteSquaresAsJson(CharBuff* dst, JsonStack* js, const Squares s
     return written;
 }
 
-size_t CharBuff_WritePieceTypesAsJson(CharBuff* dst, JsonStack* js, const PieceTypes src) {
+size_t CharBuff_WritePieceTypesAsJson(CharBuff* dst, JsonStack* js, const PieceTypes* src) {
     assert(dst != nullptr);
     assert(js != nullptr);
+    assert(src != nullptr);
 
     size_t written = 0;
     written += CharBuff_WriteJsonStart(dst, js, '[');
-    for (size_t i = 0; i < src.len; i++) {
+    for (size_t i = 0; i < src->len; i++) {
         const auto t = PieceTypes_At(src, i);
-        written += CharBuff_WritePieceTypeAsJson(dst, js, t);
+        written += CharBuff_WritePieceTypeAsJson(dst, js, *t);
     }
     written += CharBuff_WriteJsonEnd(dst, js);
     return written;
@@ -368,7 +381,7 @@ size_t CharBuff_WriteSideStateAsJson(CharBuff* dst, JsonStack* js, const SideSta
     written += CharBuff_WriteJsonKey(dst, js, STR("king_castled"));
     written += CharBuff_WriteJsonBool(dst, js, src->hasKingCastled);
     written += CharBuff_WriteJsonKey(dst, js, STR("taken"));
-    written += CharBuff_WritePieceTypesAsJson(dst, js, src->taken);
+    written += CharBuff_WritePieceTypesAsJson(dst, js, &src->taken);
     written += CharBuff_WriteJsonEnd(dst, js);
     return written;
 }

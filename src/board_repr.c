@@ -105,51 +105,50 @@ size_t CharBuff_WritePiece(CharBuff* dst, const Piece p) {
     return written;
 }
 
-PieceType PieceType_Parse(const Str src) {
+PieceTypeParseResult PieceType_Parse(PieceType* dst, const Str src) {
+    assert(dst != nullptr);
     assert(Str_IsValid(src));
-    if (src.len < 1) {
-        return PIECE_TYPE_UNSPECIFIED;
+    assert(src.len > 0);
+
+    typedef struct {
+        PieceType type;
+        Str       str;
+    } map;
+
+    const map mapping[] = {
+        {PIECE_TYPE_PAWN, STR("PAWN")},     {PIECE_TYPE_ROOK, STR("ROOK")},   {PIECE_TYPE_KNIGHT, STR("KNIGHT")},
+        {PIECE_TYPE_BISHOP, STR("BISHOP")}, {PIECE_TYPE_QUEEN, STR("QUEEN")}, {PIECE_TYPE_KING, STR("KING")},
+    };
+
+    for (size_t i = 0; i < sizeof(mapping) / sizeof(map); i++) {
+        if (Str_Equals(src, mapping[i].str)) {
+            *dst = mapping[i].type;
+            return (PieceTypeParseResult){.offset = mapping[i].str.len};
+        }
     }
 
-    if (Str_Equals(src, STR("PAWN"))) {
-        return PIECE_TYPE_PAWN;
-    }
-
-    if (Str_Equals(src, STR("ROOK"))) {
-        return PIECE_TYPE_ROOK;
-    }
-
-    if (Str_Equals(src, STR("KNIGHT"))) {
-        return PIECE_TYPE_KNIGHT;
-    }
-
-    if (Str_Equals(src, STR("BISHOP"))) {
-        return PIECE_TYPE_BISHOP;
-    }
-
-    if (Str_Equals(src, STR("QUEEN"))) {
-        return PIECE_TYPE_QUEEN;
-    }
-    if (Str_Equals(src, STR("KING"))) {
-        return PIECE_TYPE_KING;
-    }
-
-    return PIECE_TYPE_UNSPECIFIED;
+    return (PieceTypeParseResult){.err = PIECE_TYPE_PARSE_ERR_INVALID_VALUE};
 }
 
-Side Side_Parse(const Str src) {
-    if (src.len < 1) {
-        return SIDE_UNSPECIFIED;
+SideParseResult Side_Parse(Side* dst, const Str src) {
+    assert(dst != nullptr);
+    assert(src.len > 0);
+
+    constexpr auto BLACK_STR = STR("BLACK");
+    constexpr auto WHITE_STR = STR("WHITE");
+
+    if (Str_Equals(src, BLACK_STR)) {
+        *dst = SIDE_BLACK;
+        return (SideParseResult){.offset = WHITE_STR.len};
+        ;
+    }
+    if (Str_Equals(src, WHITE_STR)) {
+        *dst = SIDE_WHITE;
+        return (SideParseResult){.offset = WHITE_STR.len};
+        ;
     }
 
-    if (Str_Equals(src, STR("BLACK"))) {
-        return SIDE_BLACK;
-    }
-    if (Str_Equals(src, STR("WHITE"))) {
-        return SIDE_WHITE;
-    }
-
-    return SIDE_UNSPECIFIED;
+    return (SideParseResult){.err = SIDE_PARSE_ERR_UNEXPECTED_VALUE};
 }
 
 size_t CharBuff_WritePieceType(CharBuff* dst, const PieceType t) {
