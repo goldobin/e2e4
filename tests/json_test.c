@@ -272,7 +272,7 @@ void Test_Object() {
     }
 }
 
-void test_array(void) {
+void Test_Array(void) {
     const ParseTest tests[] = {
         {.src           = STR("[10]"),
          .poolSize      = 2,
@@ -921,7 +921,7 @@ void Test_JsonWrite() {
     CharBuff_WriteJsonKey(&dst, &s, STR("strField"));
     CharBuff_WriteJsonStr(&dst, &s, STR("Foo"));
     CharBuff_WriteJsonKey(&dst, &s, STR("timeField"));
-    CharBuff_WriteJsonTime(&dst, &s, 10);
+    CharBuff_WriteTimeAsJson(&dst, &s, 10);
     CharBuff_WriteJsonEnd(&dst, &s);
 
     CharBuff_WriteJsonKey(&dst, &s, STR("arrField"));
@@ -946,12 +946,23 @@ void Test_JsonWrite() {
     );
 }
 
+void Test_TimeFormat() {
+    const time_t t = 10;
+
+    auto dst = CharBuff_OnStack(0, 64);
+    CharBuff_WriteTimeISO8601(&dst, t);
+    const auto want = STR("1970-01-01T00:00:10.000Z");
+    TEST_ASSERT_EQUAL_STRING_LEN(want.arr, dst.arr, want.len);
+}
+
 int main(void) {
     UNITY_BEGIN();
 
+    RUN_TEST(Test_TimeFormat);
+
     RUN_TEST(Test_Empty);
     RUN_TEST(Test_Object);
-    RUN_TEST(test_array);
+    RUN_TEST(Test_Array);
     RUN_TEST(Test_Primitive);
     RUN_TEST(Test_String);
     // RUN_TEST(Test_PartialString);

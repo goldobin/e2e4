@@ -899,8 +899,16 @@ void Test_WriteAsJson() {
     src.state       = BOARD_STATE_IN_PROGRESS;
     src.side        = SIDE_BLACK;
     src.white.taken = (PieceTypes){.arr = {[0] = PIECE_TYPE_KNIGHT}, .len = 1};
+    src.steps       = Steps_OnStack(0, 8);
 
-    const auto expected =
+    auto step = Steps_Append(&src.steps, 1);
+    *step     = (Step){
+            .move = parseMove(STR("a1b2")),
+            .pice = {.type = PIECE_TYPE_PAWN, .side = SIDE_WHITE},
+            .time = 20,
+    };
+
+    const auto want =
         STR("{"
             "\"state\":\"IN_PROGRESS\","
             "\"next_move_side\":\"BLACK\","
@@ -910,26 +918,33 @@ void Test_WriteAsJson() {
             "},"
             "\"black\":{\"king_castled\":false,\"taken\":[]},"
             "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]},"
-            "\"steps\":[]"
+            "\"steps\":[{"
+            "\"move\":\"a1b2\","
+            "\"piece\":{\"type\":\"PAWN\",\"side\":\"WHITE\"},"
+            "\"time\":\"1970-01-01T00:00:20.000Z\""
+            "}]"
             "}");
     auto       dst     = CharBuff_OnStack(0, 1024);
     auto       js      = JsonStack_Make(0, 128);
     const auto written = CharBuff_WriteBoardAsJson(&dst, &js, &src);
 
     TEST_ASSERT_GREATER_THAN(0, written);
-    TEST_ASSERT_TRUE(CharBuff_EqualsStr(dst, expected));
+    TEST_ASSERT_EQUAL_STRING_LEN(want.arr, dst.arr, want.len);
 }
 
 void Test_InterpretJson() {
-    const auto src =
-        STR("{"
-            "\"next_move_side\":\"BLACK\","
-            "\"squares\":{\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}},"
-            "\"black\":{\"king_castled\":false,\"taken\":[]},"
-            "\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]}"
-            "}");
-    Board      dst             = {};
-    JsonNodes  nodes           = JsonNodes_Make(0, 128);
+    const auto src = STR(
+        "{\"state\": \"IN_PROGRESS\","
+        "\"next_move_side\":\"BLACK\",\"squares\":{\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}},\"black\":{\"king_"
+        "castled\":false,\"taken\":[]},\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]},\"steps\":[{\"move\":"
+        "\"e2e4\",\"piece\":{\"type\":\"PAWN\",\"side\":\"WHITE\"},\"time\":\"2025-09-06T08:45:27.000Z\"}]"
+        "}"
+    );
+    auto      steps = Steps_OnStack(0, 8);
+    Board     dst   = {};
+    JsonNodes nodes = JsonNodes_Make(0, 128);
+
+    Board_Init(&dst, steps);
     const auto jsonParseResult = JsonNodes_Parse(&nodes, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, jsonParseResult.err);
 
@@ -940,6 +955,10 @@ void Test_InterpretJson() {
 
     const auto boardParseResult = Board_InterpretJson(&dst, &jsonSrc);
     TEST_ASSERT_TRUE(boardParseResult);
+    TEST_ASSERT_EQUAL(BOARD_STATE_IN_PROGRESS, dst.state);
+    TEST_ASSERT_EQUAL(SIDE_BLACK, dst.side);
+    TEST_ASSERT_EQUAL(1, dst.white.taken.len);
+    TEST_ASSERT_EQUAL(1, dst.steps.len);
 }
 
 int main(void) {

@@ -17,7 +17,11 @@
   - [ ] Implement pawn exchange move
   - [ ] Implement king's castle move
 - [ ] Move history. Requires dynamically resizable **slice**
+  - [ ] Save to JSON file
+  - [ ] Load from JSON file
+  - [ ] Print history to the screen
 - [ ] Command history file persistence and scroll through history with arrow
+- [ ] Use white background when printing the board
   keys (probably tough without libs)
 
 Arena:

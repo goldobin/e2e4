@@ -101,7 +101,7 @@ typedef struct {
 } Steps;
 
 typedef enum {
-    BOARD_STATE_IN_UNSPECIFIED = 0,
+    BOARD_STATE_UNSPECIFIED = 0,
     BOARD_STATE_IN_PROGRESS,
     BOARD_STATE_CHECKMATE,
     BOARD_STATE_STALEMATE,
@@ -161,6 +161,7 @@ MoveResult       Squares_CheckQueenMove(const Squares ss, Move m);
 MoveResult       Squares_CheckKingMove(const Squares ss, Move m);
 bool             SideState_Equals(const SideState* a, SideState const* b);
 void             SideState_Copy(const SideState* src, SideState* dst);
+bool             BoardState_Parse(BoardState* dst, Str src);
 void             Board_Init(Board* dst, Steps steps);
 void             Board_StartNewGame(Board* dst);
 bool             Board_Equals(const Board* a, const Board* b);
@@ -176,6 +177,7 @@ Steps            Steps_Slice(const Steps* s, size_t start, size_t end);
 Step*            Steps_AtRef(Steps* s, size_t i);
 const Step*      Steps_At(const Steps* s, size_t i);
 Step*            Steps_Append(Steps* dst, size_t len);
+bool             Steps_Resize(Steps* dst, size_t len);
 bool             Steps_Equals(Steps a, Steps b);
 Steps            Arena_AllocSteps(Arena* a, size_t len, size_t cap, bool autoGrow);
 
