@@ -81,23 +81,20 @@ bool PieceTypes_Resize(PieceTypes* dst, const size_t len) {
     dst->len = len;
     return true;
 }
-void PieceTypes_Push(PieceTypes* dst, PieceType t) {
+PieceType* PieceTypes_Append(PieceTypes* dst) {
     assert(dst != nullptr);
     assert(dst->len < PIECE_TYPES_CAP);
-
-    dst->arr[dst->len++] = t;
+    return &dst->arr[dst->len++];
 }
 
-PieceType PieceTypes_At(const PieceTypes ts, const size_t i) {
-    assert(i < ts.len);
-    return ts.arr[i];
+PieceType* PieceTypes_AtRef(PieceTypes* ts, const size_t i) {
+    assert(i < ts->len);
+    return &ts->arr[i];
 }
 
-void PieceTypes_UpdateAt(PieceTypes* dst, const size_t i, const PieceType t) {
-    assert(dst != nullptr);
-    assert(i < dst->len);
-
-    dst->arr[i] = t;
+const PieceType* PieceTypes_At(const PieceTypes* ts, const size_t i) {
+    assert(i < ts->len);
+    return &ts->arr[i];
 }
 
 bool Move_Equals(const Move a, const Move b) { return Pos_Equals(a.from, b.from) && Pos_Equals(a.to, b.to); }
@@ -312,30 +309,28 @@ void SideState_Copy(const SideState* src, SideState* dst) {
     PieceTypes_Copy(&dst->taken, &src->taken);
 }
 
-bool BoardState_Parse(BoardState* dst, Str src) {
+BoardStateParseResult BoardState_Parse(BoardState* dst, Str src) {
     assert(dst != nullptr);
+    assert(src.len > 0);
 
-    if (src.len == 0) {
-        *dst = BOARD_STATE_UNSPECIFIED;
-        return true;
-    }
+    constexpr auto IN_PROGRESS_STR = STR("IN_PROGRESS");
+    constexpr auto CHECKMATE_STR   = STR("CHECKMATE");
+    constexpr auto STALEMATE_STR   = STR("STALEMATE");
 
-    if (Str_Equals(src, STR("IN_PROGRESS"))) {
+    if (Str_Equals(src, IN_PROGRESS_STR)) {
         *dst = BOARD_STATE_IN_PROGRESS;
-        return true;
+        return (BoardStateParseResult){.offset = IN_PROGRESS_STR.len};
     }
-
-    if (Str_Equals(src, STR("CHECKMATE"))) {
+    if (Str_Equals(src, CHECKMATE_STR)) {
         *dst = BOARD_STATE_CHECKMATE;
-        return true;
+        return (BoardStateParseResult){.offset = CHECKMATE_STR.len};
     }
-
-    if (Str_Equals(src, STR("STALEMATE"))) {
+    if (Str_Equals(src, STALEMATE_STR)) {
         *dst = BOARD_STATE_STALEMATE;
-        return true;
+        return (BoardStateParseResult){.offset = STALEMATE_STR.len};
     }
 
-    return false;
+    return (BoardStateParseResult){.err = BOARD_STATE_PARSE_ERR_INVALID_VALUE};
 }
 
 void Board_Init(Board* dst, const Steps steps) {
@@ -425,8 +420,8 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
     const auto oppositeSideState = Board_SideStateRef(dst, Side_Opposite(side));
 
     Squares_Move(dst->squares, m.to, m.from);
-    if (result.taken != PIECE_TYPE_UNSPECIFIED) {
-        PieceTypes_Push(&sideState->taken, result.taken);
+    if (result.taken != PIECE_TYPE_UNSPECIFIED && sideState->taken.len < PIECE_TYPES_CAP) {
+        *PieceTypes_Append(&sideState->taken) = result.taken;
     }
 
     const Piece kingPiece         = {.side = side, .type = PIECE_TYPE_KING};
