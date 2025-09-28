@@ -638,8 +638,8 @@ void Test_InputLength(void) {
 
 void Test_Count(void) {
     typedef struct {
-        const char  *name;
-        const char  *src;
+        const char*  name;
+        const char*  src;
         const size_t wantLen;
     } test;
 
@@ -876,7 +876,7 @@ void Example_JsonParse() {
             break;
         }
 
-        char *typeStr;
+        char* typeStr;
         switch (n.type) {
             case JSON_NODE_TYPE_UNSPECIFIED:
                 typeStr = "Undefined";

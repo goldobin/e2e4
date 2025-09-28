@@ -22,6 +22,7 @@
   - [x] Print history on the screen
 - [x] Use white background when printing the board
 - [ ] Command history file persistence and scroll through history with arrow keys (libcurses perhaps?)
+- [ ] Edit mode
   
 
 Arena:

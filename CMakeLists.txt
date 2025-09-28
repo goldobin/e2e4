@@ -50,14 +50,16 @@ endif ()
 include_directories(include)
 
 # Main CLI executable
-add_executable(e2e4_cli
-        src/main_cli.c
-)
+add_executable(e2e4_cli src/main_cli.c)
 target_compile_features(e2e4_cli PRIVATE ${C_STANDARD})
 target_compile_options(e2e4_cli PRIVATE ${CC_PARAMS})
-target_link_libraries(e2e4_cli PRIVATE
-        e2e4
-)
+target_link_libraries(e2e4_cli PRIVATE e2e4)
+
+# Server test executable
+add_executable(e2e4_server src/server_cli.c)
+target_compile_features(e2e4_server PRIVATE ${C_STANDARD})
+target_compile_options(e2e4_server PRIVATE ${CC_TEST_PARAMS})
+target_link_libraries(e2e4_server PRIVATE e2e4)
 
 
 # e2e4 LIB
@@ -68,7 +70,9 @@ add_library(e2e4 STATIC
         src/json.c
         src/board_json.c
         src/board_repr.c
+        src/http.c
 )
+
 target_compile_features(e2e4 PRIVATE ${C_STANDARD})
 target_compile_options(e2e4 PRIVATE ${CC_PARAMS})
 add_dependencies(e2e4 format)
@@ -77,51 +81,25 @@ add_dependencies(e2e4 format)
 # Testing
 include(CTest)
 
-add_executable(chars_test
-        tests/chars_test.c
-)
-
+add_executable(chars_test tests/chars_test.c)
 target_compile_features(chars_test PRIVATE ${C_STANDARD})
 target_compile_options(chars_test PRIVATE ${CC_TEST_PARAMS})
-target_link_libraries(chars_test PRIVATE
-        e2e4
-        unity
-)
+target_link_libraries(chars_test PRIVATE e2e4 unity)
 
-add_executable(arena_test
-        tests/arena_test.c
-        include/board_json.h
-        include/board_repr.h
-)
-
+add_executable(arena_test tests/arena_test.c)
 target_compile_features(arena_test PRIVATE ${C_STANDARD})
 target_compile_options(arena_test PRIVATE ${CC_TEST_PARAMS})
-target_link_libraries(arena_test PRIVATE
-        e2e4
-        unity
-)
+target_link_libraries(arena_test PRIVATE e2e4 unity)
 
-add_executable(board_test
-        tests/board_test.c
-)
-
+add_executable(board_test tests/board_test.c)
 target_compile_features(board_test PRIVATE ${C_STANDARD})
 target_compile_options(board_test PRIVATE ${CC_TEST_PARAMS})
-target_link_libraries(board_test PRIVATE
-        e2e4
-        unity
-)
+target_link_libraries(board_test PRIVATE e2e4 unity)
 
-add_executable(json_test
-        tests/json_test.c
-)
-
+add_executable(json_test tests/json_test.c)
 target_compile_features(json_test PRIVATE ${C_STANDARD})
 target_compile_options(json_test PRIVATE ${CC_TEST_PARAMS})
-target_link_libraries(json_test PRIVATE
-        e2e4
-        unity
-)
+target_link_libraries(json_test PRIVATE e2e4 unity)
 
 add_test(NAME "Arena" COMMAND arena_test)
 add_test(NAME "Chars" COMMAND chars_test)
