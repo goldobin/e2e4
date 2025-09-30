@@ -24,13 +24,27 @@ void* handleClient(void* arg) {
 
     printf("client %zu connected...\n", ctx.id);
 
-    char       rBuff[1024]   = {};
-    const auto bytesReceived = recv(ctx.socketID, rBuff, sizeof(rBuff), 0);
-    if (bytesReceived < 0) {
+    auto rBuff = CharBuff_OnStack(0, 1024);
+    rBuff.len  = recv(ctx.socketID, rBuff.arr, rBuff.cap, 0);
+
+    if (rBuff.len < 0) {
         goto close;
     }
-    rBuff[bytesReceived] = '\0';
-    printf("client %zu request:\n%s\n", ctx.id, rBuff);
+
+    Req req = {
+        .headers = {
+            .arr = (Header[10]){},
+            .cap = 10,
+        }
+    };
+
+    const auto res = Req_Parse(&req, CharBuff_View(rBuff, 0, rBuff.len));
+    if (res.err != REQ_PARSE_RESULT_OK) {
+        printf("client send bad request\n");
+        goto close;
+    }
+
+    printf("client %zu request:\n%*.s\n", ctx.id, (int)rBuff.len, rBuff.arr);
 
     auto clientIDBuff = CharBuff_OnStack(0, 32);
     auto wBuff        = CharBuff_OnStack(0, 1024);
@@ -38,7 +52,7 @@ void* handleClient(void* arg) {
     CharBuff_WriteF(&clientIDBuff, "%zu", ctx.id);
     const auto clientIDStr = CharBuff_View(clientIDBuff, 0, clientIDBuff.len);
 
-    CharBuff_WriteHttpStatus(&wBuff, 200, STR("OK"), STR("HTTP/1.1"));
+    CharBuff_WriteHttpStatus(&wBuff, 200, STR("OK"), req.version);
     CharBuff_WriteHttpHeader(&wBuff, (Header){.name = STR("Client-ID"), .value = clientIDStr});
     CharBuff_WriteHttpHeader(&wBuff, (Header){.name = STR("Content-Type"), .value = STR("text/plain")});
     CharBuff_WriteHttpBody(&wBuff, STR("OK"));

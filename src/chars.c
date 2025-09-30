@@ -7,6 +7,116 @@
 
 #include "func.h"
 
+bool Strings_Alloc(Strings* dst, size_t cap, Arena* src) {
+    assert(dst != nullptr);
+    assert(src != nullptr);
+    assert(cap > 0);
+
+    dst->arr = Arena_Alloc(src, cap * sizeof(Str));
+    if (dst->arr == nullptr) {
+        return false;
+    }
+    dst->cap = cap;
+    dst->len = 0;
+    return true;
+}
+
+bool Strings_Equals(Strings a, Strings b) {
+    if (a.len != b.len) {
+        return false;
+    }
+
+    for (size_t i = 0; i < a.len; i++) {
+        const auto sa = Strings_At(a, i);
+        const auto sb = Strings_At(b, i);
+        if (!Str_Equals(sa, sb)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+size_t Strings_Split(Strings* dst, const Str src, const Str sep) {
+    assert(dst != nullptr);
+    assert(Str_IsValid(src));
+    assert(Str_IsValid(sep));
+
+    if (dst->len >= dst->cap) {
+        return 0;
+    }
+
+    if (src.len == 0 && sep.len == 0) {
+        return 0;
+    }
+
+    if (sep.len > src.len) {
+        if (!Strings_Append(dst, src)) {
+            return 0;
+        }
+        return src.len;
+    }
+
+    if (sep.len == 0) {
+        for (size_t i = 0; i < src.len; i++) {
+            const auto part = Str_View(src, i, i + 1);
+            if (!Strings_Append(dst, part)) {
+                return i;
+            }
+        }
+        return src.len;
+    }
+
+    size_t start = 0;
+    size_t pos   = 0;
+    while (pos <= src.len - sep.len) {
+        const auto slice = Str_View(src, pos, pos + sep.len);
+        if (!Str_Equals(slice, sep)) {
+            pos++;
+            continue;
+        }
+
+        //        if (pos == 0) {
+        //            if (!Strings_Append(dst, STR(""))) {
+        //                return start;
+        //            }
+        //        }
+
+        if (pos >= start) {
+            const auto part = Str_View(src, start, pos);
+            if (!Strings_Append(dst, part)) {
+                return start;
+            }
+        }
+        pos   = pos + sep.len;
+        start = pos;
+    }
+
+    if (start < src.len) {
+        const auto part = Str_View(src, start, src.len);
+        if (!Strings_Append(dst, part)) {
+            return start;
+        }
+    }
+
+    return src.len;
+}
+
+Str Strings_At(Strings ss, const size_t i) {
+    assert(i < ss.len);
+    return ss.arr[i];
+}
+bool Strings_Append(Strings* dst, const Str v) {
+    assert(dst != nullptr);
+    assert(Str_IsValid(v));
+    if (dst->len >= dst->cap) {
+        return false;
+    }
+    dst->arr[dst->len] = v;
+    dst->len++;
+    return true;
+}
+
 Str Str_FromCStr(const char* s, const size_t maxLen) {
     assert(s != nullptr);
     assert(maxLen > 0);
@@ -22,10 +132,93 @@ Str Str_View(const Str s, const size_t start, const size_t end) {
     assert(start <= end);
     assert(end <= s.len);
     const auto len = end - start;
+
+    if (len == 0) {
+        return (Str){
+            .arr = nullptr,
+            .len = 0,
+        };
+    }
+
     return (Str){
         .arr = s.arr + start,
         .len = len,
     };
+}
+int Str_IndexOf(const Str s, const Str sep) {
+    if (s.len == 0 || sep.len == 0 || sep.len > s.len) {
+        return -1;
+    }
+
+    int    result = -1;
+    size_t j      = 0;
+    for (size_t i = 0; i < s.len; i++) {
+        const auto sCh = Str_At(s, i);
+        const auto vCh = Str_At(sep, j);
+        if (sCh != vCh) {
+            result = -1;
+            j      = 0;
+            continue;
+        }
+
+        if (j == 0) {
+            result = (int)i;
+        }
+        j++;
+
+        if (j == sep.len) {
+            return result;
+        }
+    }
+
+    return -1;
+}
+
+Str Str_Trim(const Str s, const Str cutset) {
+    const auto s1 = Str_TrimLeft(s, cutset);
+    return Str_TrimRight(s1, cutset);
+}
+
+Str Str_TrimLeft(const Str s, const Str cutset) {
+    size_t start = 0;
+    for (size_t i = 0; i < s.len; i++) {
+        bool found = false;
+        for (size_t j = 0; j < cutset.len; j++) {
+            if (Str_At(s, i) == Str_At(cutset, j)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            start = i;
+            break;
+        }
+        if (i == s.len - 1) {
+            start = s.len;
+        }
+    }
+    return Str_View(s, start, s.len);
+}
+
+Str Str_TrimRight(const Str s, const Str cutset) {
+    size_t end = s.len;
+    for (size_t i = s.len; i > 0; i--) {
+        bool found = false;
+        for (size_t j = 0; j < cutset.len; j++) {
+            if (Str_At(s, i - 1) == Str_At(cutset, j)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            end = i;
+            break;
+        }
+        if (i == 1) {
+            end = 0;
+        }
+    }
+    return Str_View(s, 0, end);
 }
 
 bool Str_Equals(const Str a, const Str b) {

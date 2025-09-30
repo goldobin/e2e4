@@ -23,7 +23,10 @@ typedef struct {
 } Req;
 
 typedef enum {
-    REQUEST_PARSE_RESULT_OK = 0,
+    REQ_PARSE_RESULT_OK           = 0,
+    REQ_PARSE_RESULT_BAD_PREAMBLE = 1,
+    REQ_PARSE_RESULT_NO_METHOD    = 2,
+    REQ_PARSE_RESULT_BAD_HEADER   = 3,
 } ReqParseErr;
 
 typedef struct {
@@ -31,8 +34,11 @@ typedef struct {
     size_t      offset;
 } ReqParseResult;
 
-ReqParseResult Req_Parse(Req* dst, Str src);
+Header         Headers_At(Headers hs, size_t i);
+bool           Headers_Append(Headers* dst, Header header);
 size_t         CharBuff_WriteHttpStatus(CharBuff* dst, uint32_t status, Str reason, Str version);
+ReqParseResult Req_Parse(Req* dst, Str src);
+ReqParseResult Header_Parse(Header* dst, Str src);
 size_t         CharBuff_WriteHttpHeader(CharBuff* dst, Header header);
 size_t         CharBuff_WriteHttpBody(CharBuff* dst, Str body);
 

@@ -2,16 +2,17 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unity.h>
 
 #include "../include/arena.h"
 
-auto mem = Arena_OnStack(512);
+auto mem = Arena_OnStack(1024);
 
-void setUp(void) {}
-void tearDown(void) {}
+void setUp() {}
+void tearDown() {}
 
-void Test_Str_At(void) {
+void Test_Str_At() {
     const auto s = STR("hello");
 
     // Test valid indices
@@ -25,7 +26,7 @@ void Test_Str_At(void) {
     TEST_ASSERT_EQUAL_CHAR('\0', s.arr[5]);
 }
 
-void Test_CharBuff_WriteOne(void) {
+void Test_CharBuff_WriteOne() {
     CharBuff b = CharBuff_OnStack(0, 10);
     CharBuff_WriteStr(&b, STR("hello"));
 
@@ -42,7 +43,7 @@ void Test_CharBuff_WriteOne(void) {
     TEST_ASSERT_EQUAL_CHAR('l', CharBuff_At(b, 3));
 }
 
-void Test_CharBuff_WriteChar(void) {
+void Test_CharBuff_WriteChar() {
     CharBuff b = CharBuff_OnStack(0, 10);
     CharBuff_WriteStr(&b, STR("hell"));
 
@@ -75,7 +76,7 @@ void Test_CharBuff_Write(void) {
     TEST_ASSERT_EQUAL_STRING_LEN("hi th", b02.arr, 5);
 }
 
-void Test_Str_View(void) {
+void Test_Str_View() {
     const auto s = STR("hello world");
 
     // Test normal view
@@ -95,7 +96,7 @@ void Test_Str_View(void) {
 
     // Test empty view
     const auto view4 = Str_View(s, 5, 5);
-    TEST_ASSERT_EQUAL_PTR(s.arr + 5, view4.arr);
+    TEST_ASSERT_TRUE(view4.arr == nullptr);
     TEST_ASSERT_EQUAL(0, view4.len);
 }
 
@@ -114,7 +115,7 @@ void Test_CharBuff_EdgeCases(void) {
     TEST_ASSERT_EQUAL_CHAR('x', view.arr[0]);
 }
 
-void Test_CharBuff_WriteDiff(void) {
+void Test_CharBuff_WriteDiff() {
     typedef struct {
         const char*  name;
         const Str    s1;
@@ -166,8 +167,7 @@ void Test_CharBuff_WriteDiff(void) {
         TEST_MESSAGE(tt.name);
         CharBuff dst = {};
         if (!CharBuff_Alloc(&dst, tt.dstCap, &mem)) {
-            TEST_MESSAGE("not enough memory in arena");
-            TEST_FAIL();
+            TEST_FAIL_MESSAGE("not enough memory in arena");
         }
         CharBuff_WriteDiff(&dst, tt.s1, tt.s2);
 
@@ -175,7 +175,7 @@ void Test_CharBuff_WriteDiff(void) {
     }
 }
 
-void Test_CharBuff_WriteF(void) {
+void Test_CharBuff_WriteF() {
     CharBuff dst1 = CharBuff_OnStack(0, 64);
     CharBuff dst2 = CharBuff_OnStack(0, 8);
 
@@ -202,17 +202,260 @@ void Test_CharBuff_ReadWriteFile(void) {
     TEST_ASSERT_TRUE(CharBuff_Equals(in, out));
 }
 
+void Test_Str_IndexOf() {
+    typedef struct {
+        const char* name;
+        const Str   src;
+        const Str   v;
+        const int   want;
+    } test;
+
+    const test tests[] = {
+        {
+            .name = "case 0.1",
+            .src  = STR(""),
+            .v    = STR(""),
+            .want = -1,
+        },
+        {
+            .name = "case 0.2",
+            .src  = STR("test 01"),
+            .v    = STR(""),
+            .want = -1,
+        },
+        {
+            .name = "case 0.3",
+            .src  = STR(""),
+            .v    = STR("str"),
+            .want = -1,
+        },
+        {
+            .name = "case 0.4",
+            .src  = STR("some str"),
+            .v    = STR("none"),
+            .want = -1,
+        },
+        {
+            .name = "case 0.5",
+            .src  = STR("some str"),
+            .v    = STR("rx"),
+            .want = -1,
+        },
+        {
+            .name = "case 0.6",
+            .src  = STR("some str"),
+            .v    = STR("r\0"),
+            .want = -1,
+        },
+        {
+            .name = "case 1.1.1 one char",
+            .src  = STR("some str"),
+            .v    = STR("s"),
+            .want = 0,
+        },
+        {
+            .name = "case 1.1.2 one char",
+            .src  = STR("some str"),
+            .v    = STR("o"),
+            .want = 1,
+        },
+        {
+            .name = "case 1.1.3 one char",
+            .src  = STR("some str"),
+            .v    = STR(" "),
+            .want = 4,
+        },
+        {
+            .name = "case 1.1.4 one char",
+            .src  = STR("some str"),
+            .v    = STR("r"),
+            .want = 7,
+        },
+        {
+            .name = "case 1.2 substr",
+            .src  = STR("some str"),
+            .v    = STR("some"),
+            .want = 0,
+        },
+        {
+            .name = "case 1.3 substr",
+            .src  = STR("some str"),
+            .v    = STR("str"),
+            .want = 5,
+        },
+    };
+
+    for (size_t i = 0; i < sizeof(tests) / sizeof(test); i++) {
+        const test tt = tests[i];
+
+        //        if (strcmp(tt.name, "case 1.1.4 one char") != 0) {
+        //            continue;
+        //        }
+
+        TEST_MESSAGE(tt.name);
+        const auto got = Str_IndexOf(tt.src, tt.v);
+        TEST_ASSERT_EQUAL(tt.want, got);
+    }
+}
+
+void Test_Str_Trim() {
+    typedef struct {
+        const char* name;
+        const Str   src;
+        const Str   cutset;
+        const Str   want;
+    } test;
+
+    const test tests[] = {
+        {
+            .name   = "case 0.1",
+            .src    = STR(""),
+            .cutset = STR(" "),
+            .want   = STR(""),
+        },
+        {
+            .name   = "case 0.2",
+            .src    = STR("test1"),
+            .cutset = STR(" "),
+            .want   = STR("test1"),
+        },
+        {
+            .name   = "case 0.3",
+            .src    = STR("test2"),
+            .cutset = STR("!"),
+            .want   = STR("test2"),
+        },
+        {
+            .name   = "case 1.1 spaces",
+            .src    = STR("  test3  "),
+            .cutset = STR(" "),
+            .want   = STR("test3"),
+        },
+        {
+            .name   = "case 1.2 cutset",
+            .src    = STR("!!!test4---"),
+            .cutset = STR("!-"),
+            .want   = STR("test4"),
+        },
+        {
+            .name   = "case 1.3 special chars",
+            .src    = STR("\t\r\n test5   \r\n"),
+            .cutset = STR(" \t\n\r"),
+            .want   = STR("test5"),
+        }
+    };
+
+    for (size_t i = 0; i < sizeof(tests) / sizeof(test); i++) {
+        const test tt = tests[i];
+
+        //        if (strcmp(tt.name, "case 1.1.4 one char") != 0) {
+        //            continue;
+        //        }
+
+        TEST_MESSAGE(tt.name);
+        const auto got = Str_Trim(tt.src, tt.cutset);
+        TEST_ASSERT_TRUE(Str_Equals(tt.want, got));
+    }
+}
+
+void Test_Strings_Split() {
+    typedef struct {
+        const char*   name;
+        const Str     src;
+        const Str     sep;
+        const size_t  dstCap;
+        const Strings want;
+        const size_t  wantOffset;
+    } test;
+
+    const test tests[] = {
+        {
+            .name   = "case 0.1 empty src and sep",
+            .src    = STR(""),
+            .sep    = STR(""),
+            .dstCap = 1,
+        },
+        {
+            .name       = "case 0.2 empty sep",
+            .src        = STR("test"),
+            .sep        = STR(""),
+            .dstCap     = 10,
+            .want       = Strings_Of(STR("t"), STR("e"), STR("s"), STR("t")),
+            .wantOffset = 4,
+        },
+        {
+            .name       = "case 0.3 empty src",
+            .src        = STR(""),
+            .sep        = STR(" "),
+            .dstCap     = 10,
+            .want       = Strings_Of(STR("")),
+            .wantOffset = 4,
+        },
+        {
+            .name       = "case 0.4 not matching separator",
+            .src        = STR("test01"),
+            .sep        = STR(" "),
+            .dstCap     = 1,
+            .want       = Strings_Of(STR("test01")),
+            .wantOffset = 6,
+        },
+        {
+            .name       = "case 0.5 partially matching separator",
+            .src        = STR("test02"),
+            .sep        = STR("tx"),
+            .dstCap     = 1,
+            .want       = Strings_Of(STR("test02")),
+            .wantOffset = 6,
+        },
+        {
+            .name       = "case 1.1.1 one char split",
+            .src        = STR("test01"),
+            .sep        = STR("t"),
+            .dstCap     = 10,
+            .want       = Strings_Of(STR(""), STR("es"), STR("01")),
+            .wantOffset = 6,
+        },
+        {
+            .name       = "case 1.1.2 one char split",
+            .src        = STR("test01 test02"),
+            .sep        = STR(" "),
+            .dstCap     = 10,
+            .want       = Strings_Of(STR("test01"), STR("test02")),
+            .wantOffset = 9,
+        },
+    };
+
+    for (size_t i = 0; i < sizeof(tests) / sizeof(test); i++) {
+        const test tt = tests[i];
+
+        //        if (strcmp(tt.name, "case 1.1.1 one char split") != 0) {
+        //            continue;
+        //        }
+
+        TEST_MESSAGE(tt.name);
+        Strings got = {};
+        if (!Strings_Alloc(&got, tt.dstCap, &mem)) {
+            TEST_FAIL_MESSAGE("not enough memory in arena");
+        };
+        Strings_Split(&got, tt.src, tt.sep);
+        TEST_ASSERT_TRUE(Strings_Equals(tt.want, got));
+    }
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(Test_Str_At);
+    RUN_TEST(Test_Str_View);
+    RUN_TEST(Test_Str_IndexOf);
+    RUN_TEST(Test_Str_Trim);
     RUN_TEST(Test_CharBuff_WriteOne);
     RUN_TEST(Test_CharBuff_WriteChar);
     RUN_TEST(Test_CharBuff_Write);
-    RUN_TEST(Test_Str_View);
     RUN_TEST(Test_CharBuff_EdgeCases);
     RUN_TEST(Test_CharBuff_WriteDiff);
     RUN_TEST(Test_CharBuff_WriteF);
     RUN_TEST(Test_CharBuff_ReadWriteFile);
+    RUN_TEST(Test_Strings_Split);
 
     printf("mem: %zd/%zd\n", mem.offset, mem.cap);
 

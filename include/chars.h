@@ -8,8 +8,8 @@
 constexpr size_t CHAR_BUFF_DIFF_MAX_SIZE = 32;
 
 typedef struct {
-    const char*  arr;
-    const size_t len;
+    const char* arr;
+    size_t      len;
 } Str;
 
 typedef struct {
@@ -18,9 +18,24 @@ typedef struct {
     size_t cap;
 } CharBuff;
 
+typedef struct {
+    Str*   arr;
+    size_t len;
+    size_t cap;
+} Strings;
+
+bool   Strings_Alloc(Strings* dst, size_t cap, Arena* src);
+Str    Strings_At(Strings ss, size_t i);
+bool   Strings_Equals(Strings a, Strings b);
+size_t Strings_Split(Strings* dst, Str src, Str sep);
+bool   Strings_Append(Strings* dst, Str v);
 Str    Str_FromCStr(const char* s, size_t maxLen);
 char   Str_At(Str s, size_t i);
 Str    Str_View(Str s, size_t start, size_t end);
+int    Str_IndexOf(Str s, Str sep);
+Str    Str_Trim(Str s, Str cutset);
+Str    Str_TrimLeft(Str s, Str cutset);
+Str    Str_TrimRight(Str s, Str cutset);
 int    Str_Cmp(Str a, Str b);
 bool   Str_Equals(Str a, Str b);
 bool   Str_StartsWith(Str s, Str prefix);
@@ -57,5 +72,17 @@ size_t File_WriteCharBuff(FILE* dst, CharBuff src);
          static_assert((cap1) >= 0 && (len1) >= 0 && (len1) <= (cap1)); \
      }){1},                                                             \
      (CharBuff){.arr = (char[(cap1)]){}, .len = (len1), .cap = (cap1)})
+
+#define Strings_OnStack(len1, cap1)                                     \
+    ((struct {                                                          \
+         int z;                                                         \
+         static_assert((cap1) >= 0 && (len1) >= 0 && (len1) <= (cap1)); \
+     }){1},                                                             \
+     (Strings){.arr = (Str[(cap1)]){}, .len = (len1), .cap = (cap1)})
+
+#define Strings_Of(...)                                             \
+    ((Strings){.arr = (Str[]){__VA_ARGS__},                         \
+               .len = (sizeof((Str[]){__VA_ARGS__}) / sizeof(Str)), \
+               .cap = (sizeof((Str[]){__VA_ARGS__}) / sizeof(Str))})
 
 #endif  // CHAR_SLICE_H

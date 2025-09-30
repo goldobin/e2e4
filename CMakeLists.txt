@@ -101,10 +101,16 @@ target_compile_features(json_test PRIVATE ${C_STANDARD})
 target_compile_options(json_test PRIVATE ${CC_TEST_PARAMS})
 target_link_libraries(json_test PRIVATE e2e4 unity)
 
+add_executable(http_test tests/http_test.c)
+target_compile_features(http_test PRIVATE ${C_STANDARD})
+target_compile_options(http_test PRIVATE ${CC_TEST_PARAMS})
+target_link_libraries(http_test PRIVATE e2e4 unity)
+
 add_test(NAME "Arena" COMMAND arena_test)
 add_test(NAME "Chars" COMMAND chars_test)
 add_test(NAME "Board" COMMAND board_test)
 add_test(NAME "JSON" COMMAND json_test)
+add_test(NAME "HTTP" COMMAND http_test)
 
 # Adding Deps
 include(FetchContent)
