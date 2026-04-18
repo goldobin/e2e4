@@ -453,7 +453,7 @@ JsonStackEntry* JsonStack_Push(JsonStack* s) {
     return &s->arr[s->len++];
 }
 
-JsonStackEntry* JsonStack_Top(const JsonStack* s) {
+JsonStackEntry* JsonStack_Top(JsonStack* s) {
     assert(s != nullptr);
     assert(s->len > 0);
     return &s->arr[s->len - 1];
@@ -608,19 +608,19 @@ size_t CharBuff_WriteJsonValue(CharBuff* dst, JsonStack* s, const bool isString,
                     written += CharBuff_WriteStr(dst, STR("\\\\"));
                     break;
                 case '\b':
-                    written += CharBuff_WriteStr(dst, STR("\\\b"));
+                    written += CharBuff_WriteStr(dst, STR("\\b"));
                     break;
                 case '\f':
-                    written += CharBuff_WriteStr(dst, STR("\\\f"));
+                    written += CharBuff_WriteStr(dst, STR("\\f"));
                     break;
                 case '\n':
-                    written += CharBuff_WriteStr(dst, STR("\\\n"));
+                    written += CharBuff_WriteStr(dst, STR("\\n"));
                     break;
                 case '\r':
-                    written += CharBuff_WriteStr(dst, STR("\\\r"));
+                    written += CharBuff_WriteStr(dst, STR("\\r"));
                     break;
                 case '\t':
-                    written += CharBuff_WriteStr(dst, STR("\\\t"));
+                    written += CharBuff_WriteStr(dst, STR("\\t"));
                     break;
                 default:
                     written += CharBuff_WriteChar(dst, ch);
