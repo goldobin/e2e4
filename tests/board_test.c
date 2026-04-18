@@ -903,9 +903,9 @@ void Test_WriteAsJson() {
 
     auto step = Steps_Append(&src.steps, 1);
     *step     = (Step){
-            .move = parseMove(STR("a1b2")),
-            .pice = {.type = PIECE_TYPE_PAWN, .side = SIDE_WHITE},
-            .time = 20,
+        .move = parseMove(STR("a1b2")),
+        .pice = {.type = PIECE_TYPE_PAWN, .side = SIDE_WHITE},
+        .time = 20,
     };
 
     const auto want =
