@@ -876,7 +876,7 @@ void Example_JsonParse() {
             break;
         }
 
-        char* typeStr;
+        const char* typeStr;
         switch (n.type) {
             case JSON_NODE_TYPE_UNSPECIFIED:
                 typeStr = "Undefined";
@@ -946,6 +946,45 @@ void Test_JsonWrite() {
     );
 }
 
+void Test_JsonWriteValue() {
+    typedef struct {
+        const char* name;
+        Str         input;
+        const char* want;
+    } test;
+
+    const test tests[] = {
+        {.name = "plain string", .input = {.arr = "hello", .len = 5}, .want = "\"hello\""},
+        {.name = "with quotes", .input = {.arr = "say \"hi\"", .len = 8}, .want = "\"say \\\"hi\\\"\""},
+        {.name = "with backslash", .input = {.arr = "a\\b", .len = 3}, .want = "\"a\\\\b\""},
+        {.name = "with newline", .input = {.arr = "a\nb", .len = 3}, .want = "\"a\\nb\""},
+        {.name = "with tab", .input = {.arr = "a\tb", .len = 3}, .want = "\"a\\tb\""},
+        {.name = "with carriage return", .input = {.arr = "a\rb", .len = 3}, .want = "\"a\\rb\""},
+        {.name = "with form feed", .input = {.arr = "a\fb", .len = 3}, .want = "\"a\\fb\""},
+        {.name = "with backspace", .input = {.arr = "a\bb", .len = 3}, .want = "\"a\\bb\""},
+        {.name = "mixed escapes", .input = {.arr = "\t\n\\\"", .len = 4}, .want = "\"\\t\\n\\\\\\\"\""},
+        {.name = "empty string", .input = {.arr = "", .len = 0}, .want = "\"\""},
+    };
+
+    for (size_t i = 0; i < sizeof(tests) / sizeof(test); i++) {
+        auto      dst = CharBuff_OnStack(0, 256);
+        JsonStack s   = {
+            .cap = 4,
+            .len = 0,
+            .arr = (JsonStackEntry[4]){},
+        };
+
+        CharBuff_WriteJsonStart(&dst, &s, '[');
+        CharBuff_WriteJsonStr(&dst, &s, tests[i].input);
+        CharBuff_WriteJsonEnd(&dst, &s);
+
+        char expected[256];
+        snprintf(expected, sizeof(expected), "[%s]", tests[i].want);
+
+        TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, dst.arr, tests[i].name);
+    }
+}
+
 void Test_TimeFormat() {
     const time_t t = 10;
 
@@ -979,6 +1018,7 @@ int main(void) {
 
     RUN_TEST(Example_JsonParse);
     RUN_TEST(Test_JsonWrite);
+    RUN_TEST(Test_JsonWriteValue);
 
     printf("mem: %zd/%zd\n", mem.offset, mem.cap);
     return UNITY_END();

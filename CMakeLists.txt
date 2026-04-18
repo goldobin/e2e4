@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31.6)
+cmake_minimum_required(VERSION 3.31)
 
 enable_testing()
 
@@ -130,14 +130,6 @@ add_test(NAME "JSON" COMMAND json_test)
 
 # Adding Deps
 include(FetchContent)
-
-#FetchContent_Declare(
-#        raylib
-#        GIT_REPOSITORY "https://github.com/raysan5/raylib.git"
-#        GIT_TAG "5.5"
-#        GIT_PROGRESS TRUE
-#)
-#FetchContent_MakeAvailable(raylib)
 
 FetchContent_Declare(
         unity

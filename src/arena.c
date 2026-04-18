@@ -79,8 +79,6 @@ void Arena_Reset(Arena* a) {
         cur->offset = 0;
         cur         = cur->next;
     }
-
-    assert(cur == nullptr);
 }
 
 void Arena_Free(Arena* a) {
