@@ -591,24 +591,24 @@ void Test_Issue27(void) {
         .wantNodeCount = 5,
         .rules         = {
             {
-                        .type  = JSON_NODE_TYPE_OBJECT,
-                        .other = {.offset = 0, .len = 31, .childrenCount = 2},
+                .type  = JSON_NODE_TYPE_OBJECT,
+                .other = {.offset = 0, .len = 31, .childrenCount = 2},
             },
             {
-                        .type   = JSON_NODE_TYPE_STRING,
-                        .string = {.value = STR("name"), .childrenCount = 1},
+                .type   = JSON_NODE_TYPE_STRING,
+                .string = {.value = STR("name"), .childrenCount = 1},
             },
             {
-                        .type   = JSON_NODE_TYPE_STRING,
-                        .string = {.value = STR("Jack"), .childrenCount = 0},
+                .type   = JSON_NODE_TYPE_STRING,
+                .string = {.value = STR("Jack"), .childrenCount = 0},
             },
             {
-                        .type   = JSON_NODE_TYPE_STRING,
-                        .string = {.value = STR("age"), .childrenCount = 1},
+                .type   = JSON_NODE_TYPE_STRING,
+                .string = {.value = STR("age"), .childrenCount = 1},
             },
             {
-                        .type      = JSON_NODE_TYPE_PRIMITIVE,
-                        .primitive = {.value = STR("27")},
+                .type      = JSON_NODE_TYPE_PRIMITIVE,
+                .primitive = {.value = STR("27")},
             },
         },
     };
@@ -619,8 +619,8 @@ void Test_Issue27(void) {
 void Test_InputLength(void) {
     JsonNode  arr[10] = {};
     JsonNodes dst     = {
-            .arr = arr,
-            .cap = sizeof(arr) / sizeof(JsonNode),
+        .arr = arr,
+        .cap = sizeof(arr) / sizeof(JsonNode),
     };
     const auto              src   = STR("{\"a\": 0}garbage");
     const NodeMatchingRules rules = {
@@ -638,8 +638,8 @@ void Test_InputLength(void) {
 
 void Test_Count(void) {
     typedef struct {
-        const char  *name;
-        const char  *src;
+        const char*  name;
+        const char*  src;
         const size_t wantLen;
     } test;
 
@@ -844,8 +844,8 @@ void Example_JsonParse() {
             "}");
     JsonNode  nodes[100] = {};
     JsonNodes dst        = {
-               .arr = nodes,
-               .cap = sizeof(nodes) / sizeof(JsonNode),
+        .arr = nodes,
+        .cap = sizeof(nodes) / sizeof(JsonNode),
     };
     const auto r = JsonNodes_Parse(&dst, src);
 
@@ -876,7 +876,7 @@ void Example_JsonParse() {
             break;
         }
 
-        char *typeStr;
+        char* typeStr;
         switch (n.type) {
             case JSON_NODE_TYPE_UNSPECIFIED:
                 typeStr = "Undefined";
@@ -908,16 +908,16 @@ void Example_JsonParse() {
 void Test_JsonWrite() {
     auto      dst = CharBuff_OnStack(0, 1024);
     JsonStack s   = {
-          .cap = 16,
-          .len = 0,
-          .arr = (JsonStackEntry[16]){},
+        .cap = 16,
+        .len = 0,
+        .arr = (JsonStackEntry[16]){},
     };
 
     CharBuff_WriteJsonStart(&dst, &s, '{');
     CharBuff_WriteJsonKey(&dst, &s, STR("objField"));
     CharBuff_WriteJsonStart(&dst, &s, '{');
     CharBuff_WriteJsonKey(&dst, &s, STR("numericField"));
-    CharBuf_WriteJsonNumeric(&dst, &s, STR("123"));
+    CharBuff_WriteJsonNumeric(&dst, &s, STR("123"));
     CharBuff_WriteJsonKey(&dst, &s, STR("strField"));
     CharBuff_WriteJsonStr(&dst, &s, STR("Foo"));
     CharBuff_WriteJsonKey(&dst, &s, STR("timeField"));
@@ -927,7 +927,7 @@ void Test_JsonWrite() {
     CharBuff_WriteJsonKey(&dst, &s, STR("arrField"));
     CharBuff_WriteJsonStart(&dst, &s, '[');
     CharBuff_WriteJsonBool(&dst, &s, true);
-    CharBuf_WriteJsonNumeric(&dst, &s, STR("456"));
+    CharBuff_WriteJsonNumeric(&dst, &s, STR("456"));
     CharBuff_WriteJsonStr(&dst, &s, STR("Bar"));
     CharBuff_WriteJsonStart(&dst, &s, '{');
 

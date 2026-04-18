@@ -6,13 +6,6 @@
 
 #include "func.h"
 
-Arena Arena_New(void* buffer, const size_t cap) {
-    assert(buffer != nullptr);
-    assert(cap > 0);
-
-    return (Arena){.buff = (uint8_t*)buffer, .cap = cap, .offset = 0};
-}
-
 Arena Arena_OnHeap(const size_t cap, const bool autoGrow) {
     assert(cap > 0);
     return (Arena){
@@ -87,7 +80,7 @@ void Arena_Reset(Arena* a) {
         cur         = cur->next;
     }
 
-    assert(cur != nullptr);
+    assert(cur == nullptr);
 }
 
 void Arena_Free(Arena* a) {
