@@ -456,7 +456,7 @@ SquaresParseResult Squares_Parse(Squares dst, const Str src) {
             continue;
         }
 
-        Piece piece = {};
+        Piece piece = {0};
         if (!Piece_FromChar(&piece, ch)) {
             return (SquaresParseResult){
                 .err            = SQUARES_PARSE_ERR_UNEXPECTED_CHAR,

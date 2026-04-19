@@ -44,8 +44,8 @@ constexpr char TIME_FORMAT_ISO8601[] = "%Y-%m-%dT%H:%M:%S.000Z";
 bool Time_ParseISO8601(time_t* dst, Str src) {
     constexpr size_t buffLen = 64;
     assert(src.len < buffLen);
-    char      buff[buffLen] = {};
-    struct tm tm            = {};
+    char      buff[buffLen] = {0};
+    struct tm tm            = {0};
 
     memcpy(buff, src.arr, src.len * sizeof(char));
     buff[src.len] = '\0';

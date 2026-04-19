@@ -276,14 +276,14 @@ bool Squares_InterpretJson(Squares dst, JsonSrc* src) {
             return false;
         }
 
-        Pos                  pos            = {};
+        Pos                  pos            = {0};
         const PosParseResult posParseResult = Pos_Parse(&pos, JsonSrc_Value(src));
         if (posParseResult.err != POS_PARSE_ERR_OK) {
             return false;
         }
 
         JsonSrc_Next(src);
-        Piece piece = {};
+        Piece piece = {0};
         if (!Piece_InterpretJson(&piece, src)) {
             return false;
         };

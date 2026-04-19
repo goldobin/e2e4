@@ -24,7 +24,7 @@ void setUp(void) {}
 void tearDown(void) {}
 
 Board parseBoard(const Str src) {
-    Board                    b   = {};
+    Board                    b   = {0};
     const SquaresParseResult res = Squares_Parse(b.squares, src);
     assert(res.err == SQUARES_PARSE_ERR_OK);
     b.state = BOARD_STATE_IN_PROGRESS;
@@ -33,7 +33,7 @@ Board parseBoard(const Str src) {
 }
 
 Move parseMove(const Str src) {
-    Move                  m   = {};
+    Move                  m   = {0};
     const MoveParseResult res = Move_Parse(&m, src);
 
     assert(res.err == MOVE_PARSE_ERR_OK);
@@ -41,7 +41,7 @@ Move parseMove(const Str src) {
 }
 
 Pos parsePos(const Str src) {
-    Pos                  p   = {};
+    Pos                  p   = {0};
     const PosParseResult res = Pos_Parse(&p, src);
     assert(res.err == POS_PARSE_ERR_OK);
     return p;
@@ -123,7 +123,7 @@ void Test_Pos_Parse(void) {
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
 
-        Pos                  gotPos = {};
+        Pos                  gotPos = {0};
         const PosParseResult got    = Pos_Parse(&gotPos, tt.str);
 
         if (!PosParseResult_Equals(got, tt.want)) {
@@ -168,25 +168,25 @@ void Test_Move_Parse(void) {
             .name     = "case 0.1",
             .str      = STR("a"),
             .want     = {.err = MOVE_PARSE_ERR_TOO_SHORT, .offset = 0},
-            .wantMove = {},
+            .wantMove = {0},
         },
         {
             .name     = "case 0.2",
             .str      = STR("a1"),
             .want     = {.err = MOVE_PARSE_ERR_TOO_SHORT, .offset = 0},
-            .wantMove = {},
+            .wantMove = {0},
         },
         {
             .name     = "case 0.3",
             .str      = STR("k1h1"),
             .want     = {.err = MOVE_PARSE_ERR_INVALID_FROM_FORMAT, .offset = 0},
-            .wantMove = {},
+            .wantMove = {0},
         },
         {
             .name     = "case 0.4",
             .str      = STR("b1i1"),
             .want     = {.err = MOVE_PARSE_ERR_INVALID_TO_FORMAT, .offset = 0},
-            .wantMove = {},
+            .wantMove = {0},
         },
         {
 
@@ -209,7 +209,7 @@ void Test_Move_Parse(void) {
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
 
-        Move                  gotMove = {};
+        Move                  gotMove = {0};
         const MoveParseResult got     = Move_Parse(&gotMove, tt.str);
 
         if (!MoveParseResult_Equals(got, tt.want)) {
@@ -253,7 +253,7 @@ void Test_Board_Parse(void) {
             .name      = "case 0.1",
             .str       = STR("."),
             .want      = {.err = SQUARES_PARSE_ERR_TOO_SHORT, .offset = 1},
-            .wantBoard = {},
+            .wantBoard = {0},
         },
         {
             .name      = "case 0.2",
@@ -273,7 +273,7 @@ void Test_Board_Parse(void) {
                     "........"
                     "........"),
             .want      = {.err = SQUARES_PARSE_ERR_UNEXPECTED_CHAR, .offset = 22, .unexpectedChar = 'i'},
-            .wantBoard = {},
+            .wantBoard = {0},
         },
         {
             .name = "case 1.1 empty",
@@ -287,7 +287,7 @@ void Test_Board_Parse(void) {
                     "........"
                     "........"),
             .want      = {.err = SQUARES_PARSE_ERR_OK, .offset = 64},
-            .wantBoard = {},
+            .wantBoard = {0},
         },
         {
             .name = "case 1.2 empty empty with end lines",
@@ -301,7 +301,7 @@ void Test_Board_Parse(void) {
                     "........\n"
                     "........\n"),
             .want      = {.err = SQUARES_PARSE_ERR_OK, .offset = 64 + 7},
-            .wantBoard = {},
+            .wantBoard = {0},
         },
 
     };
@@ -311,7 +311,7 @@ void Test_Board_Parse(void) {
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
 
-        Board                    gotBoard = {};
+        Board                    gotBoard = {0};
         const SquaresParseResult got      = Squares_Parse(gotBoard.squares, tt.str);
 
         if (!SquaresParseResult_Equals(got, tt.want)) {
@@ -941,7 +941,7 @@ void Test_InterpretJson() {
         "}"
     );
     Steps     steps = Steps_OnStack(0, 8);
-    Board     dst   = {};
+    Board     dst   = {0};
     JsonNodes nodes = JsonNodes_Make(0, 128);
 
     Board_Init(&dst, steps);

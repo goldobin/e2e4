@@ -129,7 +129,7 @@ void printUsage(const char* progName) { printf("Usage: %s [file]\n", progName); 
 
 int main(const int argc, char* argv[]) {
     const Steps steps = Steps_OnStack(0, 128);
-    Board       b     = {};
+    Board       b     = {0};
     Board_Init(&b, steps);
 
     switch (argc) {
@@ -178,7 +178,7 @@ int main(const int argc, char* argv[]) {
             return 0;
         }
 
-        Move                  m               = {};
+        Move                  m               = {0};
         const MoveParseResult moveParseResult = Move_Parse(&m, inStr);
         if (moveParseResult.err != MOVE_PARSE_ERR_OK) {
             CharBuff moveParseResultStr = CharBuff_OnStack(0, 128);

@@ -210,7 +210,7 @@ Side Side_Opposite(const Side s) {
 
 bool Squares_IsThreatened(const Squares ss, const Pos pos) {
     assert(ss != NULL);
-    Threats ts = {};
+    Threats ts = {0};
     Threats_Collect(&ts, ss, pos);
     return ts.len > 0;
 }
@@ -222,7 +222,7 @@ bool Squares_CanKingMove(const Squares ss, const Pos p) {
     const Piece piece = Squares_At(ss, p);
     assert(piece.type == PIECE_TYPE_KING);
 
-    Positions ps = {};
+    Positions ps = {0};
     Positions_Around(&ps, p);
     for (size_t i = 0; i < ps.len; i++) {
         const Move       m = (Move){.from = p, .to = ps.arr[i]};
@@ -231,7 +231,7 @@ bool Squares_CanKingMove(const Squares ss, const Pos p) {
             continue;
         }
 
-        Squares ssCopy = {};
+        Squares ssCopy = {0};
         Squares_Copy(ssCopy, ss);
         Squares_Move(ssCopy, m.to, m.from);
         if (!Squares_IsThreatened(ssCopy, m.to)) {
@@ -406,7 +406,7 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
 
     const Piece piece = Squares_At(dst->squares, m.from);
     if (piece.type == PIECE_TYPE_KING) {
-        Squares squaresCopy = {};
+        Squares squaresCopy = {0};
         Squares_Copy(squaresCopy, dst->squares);
         Squares_Move(squaresCopy, m.to, m.from);
         if (Squares_IsThreatened(squaresCopy, m.to)) {
@@ -434,10 +434,10 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
     }
 
     const Piece kingPiece         = {.side = side, .type = PIECE_TYPE_KING};
-    Pos         kingPos           = {};
+    Pos         kingPos           = {0};
     const bool  kingFound         = Pos_Find(&kingPos, dst->squares, kingPiece);
     const Piece oppositeKingPiece = {.side = oppositeSide, .type = PIECE_TYPE_KING};
-    Pos         oppositeKingPos   = {};
+    Pos         oppositeKingPos   = {0};
     const bool  oppositeKingFound = Pos_Find(&oppositeKingPos, dst->squares, oppositeKingPiece);
     assert(kingFound);
     assert(oppositeKingFound);

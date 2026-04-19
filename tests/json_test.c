@@ -549,7 +549,7 @@ void Test_String(void) {
 void Test_ArrayNodesExhausted(void) {
     for (int i = 0; i < 6; i++) {
         constexpr size_t      arrLen      = 10;
-        JsonNode              arr[arrLen] = {};
+        JsonNode              arr[arrLen] = {0};
         JsonNodes             dst         = {.arr = arr, .cap = i};
         const Str             src         = STR("  [ 1, true, [123, \"hello\"]]");
         const JsonParseResult r1          = JsonNodes_Parse(&dst, src);
@@ -566,7 +566,7 @@ void Test_UnquotedKeys(void) {
 }
 
 void Test_Issue22(void) {
-    JsonNode  arr[128] = {};
+    JsonNode  arr[128] = {0};
     JsonNodes dst      = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
     const Str src =
         STR("{ \"height\":10, \"layers\":[ { \"data\":[6,6], \"height\":10, "
@@ -617,7 +617,7 @@ void Test_Issue27(void) {
 }
 
 void Test_InputLength(void) {
-    JsonNode  arr[10] = {};
+    JsonNode  arr[10] = {0};
     JsonNodes dst     = {
         .arr = arr,
         .cap = sizeof(arr) / sizeof(JsonNode),
@@ -693,7 +693,7 @@ void Test_Count(void) {
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
         const test tt      = tests[i];
-        JsonNode   arr[10] = {};
+        JsonNode   arr[10] = {0};
         JsonNodes  dst     = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
         const Str  src     = {.arr = tt.src, .len = strlen(tt.src)};
 
@@ -842,7 +842,7 @@ void Example_JsonParse() {
             "    \"prop2\": 1.0"
             "}"
             "}");
-    JsonNode  nodes[100] = {};
+    JsonNode  nodes[100] = {0};
     JsonNodes dst        = {
         .arr = nodes,
         .cap = sizeof(nodes) / sizeof(JsonNode),

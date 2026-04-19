@@ -128,7 +128,7 @@ void Test_CharBuff_WriteF(void) {
 }
 
 void Test_CharBuff_ReadWriteFile(void) {
-    char     fileBuf[1024] = {};
+    char     fileBuf[1024] = {0};
     CharBuff in            = CharBuff_OnStack(0, 64);
     CharBuff out           = CharBuff_OnStack(0, 64);
     FILE*    f             = fmemopen(fileBuf, sizeof(fileBuf), "w+");
