@@ -21,7 +21,7 @@ char Str_At(const Str s, size_t i) {
 Str Str_View(const Str s, const size_t start, const size_t end) {
     assert(start <= end);
     assert(end <= s.len);
-    const auto len = end - start;
+    const size_t len = end - start;
     return (Str){
         .arr = s.arr + start,
         .len = len,
@@ -100,7 +100,7 @@ char CharBuff_At(const CharBuff s, const size_t i) {
 Str CharBuff_View(const CharBuff s, const size_t start, const size_t end) {
     assert(start <= end);
     assert(end <= s.len);
-    const auto len = end - start;
+    const size_t len = end - start;
     return (Str){
         .arr = s.arr + start,
         .len = len,
@@ -126,7 +126,7 @@ size_t CharBuff_WriteAt(CharBuff* dst, const size_t offset, const CharBuff src) 
         return 0;
     }
 
-    const auto itemsToCopy = MinSizeT(dst->cap - offset, src.len);
+    const size_t itemsToCopy = MinSizeT(dst->cap - offset, src.len);
     if (itemsToCopy == 0) {
         return 0;
     }
@@ -142,7 +142,7 @@ size_t CharBuff_WriteStrAt(CharBuff* dst, const size_t offset, const Str src) {
         return 0;
     }
 
-    const auto itemsToCopy = MinSizeT(dst->cap - offset, src.len);
+    const size_t itemsToCopy = MinSizeT(dst->cap - offset, src.len);
     if (itemsToCopy == 0) {
         return 0;
     }
@@ -189,17 +189,17 @@ size_t CharBuff_WriteLineFromFile(CharBuff* dst, FILE* src, const char separator
     assert(src != nullptr);
     assert(CharBuff_IsValid(*dst));
 
-    const auto remaining = (int)(dst->cap - dst->len);
+    const int remaining = (int)(dst->cap - dst->len);
     if (remaining < 1) {
         return 0;
     }
 
-    const auto s = fgets(dst->arr + dst->len, remaining, src);
+    char* const s = fgets(dst->arr + dst->len, remaining, src);
     if (s == nullptr) {
         return 0;
     }
 
-    auto written = strnlen(s, remaining);
+    size_t written = strnlen(s, remaining);
     if (written < 1) {
         return 0;
     }
@@ -217,13 +217,13 @@ size_t CharBuff_WriteFile(CharBuff* dst, FILE* src) {
     assert(dst != nullptr);
     assert(src != nullptr);
 
-    const auto remaining = dst->cap - dst->len;
+    const size_t remaining = dst->cap - dst->len;
     if (remaining < 1) {
         return 0;
     }
 
-    const auto read = fread(dst->arr + dst->len, sizeof(char), remaining, src);
-    dst->len        = dst->len + read;
+    const size_t read = fread(dst->arr + dst->len, sizeof(char), remaining, src);
+    dst->len          = dst->len + read;
     return read;
 }
 
@@ -244,19 +244,19 @@ size_t CharBuff_WriteF(CharBuff* dst, const char* format, ...) {
     assert(format != nullptr);
     assert(CharBuff_IsValid(*dst));
 
-    const auto remaining = dst->cap - dst->len;
+    const size_t remaining = dst->cap - dst->len;
 
     va_list args;
     va_start(args, format);
-    const auto result = vsnprintf(dst->arr + dst->len, remaining, format, args);
+    const int result = vsnprintf(dst->arr + dst->len, remaining, format, args);
     va_end(args);
 
     if (result < 0) {
         return 0;
     }
 
-    const auto written = MinSizeT(result, remaining - 1);
-    dst->len           = dst->len + written;
+    const size_t written = MinSizeT(result, remaining - 1);
+    dst->len             = dst->len + written;
     return written;
 }
 
@@ -270,8 +270,8 @@ size_t Str_NoDiffLen(const Str s1, const Str s2) {
 }
 
 int CharBuff_Cmp(const CharBuff a, const CharBuff b) {
-    const auto minLen = MinSizeT(a.len, b.len);
-    const auto result = strncmp(a.arr, b.arr, minLen);
+    const size_t minLen = MinSizeT(a.len, b.len);
+    const int    result = strncmp(a.arr, b.arr, minLen);
     if (result != 0) {
         return result;
     }

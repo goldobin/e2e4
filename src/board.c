@@ -180,12 +180,12 @@ void Positions_Around(Positions* dst, const Pos p) {
     };
 
     for (size_t i = 0; i < cap; i++) {
-        const auto v = vs[i];
+        const Vec2I v = vs[i];
         if (v.x < 0 || v.x >= (int)BOARD_SIDE_LEN || v.y < 0 || v.y >= (int)BOARD_SIDE_LEN) {
             continue;
         }
 
-        const auto pos = (Pos){.col = v.x, .row = v.y};
+        const Pos pos = (Pos){.col = v.x, .row = v.y};
         Positions_Append(dst, pos);
     }
 }
@@ -219,14 +219,14 @@ bool Squares_CanKingMove(const Squares ss, const Pos p) {
     assert(ss != nullptr);
     assert(Pos_IsValid(p));
 
-    const auto piece = Squares_At(ss, p);
+    const Piece piece = Squares_At(ss, p);
     assert(piece.type == PIECE_TYPE_KING);
 
     Positions ps = {};
     Positions_Around(&ps, p);
     for (size_t i = 0; i < ps.len; i++) {
-        const auto m = (Move){.from = p, .to = ps.arr[i]};
-        const auto r = Squares_CheckKingMove(ss, m);
+        const Move       m = (Move){.from = p, .to = ps.arr[i]};
+        const MoveResult r = Squares_CheckKingMove(ss, m);
         if (r.err != MOVE_ERR_OK) {
             continue;
         }
@@ -280,7 +280,7 @@ void Squares_UpdateAt(Squares ss, const Pos pos, const Piece p) {
 }
 
 void Squares_Move(Squares dst, const Pos to, const Pos from) {
-    const auto piece = Squares_At(dst, from);
+    const Piece piece = Squares_At(dst, from);
     Squares_UpdateAt(dst, from, (Piece){});
     Squares_UpdateAt(dst, to, piece);
 }
@@ -313,9 +313,9 @@ BoardStateParseResult BoardState_Parse(BoardState* dst, Str src) {
     assert(dst != nullptr);
     assert(src.len > 0);
 
-    constexpr auto IN_PROGRESS_STR = STR("IN_PROGRESS");
-    constexpr auto CHECKMATE_STR   = STR("CHECKMATE");
-    constexpr auto STALEMATE_STR   = STR("STALEMATE");
+    constexpr Str IN_PROGRESS_STR = STR("IN_PROGRESS");
+    constexpr Str CHECKMATE_STR   = STR("CHECKMATE");
+    constexpr Str STALEMATE_STR   = STR("STALEMATE");
 
     if (Str_Equals(src, IN_PROGRESS_STR)) {
         *dst = BOARD_STATE_IN_PROGRESS;
@@ -399,12 +399,12 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
     assert(dst->state == BOARD_STATE_IN_PROGRESS);
     assert(dst->side != SIDE_UNSPECIFIED);
 
-    const auto result = Squares_CheckMove(dst->squares, m);
+    const MoveResult result = Squares_CheckMove(dst->squares, m);
     if (result.err != MOVE_ERR_OK) {
         return result;
     }
 
-    const auto piece = Squares_At(dst->squares, m.from);
+    const Piece piece = Squares_At(dst->squares, m.from);
     if (piece.type == PIECE_TYPE_KING) {
         Squares squaresCopy = {};
         Squares_Copy(squaresCopy, dst->squares);
@@ -414,17 +414,17 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
         }
     }
 
-    const auto side              = dst->side;
-    const auto oppositeSide      = Side_Opposite(dst->side);
-    const auto sideState         = Board_SideStateRef(dst, side);
-    const auto oppositeSideState = Board_SideStateRef(dst, Side_Opposite(side));
+    const Side       side              = dst->side;
+    const Side       oppositeSide      = Side_Opposite(dst->side);
+    SideState* const sideState         = Board_SideStateRef(dst, side);
+    SideState* const oppositeSideState = Board_SideStateRef(dst, Side_Opposite(side));
 
     Squares_Move(dst->squares, m.to, m.from);
     if (result.taken != PIECE_TYPE_UNSPECIFIED && sideState->taken.len < PIECE_TYPES_CAP) {
         *PieceTypes_Append(&sideState->taken) = result.taken;
     }
 
-    const auto step = Steps_Append(&dst->steps, 1);
+    Step* const step = Steps_Append(&dst->steps, 1);
     if (step != nullptr) {
         *step = (Step){
             .move = m,
@@ -435,10 +435,10 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
 
     const Piece kingPiece         = {.side = side, .type = PIECE_TYPE_KING};
     Pos         kingPos           = {};
-    const auto  kingFound         = Pos_Find(&kingPos, dst->squares, kingPiece);
+    const bool  kingFound         = Pos_Find(&kingPos, dst->squares, kingPiece);
     const Piece oppositeKingPiece = {.side = oppositeSide, .type = PIECE_TYPE_KING};
     Pos         oppositeKingPos   = {};
-    const auto  oppositeKingFound = Pos_Find(&oppositeKingPos, dst->squares, oppositeKingPiece);
+    const bool  oppositeKingFound = Pos_Find(&oppositeKingPos, dst->squares, oppositeKingPiece);
     assert(kingFound);
     assert(oppositeKingFound);
 
@@ -461,7 +461,7 @@ MoveResult Squares_CheckMove(const Squares ss, const Move m) {
         return (MoveResult){.err = MOVE_ERR_NO_MOVEMENT};
     }
 
-    const auto piece = Squares_At(ss, m.from);
+    const Piece piece = Squares_At(ss, m.from);
     switch (piece.type) {
         case PIECE_TYPE_UNSPECIFIED:
         default:
@@ -487,17 +487,17 @@ MoveResult Squares_CheckPawnMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
 
-    const auto piece = Squares_At(ss, m.from);
+    const Piece piece = Squares_At(ss, m.from);
     assert(piece.side != SIDE_UNSPECIFIED);
-    const auto toPiece        = Squares_At(ss, m.to);
-    const auto direction      = Vec2I_FromPos(m.from, m.to);
-    const auto validDirection = piece.side == SIDE_WHITE ? -1 : 1;
+    const Piece toPiece        = Squares_At(ss, m.to);
+    const Vec2I direction      = Vec2I_FromPos(m.from, m.to);
+    const int   validDirection = piece.side == SIDE_WHITE ? -1 : 1;
 
     if (sign(direction.y) != validDirection) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
-    const auto distance = abs(direction.y);
+    const int distance = abs(direction.y);
 
     if (toPiece.side != piece.side && abs(direction.x) == 1 && abs(direction.y) == 1) {
         return (MoveResult){.err = MOVE_ERR_OK, .taken = toPiece.type};
@@ -516,7 +516,7 @@ MoveResult Squares_CheckPawnMove(const Squares ss, const Move m) {
             .row = m.from.row + sign(direction.y) * i,
             .col = m.from.col,
         };
-        const auto obstacle = Squares_At(ss, p);
+        const Piece obstacle = Squares_At(ss, p);
         if (Piece_IsEmpty(obstacle)) {
             continue;
         }
@@ -534,22 +534,22 @@ MoveResult Squares_CheckRookMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
 
-    const auto piece = Squares_At(ss, m.from);
+    const Piece piece = Squares_At(ss, m.from);
     assert(piece.side != SIDE_UNSPECIFIED);
 
-    const auto direction = Vec2I_FromPos(m.from, m.to);
+    const Vec2I direction = Vec2I_FromPos(m.from, m.to);
     if (direction.y != 0 && direction.x != 0) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
-    const auto distance = MaxSizeT((size_t)abs(direction.y), (size_t)abs(direction.x));
-    PieceType  taken    = PIECE_TYPE_UNSPECIFIED;
+    const size_t distance = MaxSizeT((size_t)abs(direction.y), (size_t)abs(direction.x));
+    PieceType    taken    = PIECE_TYPE_UNSPECIFIED;
     for (size_t i = 1; i < distance + 1; i++) {
         const Pos p = {
             .row = m.from.row + sign(direction.y) * i,
             .col = m.from.col + sign(direction.x) * i,
         };
-        const auto square = Squares_At(ss, p);
+        const Piece square = Squares_At(ss, p);
         if (Piece_IsEmpty(square)) {
             continue;
         }
@@ -575,11 +575,11 @@ MoveResult Squares_CheckKnightMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
 
-    const auto piece = Squares_At(ss, m.from);
+    const Piece piece = Squares_At(ss, m.from);
     assert(piece.side != SIDE_UNSPECIFIED);
 
-    const auto toPiece   = Squares_At(ss, m.to);
-    const auto direction = Vec2I_FromPos(m.from, m.to);
+    const Piece toPiece   = Squares_At(ss, m.to);
+    const Vec2I direction = Vec2I_FromPos(m.from, m.to);
 
     if ((abs(direction.y) != 2 || abs(direction.x) != 1) && (abs(direction.y) != 1 || abs(direction.x) != 2)) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
@@ -604,22 +604,22 @@ MoveResult Squares_CheckBishopMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
 
-    const auto piece = Squares_At(ss, m.from);
+    const Piece piece = Squares_At(ss, m.from);
     assert(piece.side != SIDE_UNSPECIFIED);
 
-    const auto direction = Vec2I_FromPos(m.from, m.to);
+    const Vec2I direction = Vec2I_FromPos(m.from, m.to);
     if (abs(direction.y) != abs(direction.x)) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
     }
 
-    const auto distance = (size_t)abs(direction.y);
-    PieceType  taken    = PIECE_TYPE_UNSPECIFIED;
+    const size_t distance = (size_t)abs(direction.y);
+    PieceType    taken    = PIECE_TYPE_UNSPECIFIED;
     for (size_t i = 1; i < distance + 1; i++) {
         const Pos p = {
             .row = m.from.row + sign(direction.y) * i,
             .col = m.from.col + sign(direction.x) * i,
         };
-        const auto square = Squares_At(ss, p);
+        const Piece square = Squares_At(ss, p);
         if (Piece_IsEmpty(square)) {
             continue;
         }
@@ -645,7 +645,7 @@ MoveResult Squares_CheckQueenMove(const Squares ss, const Move m) {
     assert(ss);
     assert(Move_IsValid(m));
 
-    const auto moveRookResult = Squares_CheckRookMove(ss, m);
+    const MoveResult moveRookResult = Squares_CheckRookMove(ss, m);
     switch (moveRookResult.err) {
         case MOVE_ERR_OK:
         case MOVE_ERR_OBSTACLE:
@@ -654,7 +654,7 @@ MoveResult Squares_CheckQueenMove(const Squares ss, const Move m) {
             break;
     }
 
-    const auto moveBishopResult = Squares_CheckBishopMove(ss, m);
+    const MoveResult moveBishopResult = Squares_CheckBishopMove(ss, m);
     switch (moveBishopResult.err) {
         case MOVE_ERR_OK:
         case MOVE_ERR_OBSTACLE:
@@ -670,11 +670,11 @@ MoveResult Squares_CheckQueenMove(const Squares ss, const Move m) {
 MoveResult Squares_CheckKingMove(const Squares ss, const Move m) {
     assert(ss != nullptr);
     assert(Move_IsValid(m));
-    const auto piece = Squares_At(ss, m.from);
+    const Piece piece = Squares_At(ss, m.from);
     assert(piece.side != SIDE_UNSPECIFIED);
 
-    const auto toPiece   = Squares_At(ss, m.to);
-    const auto direction = Vec2I_FromPos(m.from, m.to);
+    const Piece toPiece   = Squares_At(ss, m.to);
+    const Vec2I direction = Vec2I_FromPos(m.from, m.to);
 
     if (abs(direction.y) > 1 || abs(direction.x) > 1) {
         return (MoveResult){.err = MOVE_ERR_ILLEGAL_MOVE};
@@ -696,20 +696,20 @@ MoveResult Squares_CheckKingMove(const Squares ss, const Move m) {
 bool Threat_IsValid(const Threat t) { return Pos_IsValid(t.pos) && PieceType_IsValid(t.pieceType); }
 
 void Threats_Collect(Threats* dst, const Squares ss, const Pos p) {
-    const auto piece = Squares_At(ss, p);
+    const Piece piece = Squares_At(ss, p);
     if (Piece_IsEmpty(piece)) {
         return;
     }
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
-            const auto opponentPos = (Pos){.row = i, .col = j};
-            const auto opponent    = Squares_At(ss, opponentPos);
+            const Pos   opponentPos = (Pos){.row = i, .col = j};
+            const Piece opponent    = Squares_At(ss, opponentPos);
             if (opponent.side == SIDE_UNSPECIFIED || opponent.side == piece.side) {
                 continue;
             }
 
-            const auto result = Squares_CheckMove(ss, (Move){.from = opponentPos, .to = p});
+            const MoveResult result = Squares_CheckMove(ss, (Move){.from = opponentPos, .to = p});
             if (result.err == MOVE_ERR_OK) {
                 const Threat threat = {
                     .pos       = opponentPos,
@@ -749,7 +749,7 @@ Steps Steps_Slice(const Steps* s, const size_t start, const size_t end) {
     assert(s != nullptr);
     assert(start <= end);
     assert(end <= s->len);
-    const auto len = end - start;
+    const size_t len = end - start;
     return (Steps){
         .arr = &s->arr[start],
         .cap = s->cap - start,
@@ -761,7 +761,7 @@ Steps Steps_Slice(const Steps* s, const size_t start, const size_t end) {
 Step* Steps_Append(Steps* dst, const size_t len) {
     assert(dst != nullptr);
 
-    const auto result = &dst->arr[dst->len];
+    Step* const result = &dst->arr[dst->len];
     if (!Steps_Resize(dst, dst->len + len)) {
         return nullptr;
     };
@@ -770,7 +770,7 @@ Step* Steps_Append(Steps* dst, const size_t len) {
 }
 bool Steps_Resize(Steps* dst, size_t len) {
     assert(dst != nullptr);
-    const auto needToGrow = len > dst->cap;
+    const bool needToGrow = len > dst->cap;
 
     if (!needToGrow) {
         if (len < dst->len) {
@@ -785,8 +785,8 @@ bool Steps_Resize(Steps* dst, size_t len) {
         return false;
     }
 
-    const auto newCap = dst->cap * MOVE_SLICE_GROW_FACTOR;
-    Step*      newArr = Arena_Alloc(dst->a, newCap * sizeof(Step));
+    const size_t newCap = dst->cap * MOVE_SLICE_GROW_FACTOR;
+    Step*        newArr = Arena_Alloc(dst->a, newCap * sizeof(Step));
     if (newArr == nullptr) {
         return false;
     }

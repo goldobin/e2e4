@@ -14,7 +14,7 @@ bool Piece_InterpretJson(Piece* dst, JsonSrc* src) {
         return false;
     }
 
-    const auto keyCount = JsonSrc_ChildrenCount(src);
+    const size_t keyCount = JsonSrc_ChildrenCount(src);
 
     if (keyCount < 2) {
         return false;
@@ -26,13 +26,13 @@ bool Piece_InterpretJson(Piece* dst, JsonSrc* src) {
             return false;
         }
 
-        const auto key = JsonSrc_Value(src);
+        const Str key = JsonSrc_Value(src);
         JsonSrc_Next(src);
         if (Str_Equals(key, STR("side"))) {
             if (JsonSrc_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            auto r = Side_Parse(&dst->side, JsonSrc_Value(src));
+            SideParseResult r = Side_Parse(&dst->side, JsonSrc_Value(src));
             if (r.err != SIDE_PARSE_ERR_OK) {
                 return false;
             }
@@ -40,7 +40,7 @@ bool Piece_InterpretJson(Piece* dst, JsonSrc* src) {
             if (JsonSrc_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            const auto r = PieceType_Parse(&dst->type, JsonSrc_Value(src));
+            const PieceTypeParseResult r = PieceType_Parse(&dst->type, JsonSrc_Value(src));
             if (r.err != PIECE_TYPE_PARSE_ERR_OK) {
                 return false;
             }
@@ -60,7 +60,7 @@ bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSrc* src) {
         return false;
     }
 
-    const auto arraySize = JsonSrc_ChildrenCount(src);
+    const size_t arraySize = JsonSrc_ChildrenCount(src);
     if (!PieceTypes_Resize(dst, arraySize)) {
         return false;
     }
@@ -71,7 +71,7 @@ bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSrc* src) {
             return false;
         }
 
-        const auto r = PieceType_Parse(PieceTypes_AtRef(dst, i), JsonSrc_Value(src));
+        const PieceTypeParseResult r = PieceType_Parse(PieceTypes_AtRef(dst, i), JsonSrc_Value(src));
         if (r.err != PIECE_TYPE_PARSE_ERR_OK) {
             return false;
         }
@@ -88,20 +88,20 @@ bool Board_InterpretJson(Board* dst, JsonSrc* src) {
         return false;
     }
 
-    const auto keyCount = JsonSrc_ChildrenCount(src);
+    const size_t keyCount = JsonSrc_ChildrenCount(src);
 
     for (size_t i = 0; i < keyCount; i++) {
         JsonSrc_Next(src);
         if (JsonSrc_Type(src) != JSON_TYPE_KEY) {
             return false;
         }
-        const auto key = JsonSrc_Value(src);
+        const Str key = JsonSrc_Value(src);
         JsonSrc_Next(src);
         if (Str_Equals(key, STR("state"))) {
             if (JsonSrc_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            const auto r = BoardState_Parse(&dst->state, JsonSrc_Value(src));
+            const BoardStateParseResult r = BoardState_Parse(&dst->state, JsonSrc_Value(src));
             if (r.err != BOARD_STATE_PARSE_ERR_OK) {
                 return false;
             };
@@ -109,7 +109,7 @@ bool Board_InterpretJson(Board* dst, JsonSrc* src) {
             if (JsonSrc_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            const auto r = Side_Parse(&dst->side, JsonSrc_Value(src));
+            const SideParseResult r = Side_Parse(&dst->side, JsonSrc_Value(src));
             if (r.err != SIDE_PARSE_ERR_OK) {
                 return false;
             }
@@ -145,14 +145,14 @@ bool Step_InterpretJson(Step* dst, JsonSrc* src) {
         return false;
     }
 
-    const auto keyCount = JsonSrc_ChildrenCount(src);
+    const size_t keyCount = JsonSrc_ChildrenCount(src);
     for (size_t i = 0; i < keyCount; i++) {
         JsonSrc_Next(src);
         if (JsonSrc_Type(src) != JSON_TYPE_KEY) {
             return false;
         }
 
-        const auto key = JsonSrc_Value(src);
+        const Str key = JsonSrc_Value(src);
         JsonSrc_Next(src);
         if (Str_Equals(key, STR("piece"))) {
             if (!Piece_InterpretJson(&dst->pice, src)) {
@@ -162,8 +162,8 @@ bool Step_InterpretJson(Step* dst, JsonSrc* src) {
             if (JsonSrc_Type(src) != JSON_TYPE_STRING) {
                 return false;
             }
-            const auto v = JsonSrc_Value(src);
-            const auto r = Move_Parse(&dst->move, v);
+            const Str             v = JsonSrc_Value(src);
+            const MoveParseResult r = Move_Parse(&dst->move, v);
             if (r.err != MOVE_PARSE_ERR_OK) {
                 return false;
             }
@@ -172,7 +172,7 @@ bool Step_InterpretJson(Step* dst, JsonSrc* src) {
                 return false;
             }
 
-            const auto v = JsonSrc_Value(src);
+            const Str v = JsonSrc_Value(src);
             if (!Time_ParseISO8601(&dst->time, v)) {
                 return false;
             };
@@ -192,7 +192,7 @@ bool Steps_InterpretJson(Steps* dst, JsonSrc* src) {
         return false;
     }
 
-    const auto arrLen = JsonSrc_ChildrenCount(src);
+    const size_t arrLen = JsonSrc_ChildrenCount(src);
     if (!Steps_Resize(dst, arrLen)) {
         return false;
     }
@@ -210,7 +210,7 @@ size_t CharBuff_WriteMoveAsJson(CharBuff* dst, JsonStack* js, Move m) {
     assert(dst != nullptr);
     assert(js != nullptr);
 
-    auto buff = CharBuff_OnStack(0, 8);
+    CharBuff buff = CharBuff_OnStack(0, 8);
     CharBuff_WriteMove(&buff, m);
     return CharBuff_WriteJsonStr(dst, js, CharBuff_ToStr(buff));
 }
@@ -234,14 +234,14 @@ bool SideState_InterpretJson(SideState* dst, JsonSrc* src) {
         return false;
     }
 
-    const auto childrenCount = JsonSrc_ChildrenCount(src);
+    const size_t childrenCount = JsonSrc_ChildrenCount(src);
     for (size_t i = 0; i < childrenCount; i++) {
         JsonSrc_Next(src);
         if (JsonSrc_Type(src) != JSON_TYPE_KEY) {
             return false;
         }
 
-        const auto key = JsonSrc_Value(src);
+        const Str key = JsonSrc_Value(src);
         JsonSrc_Next(src);
         if (Str_Equals(key, STR("king_castled"))) {
             if (JsonSrc_Type(src) != JSON_TYPE_BOOL) {
@@ -269,15 +269,15 @@ bool Squares_InterpretJson(Squares dst, JsonSrc* src) {
         return false;
     }
 
-    const auto keyCount = JsonSrc_ChildrenCount(src);
+    const size_t keyCount = JsonSrc_ChildrenCount(src);
     for (size_t i = 0; i < keyCount; i++) {
         JsonSrc_Next(src);
         if (JsonSrc_Type(src) != JSON_TYPE_KEY) {
             return false;
         }
 
-        Pos        pos            = {};
-        const auto posParseResult = Pos_Parse(&pos, JsonSrc_Value(src));
+        Pos                  pos            = {};
+        const PosParseResult posParseResult = Pos_Parse(&pos, JsonSrc_Value(src));
         if (posParseResult.err != POS_PARSE_ERR_OK) {
             return false;
         }
@@ -338,10 +338,10 @@ size_t CharBuff_WriteSquaresAsJson(CharBuff* dst, JsonStack* js, const Squares s
     written += CharBuff_WriteJsonStart(dst, js, '{');
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
-            const Pos  pos   = {.row = i, .col = j};
-            const auto piece = Squares_At(src, pos);
+            const Pos   pos   = {.row = i, .col = j};
+            const Piece piece = Squares_At(src, pos);
             if (!Piece_IsEmpty(piece)) {
-                auto posBuff = CharBuff_OnStack(0, 64);
+                CharBuff posBuff = CharBuff_OnStack(0, 64);
                 CharBuff_WritePos(&posBuff, pos);
                 written += CharBuff_WriteJsonKey(dst, js, CharBuff_ToStr(posBuff));
                 written += CharBuff_WritePieceAsJson(dst, js, piece);
@@ -360,7 +360,7 @@ size_t CharBuff_WritePieceTypesAsJson(CharBuff* dst, JsonStack* js, const PieceT
     size_t written = 0;
     written += CharBuff_WriteJsonStart(dst, js, '[');
     for (size_t i = 0; i < src->len; i++) {
-        const auto t = PieceTypes_At(src, i);
+        const PieceType* const t = PieceTypes_At(src, i);
         written += CharBuff_WritePieceTypeAsJson(dst, js, *t);
     }
     written += CharBuff_WriteJsonEnd(dst, js);

@@ -29,8 +29,8 @@ void* Arena_Alloc(Arena* a, const size_t size) {
             return nullptr;
         }
 
-        const auto result = a->buff + a->offset;
-        a->offset         = a->offset + size;
+        uint8_t* const result = a->buff + a->offset;
+        a->offset             = a->offset + size;
         return result;
     }
 
@@ -51,10 +51,10 @@ void* Arena_Alloc(Arena* a, const size_t size) {
             return nullptr;
         }
 
-        const auto newBlockCap = MaxSizeT(totalCap * ARENA_GROW_FACTOR, size);
-        *newBlock              = Arena_OnHeap(newBlockCap, cur->autoGrow);
-        cur->next              = newBlock;
-        cur                    = newBlock;
+        const size_t newBlockCap = MaxSizeT(totalCap * ARENA_GROW_FACTOR, size);
+        *newBlock                = Arena_OnHeap(newBlockCap, cur->autoGrow);
+        cur->next                = newBlock;
+        cur                      = newBlock;
     }
 
     if (cur->buff == nullptr) {
@@ -64,8 +64,8 @@ void* Arena_Alloc(Arena* a, const size_t size) {
         }
     }
 
-    const auto result = cur->buff + cur->offset;
-    cur->offset       = cur->offset + size;
+    uint8_t* const result = cur->buff + cur->offset;
+    cur->offset           = cur->offset + size;
     return result;
 }
 
@@ -92,10 +92,10 @@ void Arena_Free(Arena* a) {
     Arena* parent = a;
     Arena* child  = a->next;
     while (child != nullptr) {
-        const auto block = child;
-        parent->next     = nullptr;
-        parent           = child;
-        child            = child->next;
+        Arena* const block = child;
+        parent->next       = nullptr;
+        parent             = child;
+        child              = child->next;
 
         free(block->buff);
         free(block);

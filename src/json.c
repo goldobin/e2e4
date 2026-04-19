@@ -98,7 +98,7 @@ static JsonParseResult JsonNodes_ParsePrimitive(JsonNodes* dst, const Str src, s
             case ',':
             case ']':
             case '}':
-                const auto n = JsonNodes_Push(dst);
+                JsonNode* const n = JsonNodes_Push(dst);
                 if (n == nullptr) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
@@ -143,7 +143,7 @@ static JsonParseResult JsonNodes_ParsePrimitive(JsonNodes* dst, const Str src, s
 static JsonParseResult JsonNodes_ParseString(JsonNodes* dst, const Str src, size_t offset) {
     assert(dst != nullptr);
 
-    const auto start = offset;
+    const size_t start = offset;
     /* Skip starting quote */
     offset++;
 
@@ -155,7 +155,7 @@ static JsonParseResult JsonNodes_ParseString(JsonNodes* dst, const Str src, size
 
         /* Quote: end of string */
         if (c == '\"') {
-            const auto n = JsonNodes_Push(dst);
+            JsonNode* const n = JsonNodes_Push(dst);
             if (n == nullptr) {
                 return (JsonParseResult){
                     .err    = JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
@@ -244,7 +244,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes* dst, const Str src) {
         switch (c) {
             case '{':
             case '[': {
-                const auto n = JsonNodes_Push(dst);
+                JsonNode* const n = JsonNodes_Push(dst);
                 if (n == nullptr) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED,
@@ -289,7 +289,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes* dst, const Str src) {
                 const JsonNodeType type = c == '}' ? JSON_NODE_TYPE_OBJECT : JSON_NODE_TYPE_ARRAY;
                 int                i    = (int)dst->len - 1;
                 for (; i >= 0; i--) {
-                    const auto n = JsonNodes_At(*dst, i);
+                    JsonNode* const n = JsonNodes_At(*dst, i);
                     if (n->finished) {
                         continue;
                     }
@@ -312,7 +312,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes* dst, const Str src) {
                     };
                 }
                 for (; i >= 0; i--) {
-                    const auto n = JsonNodes_At(*dst, i);
+                    JsonNode* const n = JsonNodes_At(*dst, i);
                     if (!n->finished) {
                         parentNodeIndex = i;
                         break;
@@ -333,13 +333,13 @@ JsonParseResult JsonNodes_Parse(JsonNodes* dst, const Str src) {
                     };
                 }
 
-                const auto r = JsonNodes_ParseString(dst, src, offset);
+                const JsonParseResult r = JsonNodes_ParseString(dst, src, offset);
                 if (r.err != JSON_PARSE_ERROR_OK) {
                     return r;
                 }
 
-                offset             = r.offset;
-                const auto parentT = JsonNodes_At(*dst, parentNodeIndex);
+                offset                  = r.offset;
+                JsonNode* const parentT = JsonNodes_At(*dst, parentNodeIndex);
                 parentT->childrenCount++;
                 break;
             }
@@ -361,12 +361,12 @@ JsonParseResult JsonNodes_Parse(JsonNodes* dst, const Str src) {
             }
             case ',': {
                 if (parentNodeIndex != -1) {
-                    const auto parenT = JsonNodes_At(*dst, parentNodeIndex);
+                    JsonNode* const parenT = JsonNodes_At(*dst, parentNodeIndex);
                     if (parenT->type == JSON_NODE_TYPE_ARRAY || parenT->type == JSON_NODE_TYPE_OBJECT) {
                         break;
                     }
                     for (int i = (int)dst->len - 1; i >= 0; i--) {
-                        const auto n = JsonNodes_At(*dst, i);
+                        JsonNode* const n = JsonNodes_At(*dst, i);
                         if (n->type == JSON_NODE_TYPE_ARRAY || n->type == JSON_NODE_TYPE_OBJECT) {
                             if (!n->finished) {
                                 parentNodeIndex = i;
@@ -400,7 +400,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes* dst, const Str src) {
                     };
                 }
 
-                const auto n = JsonNodes_At(*dst, parentNodeIndex);
+                JsonNode* const n = JsonNodes_At(*dst, parentNodeIndex);
                 if (n->type == JSON_NODE_TYPE_OBJECT || (n->type == JSON_NODE_TYPE_STRING && n->childrenCount != 0)) {
                     return (JsonParseResult){
                         .err    = JSON_PARSE_ERROR_INVALID,
@@ -408,13 +408,13 @@ JsonParseResult JsonNodes_Parse(JsonNodes* dst, const Str src) {
                     };
                 }
 
-                const auto r = JsonNodes_ParsePrimitive(dst, src, offset);
+                const JsonParseResult r = JsonNodes_ParsePrimitive(dst, src, offset);
                 if (r.err != JSON_PARSE_ERROR_OK) {
                     return r;
                 }
 
-                offset            = r.offset;
-                const auto parenT = JsonNodes_At(*dst, parentNodeIndex);
+                offset                 = r.offset;
+                JsonNode* const parenT = JsonNodes_At(*dst, parentNodeIndex);
                 parenT->childrenCount++;
                 break;
             }
@@ -431,7 +431,7 @@ JsonParseResult JsonNodes_Parse(JsonNodes* dst, const Str src) {
 finished:
     for (int i = (int)dst->len - 1; i >= 0; i--) {
         /* Unmatched opened object or array */
-        const auto n = JsonNodes_At(*dst, i);
+        JsonNode* const n = JsonNodes_At(*dst, i);
         if (!n->finished) {
             return (JsonParseResult){
                 .err    = JSON_PARSE_ERROR_PARTIAL,
@@ -483,7 +483,7 @@ size_t CharBuff_WriteJsonStart(CharBuff* dst, JsonStack* s, const char bracket) 
 
     size_t written = 0;
     if (s->len > 0) {
-        const auto parent = JsonStack_Top(s);
+        JsonStackEntry* const parent = JsonStack_Top(s);
         assert(parent != nullptr);
 
         switch (parent->type) {
@@ -502,7 +502,7 @@ size_t CharBuff_WriteJsonStart(CharBuff* dst, JsonStack* s, const char bracket) 
     }
 
     written += CharBuff_WriteChar(dst, bracket);
-    const auto next = JsonStack_Push(s);
+    JsonStackEntry* const next = JsonStack_Push(s);
     assert(next != nullptr);
 
     *next = (JsonStackEntry){.type = t};
@@ -514,7 +514,7 @@ size_t CharBuff_WriteJsonEnd(CharBuff* dst, JsonStack* s) {
     assert(s != nullptr);
     assert(s->len > 0);
 
-    const auto pulled = JsonStack_Pull(s);
+    const JsonStackEntry pulled = JsonStack_Pull(s);
 
     size_t written = 0;
     switch (pulled.type) {
@@ -540,7 +540,7 @@ size_t CharBuff_WriteJsonKey(CharBuff* dst, JsonStack* s, Str key) {
     assert(s != nullptr);
     assert(Str_IsValid(key));
 
-    const auto parent = JsonStack_Top(s);
+    JsonStackEntry* const parent = JsonStack_Top(s);
     assert(parent != nullptr);
     assert(parent->type == JSON_STACK_ENTRY_TYPE_OBJECT);
 
@@ -551,7 +551,7 @@ size_t CharBuff_WriteJsonKey(CharBuff* dst, JsonStack* s, Str key) {
     }
     parent->needsComma = true;
 
-    const auto next = JsonStack_Push(s);
+    JsonStackEntry* const next = JsonStack_Push(s);
     assert(next != nullptr);
 
     *next = (JsonStackEntry){.type = JSON_STACK_ENTRY_TYPE_FIELD};
@@ -569,8 +569,8 @@ size_t CharBuff_WritePrimitivePreamble(CharBuff* dst, JsonStack* s) {
     assert(s != nullptr);
     assert(s->len > 0);
 
-    size_t     written = 0;
-    const auto parent  = JsonStack_Top(s);
+    size_t                written = 0;
+    JsonStackEntry* const parent  = JsonStack_Top(s);
     switch (parent->type) {
         case JSON_STACK_ENTRY_TYPE_FIELD:
             JsonStack_Pull(s);
@@ -599,7 +599,7 @@ size_t CharBuff_WriteJsonValue(CharBuff* dst, JsonStack* s, const bool isString,
     if (isString) {
         written += CharBuff_WriteChar(dst, '\"');
         for (size_t i = 0; i < value.len; ++i) {
-            const auto ch = Str_At(value, i);
+            const char ch = Str_At(value, i);
             switch (ch) {
                 case '\"':
                     written += CharBuff_WriteStr(dst, STR("\\\""));
@@ -631,7 +631,7 @@ size_t CharBuff_WriteJsonValue(CharBuff* dst, JsonStack* s, const bool isString,
     }
 
     assert(value.len > 0);
-    const auto firstCh = Str_At(value, 0);
+    const char firstCh = Str_At(value, 0);
     switch (firstCh) {
         case 'n':
             assert(Str_Equals(value, STR("null")));
@@ -649,7 +649,7 @@ size_t CharBuff_WriteJsonValue(CharBuff* dst, JsonStack* s, const bool isString,
             written += CharBuff_WriteChar(dst, firstCh);
             bool wasPoint = false;
             for (size_t i = 1; i < value.len; ++i) {
-                const auto ch = Str_At(value, i);
+                const char ch = Str_At(value, i);
                 if (ch == '.') {
                     if (wasPoint) {
                         assert(false);
@@ -686,8 +686,8 @@ size_t CharBuff_WriteJsonTime(CharBuff* dst, JsonStack* s, const time_t t) {
     assert(s != nullptr);
 
     constexpr size_t BUFF_SIZE = 64;
-    auto             v         = CharBuff_OnStack(0, BUFF_SIZE);
-    const auto       written   = CharBuff_WriteTimeISO8601(&v, t);
+    CharBuff         v         = CharBuff_OnStack(0, BUFF_SIZE);
+    const size_t     written   = CharBuff_WriteTimeISO8601(&v, t);
     if (written == 0) {
         return 0;
     }
@@ -702,9 +702,9 @@ size_t CharBuff_WriteJsonNumeric(CharBuff* dst, JsonStack* s, const Str value) {
     return CharBuff_WriteJsonValue(dst, s, false, value);
 }
 size_t CharBuff_WriteTimeISO8601(CharBuff* dst, const time_t t) {
-    const auto tm        = gmtime(&t);
-    const auto remaining = dst->cap - dst->len;
-    const auto len       = strftime(dst->arr, remaining, TIME_FORMAT_ISO8601, tm);
+    const struct tm* const tm        = gmtime(&t);
+    const size_t           remaining = dst->cap - dst->len;
+    const size_t           len       = strftime(dst->arr, remaining, TIME_FORMAT_ISO8601, tm);
     dst->len += len;
     return len;
 }
@@ -723,7 +723,7 @@ bool JsonSrc_Next(JsonSrc* s) {
 }
 
 bool JsonSrc_Skip(JsonSrc* s) {
-    const auto n = JsonSource_Node(s);
+    const JsonNode* const n = JsonSource_Node(s);
     if (n->childrenCount == 0) {
         return false;
     }
@@ -737,7 +737,7 @@ bool JsonSrc_Skip(JsonSrc* s) {
 }
 
 JsonType JsonSrc_Type(const JsonSrc* s) {
-    const auto n = JsonSource_Node(s);
+    const JsonNode* const n = JsonSource_Node(s);
     switch (n->type) {
         case JSON_NODE_TYPE_OBJECT:
             return JSON_TYPE_OBJECT;
@@ -755,9 +755,9 @@ JsonType JsonSrc_Type(const JsonSrc* s) {
 
         case JSON_NODE_TYPE_PRIMITIVE:
             assert(n->childrenCount == 0);
-            const auto v = JsonSrc_Value(s);
+            const Str v = JsonSrc_Value(s);
             assert(v.len > 0);
-            const auto firstCh = Str_At(v, 0);
+            const char firstCh = Str_At(v, 0);
             switch (firstCh) {
                 case 'n':
                     return JSON_TYPE_NULL;
@@ -773,15 +773,15 @@ JsonType JsonSrc_Type(const JsonSrc* s) {
 }
 
 Str JsonSrc_Value(const JsonSrc* s) {
-    const auto n = JsonNodes_At(s->nodes, s->index);
+    JsonNode* const n = JsonNodes_At(s->nodes, s->index);
     return Str_View(s->str, n->offset, n->offset + n->len);
 }
 
 bool JsonSrc_BoolValue(const JsonSrc* s) {
     assert(JsonSrc_Type(s) == JSON_TYPE_BOOL);
-    const auto v = JsonSrc_Value(s);
+    const Str v = JsonSrc_Value(s);
     assert(v.len > 0);
-    const auto firstCh = Str_At(v, 0);
+    const char firstCh = Str_At(v, 0);
 
     switch (firstCh) {
         case 't':
@@ -794,6 +794,6 @@ bool JsonSrc_BoolValue(const JsonSrc* s) {
 }
 
 size_t JsonSrc_ChildrenCount(const JsonSrc* s) {
-    const auto n = JsonSource_Node(s);
+    const JsonNode* const n = JsonSource_Node(s);
     return n->childrenCount;
 }

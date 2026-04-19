@@ -134,8 +134,8 @@ SideParseResult Side_Parse(Side* dst, const Str src) {
     assert(dst != nullptr);
     assert(src.len > 0);
 
-    constexpr auto BLACK_STR = STR("BLACK");
-    constexpr auto WHITE_STR = STR("WHITE");
+    constexpr Str BLACK_STR = STR("BLACK");
+    constexpr Str WHITE_STR = STR("WHITE");
 
     if (Str_Equals(src, BLACK_STR)) {
         *dst = SIDE_BLACK;
@@ -193,8 +193,8 @@ PosParseResult Pos_Parse(Pos* dst, const Str src) {
         return (PosParseResult){.err = POS_PARSE_ERR_TOO_SHORT};
     }
 
-    const auto colChar = Str_At(src, 0);
-    const auto rowChar = Str_At(src, 1);
+    const char colChar = Str_At(src, 0);
+    const char rowChar = Str_At(src, 1);
     if (colChar < COL_CHAR_MIN || colChar > COL_CHAR_MAX || rowChar < ROW_CHAR_MIN || rowChar > ROW_CHAR_MAX) {
         return (PosParseResult){.err = POS_PARSE_ERR_INVALID_FORMAT};
     }
@@ -278,14 +278,14 @@ MoveParseResult Move_Parse(Move* dst, const Str src) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_TOO_SHORT};
     }
 
-    Pos        from, to;
-    const auto fromParseResult = Pos_Parse(&from, src);
+    Pos                  from, to;
+    const PosParseResult fromParseResult = Pos_Parse(&from, src);
     if (fromParseResult.err != POS_PARSE_ERR_OK) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_INVALID_FROM_FORMAT};
     }
 
-    const auto toPosStr      = Str_View(src, fromParseResult.offset, src.len);
-    const auto toParseResult = Pos_Parse(&to, toPosStr);
+    const Str            toPosStr      = Str_View(src, fromParseResult.offset, src.len);
+    const PosParseResult toParseResult = Pos_Parse(&to, toPosStr);
     if (toParseResult.err != POS_PARSE_ERR_OK) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_INVALID_TO_FORMAT};
     }
@@ -451,7 +451,7 @@ SquaresParseResult Squares_Parse(Squares dst, const Str src) {
             };
         }
 
-        const auto ch = Str_At(src, offset++);
+        const char ch = Str_At(src, offset++);
         if (ch == '\n' || ch == '\r' || ch == ' ' || ch == '\t') {
             continue;
         }
@@ -477,9 +477,9 @@ size_t CharBuff_WriteSquares(CharBuff* dst, const Squares ss) {
     size_t written = 0;
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; ++j) {
-            const Pos  pos   = {.row = i, .col = j};
-            const auto piece = Squares_At(ss, pos);
-            char       pieceChar;
+            const Pos   pos   = {.row = i, .col = j};
+            const Piece piece = Squares_At(ss, pos);
+            char        pieceChar;
             if (piece.side == SIDE_WHITE) {
                 pieceChar = PieceType_ToUpperCaseChar(piece.type);
             } else {

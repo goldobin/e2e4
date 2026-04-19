@@ -8,14 +8,14 @@ void setUp(void) {}
 void tearDown(void) {}
 
 void test_Arena_Init_NonZeroEmptyBuffer(void) {
-    const auto arena = Arena_OnStack(512);
+    const Arena arena = Arena_OnStack(512);
 
     TEST_ASSERT_EQUAL(512, arena.cap);
     TEST_ASSERT_EQUAL(0, arena.offset);
 }
 
 void test_Arena_Allocate_Consecutively(void) {
-    auto     arena = Arena_OnStack(32);
+    Arena    arena = Arena_OnStack(32);
     uint8_t* a1    = Arena_Alloc(&arena, sizeof(char) * 4);
 
     TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[4]){}, a1, 4);
