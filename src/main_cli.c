@@ -85,8 +85,8 @@ bool readBoardFromFile(Board* dst, const Str filePath) {
         return false;
     }
 
-    JsonSource jsonSrc         = {.str = str, .nodes = nodes};
-    const auto interpretResult = Board_InterpretJson(dst, &jsonSrc);
+    JsonSrc    src             = {.str = str, .nodes = nodes};
+    const auto interpretResult = Board_InterpretJson(dst, &src);
     if (!interpretResult) {
         printf("Failed to interpret JSON. JSON has unexpected structure");
         return false;

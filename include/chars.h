@@ -29,8 +29,8 @@ size_t Str_NoDiffLen(Str s1, Str s2);
 
 bool   CharBuff_Alloc(CharBuff* dst, size_t cap, Arena* src);
 bool   CharBuff_IsValid(CharBuff s);
-bool   CharBuff_Equals(CharBuff a, CharBuff b);
-bool   CharBuff_EqualsStr(CharBuff a, Str b);
+bool   CharBuff_Eq(CharBuff a, CharBuff b);
+bool   CharBuff_EqStr(CharBuff a, Str b);
 char   CharBuff_At(CharBuff s, size_t i);
 Str    CharBuff_View(CharBuff s, size_t start, size_t end);
 Str    CharBuff_ToStr(CharBuff s);
@@ -42,7 +42,6 @@ size_t CharBuff_WriteStrAt(CharBuff* dst, size_t offset, Str src);
 size_t CharBuff_WriteChar(CharBuff* dst, char v);
 size_t CharBuff_Write(CharBuff* dst, CharBuff other);
 size_t CharBuff_WriteStr(CharBuff* dst, Str src);
-void   CharBuff_WriteDiff(CharBuff* dst, Str s1, Str s2);
 size_t CharBuff_WriteF(CharBuff* dst, const char* format, ...);
 size_t CharBuff_WriteFile(CharBuff* dst, FILE* src);
 size_t CharBuff_WriteLineFromFile(CharBuff* dst, FILE* src, char separator);

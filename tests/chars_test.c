@@ -114,67 +114,6 @@ void Test_CharBuff_EdgeCases(void) {
     TEST_ASSERT_EQUAL_CHAR('x', view.arr[0]);
 }
 
-void Test_CharBuff_WriteDiff(void) {
-    typedef struct {
-        const char*  name;
-        const Str    s1;
-        const Str    s2;
-        const size_t dstCap;
-        const char*  wantDiff;
-    } test;
-
-    const test tests[] = {
-        {
-            .name     = "case 0.1",
-            .s1       = STR("some str"),
-            .s2       = STR("some str"),
-            .dstCap   = 10,
-            .wantDiff = "",
-        },
-        {
-            .name     = "case 1.1",
-            .s1       = STR("some str1 test"),
-            .s2       = STR("some str"),
-            .dstCap   = 32,
-            .wantDiff = "some str{1 test|\\0}",
-        },
-        {
-            .name     = "case 1.2",
-            .s1       = STR("some str"),
-            .s2       = STR("some str2 test"),
-            .dstCap   = 32,
-            .wantDiff = "some str{\\0|2 test}",
-        },
-        {
-            .name     = "case 2.1",
-            .s1       = STR("some str1 foo"),
-            .s2       = STR("some str2 bar"),
-            .dstCap   = 32,
-            .wantDiff = "some str{1 foo|2 bar}",
-        },
-        {
-            .name     = "case 2.2",
-            .s1       = STR("some str1 foo foo foo foo foo"),
-            .s2       = STR("some str2 bar"),
-            .dstCap   = 32,
-            .wantDiff = "some str{1 f...|2 bar}",
-        }
-    };
-
-    for (size_t i = 0; i < sizeof(tests) / sizeof(test); i++) {
-        const test tt = tests[i];
-        TEST_MESSAGE(tt.name);
-        CharBuff dst = {};
-        if (!CharBuff_Alloc(&dst, tt.dstCap, &mem)) {
-            TEST_MESSAGE("not enough memory in arena");
-            TEST_FAIL();
-        }
-        CharBuff_WriteDiff(&dst, tt.s1, tt.s2);
-
-        TEST_ASSERT_EQUAL_STRING(tt.wantDiff, dst.arr);
-    }
-}
-
 void Test_CharBuff_WriteF(void) {
     CharBuff dst1 = CharBuff_OnStack(0, 64);
     CharBuff dst2 = CharBuff_OnStack(0, 8);
@@ -199,7 +138,7 @@ void Test_CharBuff_ReadWriteFile(void) {
     fseek(f, 0, SEEK_SET);
     CharBuff_WriteFile(&out, f);
 
-    TEST_ASSERT_TRUE(CharBuff_Equals(in, out));
+    TEST_ASSERT_TRUE(CharBuff_Eq(in, out));
 }
 
 int main(void) {
@@ -210,7 +149,6 @@ int main(void) {
     RUN_TEST(Test_CharBuff_Write);
     RUN_TEST(Test_Str_View);
     RUN_TEST(Test_CharBuff_EdgeCases);
-    RUN_TEST(Test_CharBuff_WriteDiff);
     RUN_TEST(Test_CharBuff_WriteF);
     RUN_TEST(Test_CharBuff_ReadWriteFile);
 

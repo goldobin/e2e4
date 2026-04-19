@@ -681,7 +681,7 @@ size_t CharBuff_WriteJsonNull(CharBuff* dst, JsonStack* s) {
     assert(s != nullptr);
     return CharBuff_WriteJsonValue(dst, s, false, STR("null"));
 }
-size_t CharBuff_WriteTimeAsJson(CharBuff* dst, JsonStack* s, const time_t t) {
+size_t CharBuff_WriteJsonTime(CharBuff* dst, JsonStack* s, const time_t t) {
     assert(dst != nullptr);
     assert(s != nullptr);
 
@@ -709,11 +709,11 @@ size_t CharBuff_WriteTimeISO8601(CharBuff* dst, const time_t t) {
     return len;
 }
 
-void JsonSource_Reset(JsonSource* s) { s->index = 0; }
+void JsonSrc_Reset(JsonSrc* s) { s->index = 0; }
 
-static const JsonNode* JsonSource_Node(const JsonSource* s) { return JsonNodes_At(s->nodes, s->index); }
+static const JsonNode* JsonSource_Node(const JsonSrc* s) { return JsonNodes_At(s->nodes, s->index); }
 
-bool JsonSource_Next(JsonSource* s) {
+bool JsonSrc_Next(JsonSrc* s) {
     if (s->index >= s->nodes.len) {
         return false;
     }
@@ -722,21 +722,21 @@ bool JsonSource_Next(JsonSource* s) {
     return true;
 }
 
-bool JsonSource_Skip(JsonSource* s) {
+bool JsonSrc_Skip(JsonSrc* s) {
     const auto n = JsonSource_Node(s);
     if (n->childrenCount == 0) {
         return false;
     }
 
     for (size_t i = 0; i < n->childrenCount; i++) {
-        JsonSource_Next(s);
-        JsonSource_Skip(s);
+        JsonSrc_Next(s);
+        JsonSrc_Skip(s);
     }
 
     return true;
 }
 
-JsonType JsonSource_Type(const JsonSource* s) {
+JsonType JsonSrc_Type(const JsonSrc* s) {
     const auto n = JsonSource_Node(s);
     switch (n->type) {
         case JSON_NODE_TYPE_OBJECT:
@@ -755,7 +755,7 @@ JsonType JsonSource_Type(const JsonSource* s) {
 
         case JSON_NODE_TYPE_PRIMITIVE:
             assert(n->childrenCount == 0);
-            const auto v = JsonSource_Value(s);
+            const auto v = JsonSrc_Value(s);
             assert(v.len > 0);
             const auto firstCh = Str_At(v, 0);
             switch (firstCh) {
@@ -772,14 +772,14 @@ JsonType JsonSource_Type(const JsonSource* s) {
     }
 }
 
-Str JsonSource_Value(const JsonSource* s) {
+Str JsonSrc_Value(const JsonSrc* s) {
     const auto n = JsonNodes_At(s->nodes, s->index);
     return Str_View(s->str, n->offset, n->offset + n->len);
 }
 
-bool JsonSource_BoolValue(const JsonSource* s) {
-    assert(JsonSource_Type(s) == JSON_TYPE_BOOL);
-    const auto v = JsonSource_Value(s);
+bool JsonSrc_BoolValue(const JsonSrc* s) {
+    assert(JsonSrc_Type(s) == JSON_TYPE_BOOL);
+    const auto v = JsonSrc_Value(s);
     assert(v.len > 0);
     const auto firstCh = Str_At(v, 0);
 
@@ -793,7 +793,7 @@ bool JsonSource_BoolValue(const JsonSource* s) {
     }
 }
 
-size_t JsonSource_ChildrenCount(const JsonSource* s) {
+size_t JsonSrc_ChildrenCount(const JsonSrc* s) {
     const auto n = JsonSource_Node(s);
     return n->childrenCount;
 }

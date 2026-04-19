@@ -921,7 +921,7 @@ void Test_JsonWrite() {
     CharBuff_WriteJsonKey(&dst, &s, STR("strField"));
     CharBuff_WriteJsonStr(&dst, &s, STR("Foo"));
     CharBuff_WriteJsonKey(&dst, &s, STR("timeField"));
-    CharBuff_WriteTimeAsJson(&dst, &s, 10);
+    CharBuff_WriteJsonTime(&dst, &s, 10);
     CharBuff_WriteJsonEnd(&dst, &s);
 
     CharBuff_WriteJsonKey(&dst, &s, STR("arrField"));

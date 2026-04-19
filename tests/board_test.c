@@ -948,7 +948,7 @@ void Test_InterpretJson() {
     const auto jsonParseResult = JsonNodes_Parse(&nodes, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, jsonParseResult.err);
 
-    JsonSource jsonSrc = {
+    JsonSrc jsonSrc = {
         .str   = src,
         .nodes = nodes,
     };

@@ -111,7 +111,7 @@ typedef struct {
     const Str       str;
     const JsonNodes nodes;
     size_t          index;
-} JsonSource;
+} JsonSrc;
 
 typedef enum {
     JSON_TYPE_UNSPECIFIED = 0,
@@ -124,20 +124,17 @@ typedef enum {
     JSON_TYPE_STRING,
 } JsonType;
 
-bool Time_ParseISO8601(time_t* dst, Str src);
-
 JsonNode*       JsonNodes_At(JsonNodes nodes, size_t index);
 JsonNode*       JsonNodes_Push(JsonNodes* dst);
 JsonParseResult JsonNodes_Parse(JsonNodes* dst, Str src);
-void            JsonSource_Reset(JsonSource* s);
-bool            JsonSource_Next(JsonSource* s);
-bool            JsonSource_Skip(JsonSource* s);
-JsonType        JsonSource_Type(const JsonSource* s);
-size_t          JsonSource_ChildrenCount(const JsonSource* s);
-Str             JsonSource_Value(const JsonSource* s);
-bool            JsonSource_BoolValue(const JsonSource* s);
+void            JsonSrc_Reset(JsonSrc* s);
+bool            JsonSrc_Next(JsonSrc* s);
+bool            JsonSrc_Skip(JsonSrc* s);
+JsonType        JsonSrc_Type(const JsonSrc* s);
+size_t          JsonSrc_ChildrenCount(const JsonSrc* s);
+Str             JsonSrc_Value(const JsonSrc* s);
+bool            JsonSrc_BoolValue(const JsonSrc* s);
 
-size_t CharBuff_WriteTimeISO8601(CharBuff* dst, time_t t);
 size_t CharBuff_WriteJsonParseErr(CharBuff* dst, JsonParseErr err);
 size_t CharBuff_WriteJsonParseResult(CharBuff* dst, const JsonParseResult* r);
 size_t CharBuff_WriteJsonStart(CharBuff* dst, JsonStack* s, char bracket);
@@ -146,7 +143,7 @@ size_t CharBuff_WriteJsonKey(CharBuff* dst, JsonStack* s, Str key);
 size_t CharBuff_WriteJsonStr(CharBuff* dst, JsonStack* s, Str value);
 size_t CharBuff_WriteJsonBool(CharBuff* dst, JsonStack* s, bool value);
 size_t CharBuff_WriteJsonNull(CharBuff* dst, JsonStack* s);
-size_t CharBuff_WriteTimeAsJson(CharBuff* dst, JsonStack* s, time_t t);
+size_t CharBuff_WriteJsonTime(CharBuff* dst, JsonStack* s, time_t t);
 size_t CharBuff_WriteJsonNumeric(CharBuff* dst, JsonStack* s, Str value);
 
 #define JsonNodes_Make(len1, cap1) \
@@ -155,4 +152,6 @@ size_t CharBuff_WriteJsonNumeric(CharBuff* dst, JsonStack* s, Str value);
 #define JsonStack_Make(len1, cap1) \
     ((cap1) > 0 ? ((JsonStack){.arr = (JsonStackEntry[cap1]){}, .len = (len1), .cap = (cap1)}) : (JsonStack){})
 
+bool   Time_ParseISO8601(time_t* dst, Str src);
+size_t CharBuff_WriteTimeISO8601(CharBuff* dst, time_t t);
 #endif /* JSON_H */

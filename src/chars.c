@@ -62,7 +62,7 @@ bool CharBuff_Alloc(CharBuff* dst, size_t cap, Arena* src) {
     return true;
 }
 
-bool CharBuff_Equals(const CharBuff a, const CharBuff b) {
+bool CharBuff_Eq(const CharBuff a, const CharBuff b) {
     assert(CharBuff_IsValid(a));
     assert(CharBuff_IsValid(b));
 
@@ -77,7 +77,7 @@ bool CharBuff_Equals(const CharBuff a, const CharBuff b) {
 
     return true;
 }
-bool CharBuff_EqualsStr(const CharBuff a, const Str b) {
+bool CharBuff_EqStr(const CharBuff a, const Str b) {
     assert(CharBuff_IsValid(a));
 
     if (a.len != b.len) {
@@ -267,82 +267,6 @@ size_t Str_NoDiffLen(const Str s1, const Str s2) {
     }
 
     return i;
-}
-
-void CharBuff_WriteDiff(CharBuff* dst, const Str s1, const Str s2) {
-    const auto dstRemCap = dst->cap - dst->len;
-    if (dstRemCap < 5 + 1 + 2 + 1 + 2 + 1 + 5) {
-        return;
-    }
-
-    const size_t contextHalfLen = (dstRemCap - (1 + 2 + 1 + 2 + 1)) / 2;
-    const auto   noDiffLen      = Str_NoDiffLen(s1, s2);
-    if (s1.len == s2.len && noDiffLen == s1.len) {
-        return;
-    }
-
-    const auto srcMinLen = MinSizeT(s1.len, s2.len);
-
-    size_t srcViewOffset = 0;
-    size_t srcViewLen    = noDiffLen;
-    if (noDiffLen > contextHalfLen) {
-        srcViewOffset = noDiffLen - contextHalfLen;
-        srcViewLen    = contextHalfLen;
-    }
-
-    const auto srcView = Str_View(s1, srcViewOffset, srcViewOffset + srcViewLen);
-    CharBuff_WriteStr(dst, srcView);
-
-    if (srcViewLen - 3 > noDiffLen) {
-        CharBuff_WriteStrAt(dst, 0, STR("..."));
-    }
-
-    if (noDiffLen == srcMinLen) {
-        CharBuff_WriteChar(dst, '{');
-
-        if (s1.len < s2.len) {
-            size_t diffViewLen = s2.len - s1.len;
-            if (diffViewLen > contextHalfLen) {
-                diffViewLen = contextHalfLen;
-            }
-
-            CharBuff_WriteStr(dst, STR("\\0|"));
-            const auto diffView = Str_View(s2, s1.len, s1.len + diffViewLen);
-            CharBuff_WriteStr(dst, diffView);
-            CharBuff_WriteChar(dst, '}');
-        } else {
-            size_t diffViewLen = s1.len - s2.len;
-            if (diffViewLen > contextHalfLen) {
-                diffViewLen = contextHalfLen;
-            }
-
-            const auto diffView = Str_View(s1, s2.len, s2.len + diffViewLen);
-            CharBuff_WriteStr(dst, diffView);
-            CharBuff_WriteStr(dst, STR("|\\0}"));
-        }
-        return;
-    }
-
-    const auto s1DiffView    = Str_View(s1, noDiffLen, s1.len);
-    const auto s2DiffView    = Str_View(s2, noDiffLen, s2.len);
-    const auto s1ContextLen  = MinSizeT(contextHalfLen / 2, s1.len - noDiffLen);
-    const auto s2ContextLen  = MinSizeT(contextHalfLen / 2, s2.len - noDiffLen);
-    const auto s1ContextView = Str_View(s1DiffView, 0, s1ContextLen);
-    const auto s2ContextView = Str_View(s2DiffView, 0, s2ContextLen);
-
-    CharBuff_WriteChar(dst, '{');
-    CharBuff_WriteStr(dst, s1ContextView);
-
-    if (s1DiffView.len - 3 > s1ContextView.len) {
-        CharBuff_WriteStrAt(dst, dst->len - 3, STR("..."));
-    }
-
-    CharBuff_WriteChar(dst, '|');
-    CharBuff_WriteStr(dst, s2ContextView);
-    if (s2DiffView.len - 3 > s2ContextView.len) {
-        CharBuff_WriteStrAt(dst, dst->len - 3, STR("..."));
-    }
-    CharBuff_WriteChar(dst, '}');
 }
 
 int CharBuff_Cmp(const CharBuff a, const CharBuff b) {
