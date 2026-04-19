@@ -5,17 +5,17 @@
 
 #include "chars.h"
 
-constexpr size_t BOARD_SIDE_LEN  = 8;
-constexpr size_t BOARD_SIZE      = BOARD_SIDE_LEN * BOARD_SIDE_LEN;
-constexpr char   COL_CHAR_MIN    = 'a';
-constexpr char   COL_CHAR_MAX    = COL_CHAR_MIN + BOARD_SIDE_LEN - 1;
-constexpr char   ROW_CHAR_MIN    = '1';
-constexpr char   ROW_CHAR_MAX    = ROW_CHAR_MIN + BOARD_SIDE_LEN - 1;
-constexpr size_t POS_STR_LEN     = 2;
-constexpr size_t MOVE_STR_LEN    = 2 * POS_STR_LEN;
-constexpr size_t THREATS_CAP     = 16;
-constexpr size_t PIECE_TYPES_CAP = 20;
-constexpr size_t POSITIONS_CAP   = 8;
+#define BOARD_SIDE_LEN  ((size_t)8)
+#define BOARD_SIZE      (BOARD_SIDE_LEN * BOARD_SIDE_LEN)
+#define COL_CHAR_MIN    ((char)'a')
+#define COL_CHAR_MAX    ((char)(COL_CHAR_MIN + BOARD_SIDE_LEN - 1))
+#define ROW_CHAR_MIN    ((char)'1')
+#define ROW_CHAR_MAX    ((char)(ROW_CHAR_MIN + BOARD_SIDE_LEN - 1))
+#define POS_STR_LEN     ((size_t)2)
+#define MOVE_STR_LEN    (2 * POS_STR_LEN)
+#define THREATS_CAP     ((size_t)16)
+#define PIECE_TYPES_CAP ((size_t)20)
+#define POSITIONS_CAP   ((size_t)8)
 
 typedef enum {
     PIECE_TYPE_UNSPECIFIED = 0,
@@ -85,7 +85,7 @@ typedef struct {
 
 typedef Piece Squares[BOARD_SIDE_LEN][BOARD_SIDE_LEN];
 
-constexpr size_t MOVE_SLICE_GROW_FACTOR = 2;
+#define MOVE_SLICE_GROW_FACTOR ((size_t)2)
 
 typedef struct {
     Move   move;
@@ -191,5 +191,5 @@ bool                  Steps_Resize(Steps* dst, size_t len);
 bool                  Steps_Equals(Steps a, Steps b);
 Steps                 Arena_AllocSteps(Arena* a, size_t len, size_t cap, bool autoGrow);
 
-#define Steps_OnStack(len1, cap1) ((Steps){.arr = (Step[(cap1)]){}, .len = (len1), .cap = (cap1)})
+#define Steps_OnStack(len1, cap1) ((Steps){.arr = (Step[(cap1)]){0}, .len = (len1), .cap = (cap1)})
 #endif  // BOARD_H

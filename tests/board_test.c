@@ -7,18 +7,15 @@
 #include "board_json.h"
 #include "board_repr.h"
 
-constexpr Piece WHITE_PAWN   = {.side = SIDE_WHITE, .type = PIECE_TYPE_PAWN};
-constexpr Piece BLACK_PAWN   = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN};
-constexpr Piece WHITE_ROOK   = {.side = SIDE_WHITE, .type = PIECE_TYPE_ROOK};
-constexpr Piece BLACK_ROOK   = {.side = SIDE_BLACK, .type = PIECE_TYPE_ROOK};
-constexpr Piece WHITE_KNIGHT = {.side = SIDE_WHITE, .type = PIECE_TYPE_KNIGHT};
-constexpr Piece BLACK_KNIGHT = {.side = SIDE_BLACK, .type = PIECE_TYPE_KNIGHT};
-constexpr Piece WHITE_BISHOP = {.side = SIDE_WHITE, .type = PIECE_TYPE_BISHOP};
-constexpr Piece BLACK_BISHOP = {.side = SIDE_BLACK, .type = PIECE_TYPE_BISHOP};
-constexpr Piece WHITE_QUEEN  = {.side = SIDE_WHITE, .type = PIECE_TYPE_QUEEN};
-constexpr Piece BLACK_QUEEN  = {.side = SIDE_BLACK, .type = PIECE_TYPE_QUEEN};
-constexpr Piece WHITE_KING   = {.side = SIDE_WHITE, .type = PIECE_TYPE_KING};
-constexpr Piece BLACK_KING   = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING};
+static const Piece WHITE_PAWN   = {.side = SIDE_WHITE, .type = PIECE_TYPE_PAWN};
+static const Piece BLACK_PAWN   = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN};
+static const Piece WHITE_ROOK   = {.side = SIDE_WHITE, .type = PIECE_TYPE_ROOK};
+static const Piece WHITE_KNIGHT = {.side = SIDE_WHITE, .type = PIECE_TYPE_KNIGHT};
+static const Piece WHITE_BISHOP = {.side = SIDE_WHITE, .type = PIECE_TYPE_BISHOP};
+static const Piece WHITE_QUEEN  = {.side = SIDE_WHITE, .type = PIECE_TYPE_QUEEN};
+static const Piece BLACK_QUEEN  = {.side = SIDE_BLACK, .type = PIECE_TYPE_QUEEN};
+static const Piece WHITE_KING   = {.side = SIDE_WHITE, .type = PIECE_TYPE_KING};
+static const Piece BLACK_KING   = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING};
 
 void setUp(void) {}
 void tearDown(void) {}
@@ -118,8 +115,8 @@ void Test_Pos_Parse(void) {
         },
     };
 
-    bool             failed    = false;
-    constexpr size_t testsSize = sizeof(tests) / sizeof(test);
+    bool         failed    = false;
+    const size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
 
@@ -204,8 +201,8 @@ void Test_Move_Parse(void) {
         },
     };
 
-    bool             failed    = false;
-    constexpr size_t testsSize = sizeof(tests) / sizeof(test);
+    bool         failed    = false;
+    const size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
 
@@ -306,8 +303,8 @@ void Test_Board_Parse(void) {
 
     };
 
-    bool             failed    = false;
-    constexpr size_t testsSize = sizeof(tests) / sizeof(test);
+    bool         failed    = false;
+    const size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
 
@@ -863,7 +860,7 @@ void Test_Board_MakeMove(void) {
             },
         };
 
-    constexpr size_t testsSize = sizeof(tests) / sizeof(test);
+    const size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
         // if (strncmp("case 7.8 king, checkmate", tt.name, 64) != 0) {
@@ -884,7 +881,7 @@ void Test_Board_MakeMove(void) {
     }
 }
 
-void Test_WriteAsJson() {
+void Test_WriteAsJson(void) {
     Board src = parseBoard(
         STR("...k...."
             "........"
@@ -932,7 +929,7 @@ void Test_WriteAsJson() {
     TEST_ASSERT_EQUAL_STRING_LEN(want.arr, dst.arr, want.len);
 }
 
-void Test_InterpretJson() {
+void Test_InterpretJson(void) {
     const Str src = STR(
         "{\"state\": \"IN_PROGRESS\","
         "\"next_move_side\":\"BLACK\",\"squares\":{\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}},\"black\":{\"king_"

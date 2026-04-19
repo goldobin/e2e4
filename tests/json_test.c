@@ -9,8 +9,8 @@
 
 Arena mem = Arena_OnStack(1024 * 32);
 
-void setUp() {}
-void tearDown() {}
+void setUp(void) {}
+void tearDown(void) {}
 
 typedef struct {
     Str value;
@@ -36,7 +36,7 @@ typedef struct {
     };
 } NodeMatchingRule;
 
-constexpr size_t         NODE_MATCH_RULES_CAP = 16;
+#define NODE_MATCH_RULES_CAP ((size_t)16)
 typedef NodeMatchingRule NodeMatchingRules[NODE_MATCH_RULES_CAP];
 
 bool NodeMatchingRule_Empty(const NodeMatchingRule r) { return r.type == JSON_NODE_TYPE_UNSPECIFIED; }
@@ -106,7 +106,7 @@ void ParseTest_Run(const ParseTest tt) {
     NodeMatchingRules_AssertMatches(tt.rules, tt.src, nodes);
 }
 
-void Test_Empty() {
+void Test_Empty(void) {
     const ParseTest tests[] = {
         {
             .src           = STR("{}"),
@@ -142,7 +142,7 @@ void Test_Empty() {
     }
 }
 
-void Test_Object() {
+void Test_Object(void) {
     const ParseTest tests[] = {
         {
             .src           = STR("{\"a\":0}"),
@@ -313,7 +313,7 @@ void Test_Array(void) {
     }
 }
 
-void Test_Primitive() {
+void Test_Primitive(void) {
     const ParseTest tests[] = {
         {.src           = STR("{\"boolVar\" : true }"),
          .poolSize      = 3,
@@ -548,7 +548,9 @@ void Test_String(void) {
 
 void Test_ArrayNodesExhausted(void) {
     for (int i = 0; i < 6; i++) {
-        constexpr size_t      arrLen      = 10;
+        enum {
+            arrLen = 10
+        };
         JsonNode              arr[arrLen] = {0};
         JsonNodes             dst         = {.arr = arr, .cap = i};
         const Str             src         = STR("  [ 1, true, [123, \"hello\"]]");
@@ -831,7 +833,7 @@ void Test_ObjectKey(void) {
     }
 }
 
-void Example_JsonParse() {
+void Example_JsonParse(void) {
     const Str src =
         STR("{"
             "\"testStr\": \"Foo\", "
@@ -905,12 +907,12 @@ void Example_JsonParse() {
     }
 }
 
-void Test_JsonWrite() {
+void Test_JsonWrite(void) {
     CharBuff  dst = CharBuff_OnStack(0, 1024);
     JsonStack s   = {
         .cap = 16,
         .len = 0,
-        .arr = (JsonStackEntry[16]){},
+        .arr = (JsonStackEntry[16]){0},
     };
 
     CharBuff_WriteJsonStart(&dst, &s, '{');
@@ -946,7 +948,7 @@ void Test_JsonWrite() {
     );
 }
 
-void Test_JsonWriteValue() {
+void Test_JsonWriteValue(void) {
     typedef struct {
         const char* name;
         Str         input;
@@ -971,7 +973,7 @@ void Test_JsonWriteValue() {
         JsonStack s   = {
             .cap = 4,
             .len = 0,
-            .arr = (JsonStackEntry[4]){},
+            .arr = (JsonStackEntry[4]){0},
         };
 
         CharBuff_WriteJsonStart(&dst, &s, '[');
@@ -985,7 +987,7 @@ void Test_JsonWriteValue() {
     }
 }
 
-void Test_TimeFormat() {
+void Test_TimeFormat(void) {
     const time_t t = 10;
 
     CharBuff dst = CharBuff_OnStack(0, 64);

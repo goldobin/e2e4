@@ -171,8 +171,10 @@ void Positions_Around(Positions* dst, const Pos p) {
     assert(dst != NULL);
     assert(Pos_IsValid(p));
 
-    constexpr size_t cap     = 8;
-    const Vec2I      vs[cap] = {
+    enum {
+        cap = 8
+    };
+    const Vec2I vs[cap] = {
         {.x = (int)p.col - 1, .y = (int)p.row + 1}, {.x = (int)p.col - 1, .y = (int)p.row},
         {.x = (int)p.col - 1, .y = (int)p.row - 1}, {.x = (int)p.col, .y = (int)p.row - 1},
         {.x = (int)p.col + 1, .y = (int)p.row - 1}, {.x = (int)p.col + 1, .y = (int)p.row},
@@ -281,7 +283,7 @@ void Squares_UpdateAt(Squares ss, const Pos pos, const Piece p) {
 
 void Squares_Move(Squares dst, const Pos to, const Pos from) {
     const Piece piece = Squares_At(dst, from);
-    Squares_UpdateAt(dst, from, (Piece){});
+    Squares_UpdateAt(dst, from, (Piece){0});
     Squares_UpdateAt(dst, to, piece);
 }
 
@@ -313,9 +315,9 @@ BoardStateParseResult BoardState_Parse(BoardState* dst, Str src) {
     assert(dst != NULL);
     assert(src.len > 0);
 
-    constexpr Str IN_PROGRESS_STR = STR("IN_PROGRESS");
-    constexpr Str CHECKMATE_STR   = STR("CHECKMATE");
-    constexpr Str STALEMATE_STR   = STR("STALEMATE");
+    const Str IN_PROGRESS_STR = STR("IN_PROGRESS");
+    const Str CHECKMATE_STR   = STR("CHECKMATE");
+    const Str STALEMATE_STR   = STR("STALEMATE");
 
     if (Str_Equals(src, IN_PROGRESS_STR)) {
         *dst = BOARD_STATE_IN_PROGRESS;

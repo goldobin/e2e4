@@ -147,10 +147,10 @@ size_t CharBuff_WriteJsonTime(CharBuff* dst, JsonStack* s, time_t t);
 size_t CharBuff_WriteJsonNumeric(CharBuff* dst, JsonStack* s, Str value);
 
 #define JsonNodes_Make(len1, cap1) \
-    (((cap1) > 0) ? (JsonNodes){.arr = (JsonNode[cap1]){}, .len = (len1), .cap = (cap1)} : (JsonNodes){})
+    (((cap1) > 0) ? (JsonNodes){.arr = (JsonNode[cap1]){0}, .len = (len1), .cap = (cap1)} : (JsonNodes){0})
 
 #define JsonStack_Make(len1, cap1) \
-    ((cap1) > 0 ? ((JsonStack){.arr = (JsonStackEntry[cap1]){}, .len = (len1), .cap = (cap1)}) : (JsonStack){})
+    ((cap1) > 0 ? ((JsonStack){.arr = (JsonStackEntry[cap1]){0}, .len = (len1), .cap = (cap1)}) : (JsonStack){0})
 
 bool   Time_ParseISO8601(time_t* dst, Str src);
 size_t CharBuff_WriteTimeISO8601(CharBuff* dst, time_t t);

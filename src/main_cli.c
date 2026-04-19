@@ -137,12 +137,13 @@ int main(const int argc, char* argv[]) {
         case 1:
             Board_StartNewGame(&b);
             break;
-        case 2:
+        case 2: {
             const Str filePath = Str_FromCStr(argv[1], 64);
             if (!readBoardFromFile(&b, filePath)) {
                 return EXIT_FAILURE;
             }
             break;
+        }
 
         default:
             printUsage(argv[0]);

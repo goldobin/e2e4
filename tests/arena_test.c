@@ -18,7 +18,7 @@ void test_Arena_Allocate_Consecutively(void) {
     Arena    arena = Arena_OnStack(32);
     uint8_t* a1    = Arena_Alloc(&arena, sizeof(char) * 4);
 
-    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[4]){}, a1, 4);
+    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[4]){0}, a1, 4);
     TEST_ASSERT_EQUAL_PTR(arena.buff, a1);
 
     a1[0] = '1';
@@ -27,7 +27,7 @@ void test_Arena_Allocate_Consecutively(void) {
     a1[3] = '4';
 
     uint8_t* a2 = Arena_Alloc(&arena, sizeof(char) * 4);
-    TEST_ASSERT_EQUAL_UINT8_ARRAY((uint8_t[4]){}, a2, 4);
+    TEST_ASSERT_EQUAL_UINT8_ARRAY((uint8_t[4]){0}, a2, 4);
     TEST_ASSERT_EQUAL_PTR(arena.buff + 4, a2);
 
     a2[0] = '5';
@@ -35,7 +35,7 @@ void test_Arena_Allocate_Consecutively(void) {
     a2[2] = '7';
     a2[3] = '8';
 
-    constexpr uint8_t expectedBuffer[10] = {'1', '2', '3', '4', '5', '6', '7', '8', 0, 0};
+    const uint8_t expectedBuffer[10] = {'1', '2', '3', '4', '5', '6', '7', '8', 0, 0};
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expectedBuffer, arena.buff, 10);
 
     for (size_t i = 10; i < 32; i++) {
@@ -47,7 +47,7 @@ void test_Arena_Allocate_Consecutively(void) {
 void test_Arena_Grow1(void) {
     Arena arena = Arena_OnHeap(32, true);
     char* a1    = Arena_Alloc(&arena, sizeof(char) * 30);
-    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[30]){}, a1, 30);
+    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[30]){0}, a1, 30);
 
     a1[0] = '1';
     a1[1] = '2';
@@ -55,7 +55,7 @@ void test_Arena_Grow1(void) {
     a1[3] = '4';
 
     char* a2 = Arena_Alloc(&arena, sizeof(char) * 4);
-    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[4]){}, a2, 4);
+    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[4]){0}, a2, 4);
     TEST_ASSERT_NOT_NULL(arena.next);
     TEST_ASSERT_NULL(arena.next->next);
 
@@ -73,10 +73,10 @@ void test_Arena_Grow1(void) {
 void test_Arena_Grow2(void) {
     Arena       arena = Arena_OnHeap(32, true);
     const char* a1    = Arena_Alloc(&arena, sizeof(char) * 128);
-    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[128]){}, a1, 128);
+    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[128]){0}, a1, 128);
 
     const char* a2 = Arena_Alloc(&arena, sizeof(char) * 16);
-    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[16]){}, a2, 16);
+    TEST_ASSERT_EQUAL_INT8_ARRAY((uint8_t[16]){0}, a2, 16);
 
     Arena_Free(&arena);
     TEST_ASSERT_NULL(arena.buff);

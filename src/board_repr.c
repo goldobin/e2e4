@@ -41,20 +41,20 @@ char PieceType_ToLowerCaseChar(const PieceType t) {
 }
 
 // White pieces
-constexpr char UNICODE_WHITE_KING[4]   = "\u2654";
-constexpr char UNICODE_WHITE_QUEEN[4]  = "\u2655";
-constexpr char UNICODE_WHITE_ROOK[4]   = "\u2656";
-constexpr char UNICODE_WHITE_BISHOP[4] = "\u2657";
-constexpr char UNICODE_WHITE_KNIGHT[4] = "\u2658";
-constexpr char UNICODE_WHITE_PAWN[4]   = "\u2659";
+static const char UNICODE_WHITE_KING[4]   = "\u2654";
+static const char UNICODE_WHITE_QUEEN[4]  = "\u2655";
+static const char UNICODE_WHITE_ROOK[4]   = "\u2656";
+static const char UNICODE_WHITE_BISHOP[4] = "\u2657";
+static const char UNICODE_WHITE_KNIGHT[4] = "\u2658";
+static const char UNICODE_WHITE_PAWN[4]   = "\u2659";
 
 // Black pieces
-constexpr char UNICODE_BLACK_KING[4]   = "\u265A";
-constexpr char UNICODE_BLACK_QUEEN[4]  = "\u265B";
-constexpr char UNICODE_BLACK_ROOK[4]   = "\u265C";
-constexpr char UNICODE_BLACK_BISHOP[4] = "\u265D";
-constexpr char UNICODE_BLACK_KNIGHT[4] = "\u265E";
-constexpr char UNICODE_BLACK_PAWN[4]   = "\u265F";
+static const char UNICODE_BLACK_KING[4]   = "\u265A";
+static const char UNICODE_BLACK_QUEEN[4]  = "\u265B";
+static const char UNICODE_BLACK_ROOK[4]   = "\u265C";
+static const char UNICODE_BLACK_BISHOP[4] = "\u265D";
+static const char UNICODE_BLACK_KNIGHT[4] = "\u265E";
+static const char UNICODE_BLACK_PAWN[4]   = "\u265F";
 
 const char* Piece_ToUnicodeChar(Piece p) {
     if (p.side == SIDE_WHITE) {
@@ -134,8 +134,8 @@ SideParseResult Side_Parse(Side* dst, const Str src) {
     assert(dst != NULL);
     assert(src.len > 0);
 
-    constexpr Str BLACK_STR = STR("BLACK");
-    constexpr Str WHITE_STR = STR("WHITE");
+    const Str BLACK_STR = STR("BLACK");
+    const Str WHITE_STR = STR("WHITE");
 
     if (Str_Equals(src, BLACK_STR)) {
         *dst = SIDE_BLACK;

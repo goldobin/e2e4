@@ -14,7 +14,7 @@ Str Str_FromCStr(const char* s, const size_t maxLen) {
     return (Str){s, len};
 }
 
-char Str_At(const Str s, size_t i) {
+char Str_At(const Str s, const size_t i) {
     assert(i < s.len);
     return s.arr[i];
 }

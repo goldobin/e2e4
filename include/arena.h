@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-constexpr size_t ARENA_GROW_FACTOR = 2;
+#define ARENA_GROW_FACTOR ((size_t)2)
 
 typedef struct Arena {
     uint8_t*      buff;
@@ -20,6 +20,6 @@ void* Arena_Alloc(Arena* a, size_t size);
 void  Arena_Reset(Arena* a);
 void  Arena_Free(Arena* a);
 
-#define Arena_OnStack(cap1) ((Arena){.buff = (uint8_t[(cap1)]){}, .cap = (cap1)})
+#define Arena_OnStack(cap1) ((Arena){.buff = (uint8_t[(cap1)]){0}, .cap = (cap1)})
 
 #endif  // ARENA_H

@@ -7,7 +7,7 @@
 
 #include "arena.h"
 
-constexpr size_t CHAR_BUFF_DIFF_MAX_SIZE = 32;
+#define CHAR_BUFF_DIFF_MAX_SIZE ((size_t)32)
 
 typedef struct {
     const char*  arr;
@@ -50,13 +50,13 @@ size_t CharBuff_WriteLineFromFile(CharBuff* dst, FILE* src, char separator);
 
 size_t File_WriteCharBuff(FILE* dst, CharBuff src);
 
-#define STR(buffer) (sizeof(buffer) > 1 ? (Str){.arr = (buffer), .len = (sizeof(buffer) - 1)} : (Str){})
+#define STR(buffer) (sizeof(buffer) > 1 ? (Str){.arr = (buffer), .len = (sizeof(buffer) - 1)} : (Str){0})
 
 #define CharBuff_OnStack(len1, cap1)                                                       \
     ((struct {                                                                             \
          int z;                                                                            \
          static_assert((cap1) >= 0 && (len1) >= 0 && (len1) <= (cap1), "invalid len/cap"); \
      }){1},                                                                                \
-     (CharBuff){.arr = (char[(cap1)]){}, .len = (len1), .cap = (cap1)})
+     (CharBuff){.arr = (char[(cap1)]){0}, .len = (len1), .cap = (cap1)})
 
 #endif  // CHAR_SLICE_H

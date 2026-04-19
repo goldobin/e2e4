@@ -39,10 +39,12 @@ size_t CharBuff_WriteJsonParseResult(CharBuff* dst, const JsonParseResult* r) {
     return written;
 }
 
-constexpr char TIME_FORMAT_ISO8601[] = "%Y-%m-%dT%H:%M:%S.000Z";
+static const char TIME_FORMAT_ISO8601[] = "%Y-%m-%dT%H:%M:%S.000Z";
 
 bool Time_ParseISO8601(time_t* dst, Str src) {
-    constexpr size_t buffLen = 64;
+    enum {
+        buffLen = 64
+    };
     assert(src.len < buffLen);
     char      buff[buffLen] = {0};
     struct tm tm            = {0};
@@ -97,7 +99,7 @@ static JsonParseResult JsonNodes_ParsePrimitive(JsonNodes* dst, const Str src, s
             case ' ':
             case ',':
             case ']':
-            case '}':
+            case '}': {
                 JsonNode* const n = JsonNodes_Push(dst);
                 if (n == NULL) {
                     return (JsonParseResult){
@@ -118,6 +120,7 @@ static JsonParseResult JsonNodes_ParsePrimitive(JsonNodes* dst, const Str src, s
                     .err    = JSON_PARSE_ERROR_OK,
                     .offset = offset,
                 };
+            }
             default:
                 /* to quiet a warning from gcc*/
                 break;
@@ -685,9 +688,11 @@ size_t CharBuff_WriteJsonTime(CharBuff* dst, JsonStack* s, const time_t t) {
     assert(dst != NULL);
     assert(s != NULL);
 
-    constexpr size_t BUFF_SIZE = 64;
-    CharBuff         v         = CharBuff_OnStack(0, BUFF_SIZE);
-    const size_t     written   = CharBuff_WriteTimeISO8601(&v, t);
+    enum {
+        BUFF_SIZE = 64
+    };
+    CharBuff     v       = CharBuff_OnStack(0, BUFF_SIZE);
+    const size_t written = CharBuff_WriteTimeISO8601(&v, t);
     if (written == 0) {
         return 0;
     }
