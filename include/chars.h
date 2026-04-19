@@ -1,6 +1,6 @@
 #ifndef CHAR_SLICE_H
 #define CHAR_SLICE_H
-#include <assert.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -52,11 +52,11 @@ size_t File_WriteCharBuff(FILE* dst, CharBuff src);
 
 #define STR(buffer) (sizeof(buffer) > 1 ? (Str){.arr = (buffer), .len = (sizeof(buffer) - 1)} : (Str){0})
 
-#define CharBuff_OnStack(len1, cap1)                                                       \
-    ((struct {                                                                             \
-         int z;                                                                            \
-         static_assert((cap1) >= 0 && (len1) >= 0 && (len1) <= (cap1), "invalid len/cap"); \
-     }){1},                                                                                \
+#define CharBuff_OnStack(len1, cap1)                                                        \
+    ((struct {                                                                              \
+         int z;                                                                             \
+         _Static_assert((cap1) >= 0 && (len1) >= 0 && (len1) <= (cap1), "invalid len/cap"); \
+     }){1},                                                                                 \
      (CharBuff){.arr = (char[(cap1)]){0}, .len = (len1), .cap = (cap1)})
 
 #endif  // CHAR_SLICE_H

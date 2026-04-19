@@ -41,7 +41,7 @@ size_t CharBuff_WriteJsonParseResult(CharBuff* dst, const JsonParseResult* r) {
 
 static const char TIME_FORMAT_ISO8601[] = "%Y-%m-%dT%H:%M:%S.000Z";
 
-bool Time_ParseISO8601(time_t* dst, Str src) {
+bool Time_ParseISO8601(time_t* dst, const Str src) {
     enum {
         buffLen = 64
     };
@@ -684,6 +684,7 @@ size_t CharBuff_WriteJsonNull(CharBuff* dst, JsonStack* s) {
     assert(s != NULL);
     return CharBuff_WriteJsonValue(dst, s, false, STR("null"));
 }
+
 size_t CharBuff_WriteJsonTime(CharBuff* dst, JsonStack* s, const time_t t) {
     assert(dst != NULL);
     assert(s != NULL);
@@ -706,6 +707,7 @@ size_t CharBuff_WriteJsonNumeric(CharBuff* dst, JsonStack* s, const Str value) {
 
     return CharBuff_WriteJsonValue(dst, s, false, value);
 }
+
 size_t CharBuff_WriteTimeISO8601(CharBuff* dst, const time_t t) {
     const struct tm* const tm        = gmtime(&t);
     const size_t           remaining = dst->cap - dst->len;
@@ -778,7 +780,7 @@ JsonType JsonSrc_Type(const JsonSrc* s) {
 }
 
 Str JsonSrc_Value(const JsonSrc* s) {
-    JsonNode* const n = JsonNodes_At(s->nodes, s->index);
+    const JsonNode* const n = JsonNodes_At(s->nodes, s->index);
     return Str_View(s->str, n->offset, n->offset + n->len);
 }
 
