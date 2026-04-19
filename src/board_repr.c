@@ -94,7 +94,7 @@ const char* Piece_ToUnicodeChar(Piece p) {
 }
 
 size_t CharBuff_WritePiece(CharBuff* dst, const Piece p) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     size_t written = 0;
     written += CharBuff_WriteChar(dst, '{');
@@ -106,7 +106,7 @@ size_t CharBuff_WritePiece(CharBuff* dst, const Piece p) {
 }
 
 PieceTypeParseResult PieceType_Parse(PieceType* dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Str_IsValid(src));
     assert(src.len > 0);
 
@@ -131,7 +131,7 @@ PieceTypeParseResult PieceType_Parse(PieceType* dst, const Str src) {
 }
 
 SideParseResult Side_Parse(Side* dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(src.len > 0);
 
     constexpr Str BLACK_STR = STR("BLACK");
@@ -152,7 +152,7 @@ SideParseResult Side_Parse(Side* dst, const Str src) {
 }
 
 size_t CharBuff_WritePieceType(CharBuff* dst, const PieceType t) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     switch (t) {
         case PIECE_TYPE_PAWN:
             return CharBuff_WriteStr(dst, STR("PAWN"));
@@ -174,7 +174,7 @@ size_t CharBuff_WritePieceType(CharBuff* dst, const PieceType t) {
 }
 
 size_t CharBuff_WriteSide(CharBuff* dst, const Side s) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     switch (s) {
         case SIDE_WHITE:
             return CharBuff_WriteStr(dst, STR("WHITE"));
@@ -187,7 +187,7 @@ size_t CharBuff_WriteSide(CharBuff* dst, const Side s) {
 }
 
 PosParseResult Pos_Parse(Pos* dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     if (src.len < POS_STR_LEN) {
         return (PosParseResult){.err = POS_PARSE_ERR_TOO_SHORT};
@@ -223,7 +223,7 @@ bool PosParseResult_Equals(const PosParseResult a, const PosParseResult b) {
 }
 
 size_t CharBuff_WritePosParseResult(CharBuff* dst, const PosParseResult a) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     size_t written = 0;
     written += CharBuff_WriteChar(dst, '{');
     written += CharBuff_WritePosParseErr(dst, a.err);
@@ -234,7 +234,7 @@ size_t CharBuff_WritePosParseResult(CharBuff* dst, const PosParseResult a) {
 }
 
 size_t CharBuff_WritePos(CharBuff* dst, const Pos a) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Pos_IsValid(a));
     const char col = (char)(COL_CHAR_MIN + a.col);
     const char row = (char)(ROW_CHAR_MIN + BOARD_SIDE_LEN - a.row - 1);
@@ -261,7 +261,7 @@ bool MoveParseResult_Equals(const MoveParseResult a, const MoveParseResult b) {
 }
 
 size_t CharBuff_WriteMoveParseResult(CharBuff* dst, const MoveParseResult a) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     size_t written = 0;
     written += CharBuff_WriteChar(dst, '{');
     written += CharBuff_WriteMoveParseErr(dst, a.err);
@@ -272,7 +272,7 @@ size_t CharBuff_WriteMoveParseResult(CharBuff* dst, const MoveParseResult a) {
 }
 
 MoveParseResult Move_Parse(Move* dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     if (src.len < MOVE_STR_LEN) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_TOO_SHORT};
@@ -298,7 +298,7 @@ MoveParseResult Move_Parse(Move* dst, const Str src) {
 }
 
 size_t CharBuff_WriteMove(CharBuff* dst, const Move a) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Move_IsValid(a));
 
     size_t written = 0;
@@ -325,7 +325,7 @@ bool SquaresParseResult_Equals(const SquaresParseResult a, const SquaresParseRes
 }
 
 size_t CharBuff_WriteBoardParseResult(CharBuff* dst, const SquaresParseResult err) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     size_t written = 0;
     written += CharBuff_WriteChar(dst, '{');
     written += CharBuff_WriteBoardParseErr(dst, err.err);
@@ -416,8 +416,8 @@ bool Piece_FromChar(Piece* t, const char ch) {
 }
 
 size_t CharBuff_WriteMoveResult(CharBuff* dst, const MoveResult* a) {
-    assert(dst != nullptr);
-    assert(a != nullptr);
+    assert(dst != NULL);
+    assert(a != NULL);
 
     size_t written = 0;
 
@@ -439,7 +439,7 @@ size_t CharBuff_WriteMoveResult(CharBuff* dst, const MoveResult* a) {
 }
 
 SquaresParseResult Squares_Parse(Squares dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     size_t i      = 0;
     size_t offset = 0;

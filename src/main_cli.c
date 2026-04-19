@@ -15,7 +15,7 @@
 #define RESET_COLOUR     "\x1b[0m"      // Reset color
 
 void printBoard(const Board* b) {
-    assert(b != nullptr);
+    assert(b != NULL);
     printf(HEADER_COLOUR "   a  b  c  d  e  f  g  h " RESET_COLOUR "\n");
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
@@ -51,12 +51,12 @@ void printBoard(const Board* b) {
 }
 
 bool readBoardFromFile(Board* dst, const Str filePath) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Str_IsValid(filePath));
 
     // TODO: Convert to zero terminated string. Will require copy.
     FILE* const f = fopen(filePath.arr, "r");
-    if (f == nullptr) {
+    if (f == NULL) {
         fprintf(stderr, "Failed to open file %s to load the board: %s\n", filePath.arr, strerror(errno));
         return false;
     }
@@ -97,7 +97,7 @@ bool readBoardFromFile(Board* dst, const Str filePath) {
 
 bool writeBoardToFile(const Str filePath, const Board* board) {
     assert(Str_IsValid(filePath));
-    assert(board != nullptr);
+    assert(board != NULL);
 
     CharBuff  buff = CharBuff_OnStack(0, 1024 * 10);
     JsonStack js   = JsonStack_Make(0, 128);
@@ -105,7 +105,7 @@ bool writeBoardToFile(const Str filePath, const Board* board) {
 
     // TODO: Convert to zero terminated string. Will require copy.
     FILE* const f = fopen(filePath.arr, "w");
-    if (f == nullptr) {
+    if (f == NULL) {
         fprintf(stderr, "Failed to open file %s save the board: %s\n", filePath.arr, strerror(errno));
         return false;
     }

@@ -40,8 +40,8 @@ bool PieceTypes_Equals(const PieceTypes a, const PieceTypes b) {
 }
 
 void PieceTypes_Copy(PieceTypes* dst, const PieceTypes* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     dst->len = src->len;
     for (size_t i = 0; i < src->len; i++) {
@@ -66,7 +66,7 @@ static Vec2I Vec2I_FromPos(const Pos l, const Pos r) {
 bool Piece_IsEmpty(Piece p) { return p.type == PIECE_TYPE_UNSPECIFIED; }
 
 bool PieceTypes_Resize(PieceTypes* dst, const size_t len) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     if (len == dst->len) {
         return true;
     }
@@ -82,7 +82,7 @@ bool PieceTypes_Resize(PieceTypes* dst, const size_t len) {
     return true;
 }
 PieceType* PieceTypes_Append(PieceTypes* dst) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(dst->len < PIECE_TYPES_CAP);
     return &dst->arr[dst->len++];
 }
@@ -104,14 +104,14 @@ bool Move_IsValid(const Move a) {
 }
 
 bool MoveResult_Equals(const MoveResult* a, const MoveResult* b) {
-    assert(a != nullptr);
-    assert(b != nullptr);
+    assert(a != NULL);
+    assert(b != NULL);
 
     return a->err == b->err && a->taken == b->taken && Pos_Equals(a->obstacleAt, b->obstacleAt);
 }
 
 void Threats_Append(Threats* dst, const Threat t) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Threat_IsValid(t));
     assert(dst->len < THREATS_CAP);
 
@@ -119,7 +119,7 @@ void Threats_Append(Threats* dst, const Threat t) {
 }
 
 void Squares_InitDefaultLayout(Squares dst) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     dst[7][0] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_WHITE};
     dst[7][7] = (Piece){.type = PIECE_TYPE_ROOK, .side = SIDE_WHITE};
@@ -153,8 +153,8 @@ void Squares_InitDefaultLayout(Squares dst) {
 }
 
 bool Pos_Find(Pos* dst, const Squares src, const Piece p) {
-    assert(src != nullptr);
-    assert(dst != nullptr);
+    assert(src != NULL);
+    assert(dst != NULL);
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
@@ -168,7 +168,7 @@ bool Pos_Find(Pos* dst, const Squares src, const Piece p) {
 }
 
 void Positions_Around(Positions* dst, const Pos p) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Pos_IsValid(p));
 
     constexpr size_t cap     = 8;
@@ -191,7 +191,7 @@ void Positions_Around(Positions* dst, const Pos p) {
 }
 
 void Positions_Append(Positions* dst, Pos p) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Pos_IsValid(p));
     assert(dst->len < POSITIONS_CAP);
 
@@ -209,14 +209,14 @@ Side Side_Opposite(const Side s) {
 }
 
 bool Squares_IsThreatened(const Squares ss, const Pos pos) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     Threats ts = {};
     Threats_Collect(&ts, ss, pos);
     return ts.len > 0;
 }
 
 bool Squares_CanKingMove(const Squares ss, const Pos p) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     assert(Pos_IsValid(p));
 
     const Piece piece = Squares_At(ss, p);
@@ -242,8 +242,8 @@ bool Squares_CanKingMove(const Squares ss, const Pos p) {
 }
 
 void Squares_Copy(Squares dst, const Squares src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
@@ -253,8 +253,8 @@ void Squares_Copy(Squares dst, const Squares src) {
 }
 
 bool Squares_Equals(const Squares ss, const Squares b) {
-    assert(ss != nullptr);
-    assert(b != nullptr);
+    assert(ss != NULL);
+    assert(b != NULL);
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; i++) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; j++) {
@@ -267,13 +267,13 @@ bool Squares_Equals(const Squares ss, const Squares b) {
 }
 
 Piece Squares_At(const Squares ss, const Pos pos) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     assert(Pos_IsValid(pos));
 
     return ss[pos.row][pos.col];
 }
 void Squares_UpdateAt(Squares ss, const Pos pos, const Piece p) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     assert(Pos_IsValid(pos));
 
     ss[pos.row][pos.col] = p;
@@ -286,8 +286,8 @@ void Squares_Move(Squares dst, const Pos to, const Pos from) {
 }
 
 bool SideState_Equals(const SideState* a, SideState const* b) {
-    assert(a != nullptr);
-    assert(b != nullptr);
+    assert(a != NULL);
+    assert(b != NULL);
 
     if (a->hasKingCastled != b->hasKingCastled) {
         return false;
@@ -302,15 +302,15 @@ bool SideState_Equals(const SideState* a, SideState const* b) {
 }
 
 void SideState_Copy(const SideState* src, SideState* dst) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     dst->hasKingCastled = src->hasKingCastled;
     PieceTypes_Copy(&dst->taken, &src->taken);
 }
 
 BoardStateParseResult BoardState_Parse(BoardState* dst, Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(src.len > 0);
 
     constexpr Str IN_PROGRESS_STR = STR("IN_PROGRESS");
@@ -334,12 +334,12 @@ BoardStateParseResult BoardState_Parse(BoardState* dst, Str src) {
 }
 
 void Board_Init(Board* dst, const Steps steps) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     dst->steps = steps;
 }
 
 void Board_StartNewGame(Board* dst) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     *dst = (Board){
         .side  = SIDE_WHITE,
         .state = BOARD_STATE_IN_PROGRESS,
@@ -349,8 +349,8 @@ void Board_StartNewGame(Board* dst) {
 }
 
 bool Board_Equals(const Board* a, const Board* b) {
-    assert(a != nullptr);
-    assert(b != nullptr);
+    assert(a != NULL);
+    assert(b != NULL);
 
     if (a->state != b->state) {
         return false;
@@ -374,8 +374,8 @@ bool Board_Equals(const Board* a, const Board* b) {
 }
 
 void Board_Copy(Board* dst, const Board* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     dst->side = src->side;
     SideState_Copy(&src->white, &dst->white);
@@ -394,7 +394,7 @@ SideState* Board_SideStateRef(Board* b, const Side s) {
 }
 
 MoveResult Board_MakeMove(Board* dst, const Move m) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Move_IsValid(m));
     assert(dst->state == BOARD_STATE_IN_PROGRESS);
     assert(dst->side != SIDE_UNSPECIFIED);
@@ -425,11 +425,11 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
     }
 
     Step* const step = Steps_Append(&dst->steps, 1);
-    if (step != nullptr) {
+    if (step != NULL) {
         *step = (Step){
             .move = m,
             .pice = piece,
-            .time = time(nullptr),
+            .time = time(NULL),
         };
     }
 
@@ -454,7 +454,7 @@ MoveResult Board_MakeMove(Board* dst, const Move m) {
 }
 
 MoveResult Squares_CheckMove(const Squares ss, const Move m) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     assert(Move_IsValid(m));
 
     if (Pos_Equals(m.from, m.to)) {
@@ -484,7 +484,7 @@ MoveResult Squares_CheckMove(const Squares ss, const Move m) {
 int sign(const int a) { return a > 0 ? 1 : a < 0 ? -1 : 0; }
 
 MoveResult Squares_CheckPawnMove(const Squares ss, const Move m) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     assert(Move_IsValid(m));
 
     const Piece piece = Squares_At(ss, m.from);
@@ -531,7 +531,7 @@ MoveResult Squares_CheckPawnMove(const Squares ss, const Move m) {
 }
 
 MoveResult Squares_CheckRookMove(const Squares ss, const Move m) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     assert(Move_IsValid(m));
 
     const Piece piece = Squares_At(ss, m.from);
@@ -572,7 +572,7 @@ MoveResult Squares_CheckRookMove(const Squares ss, const Move m) {
 }
 
 MoveResult Squares_CheckKnightMove(const Squares ss, const Move m) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     assert(Move_IsValid(m));
 
     const Piece piece = Squares_At(ss, m.from);
@@ -601,7 +601,7 @@ MoveResult Squares_CheckKnightMove(const Squares ss, const Move m) {
 }
 
 MoveResult Squares_CheckBishopMove(const Squares ss, const Move m) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     assert(Move_IsValid(m));
 
     const Piece piece = Squares_At(ss, m.from);
@@ -668,7 +668,7 @@ MoveResult Squares_CheckQueenMove(const Squares ss, const Move m) {
 }
 
 MoveResult Squares_CheckKingMove(const Squares ss, const Move m) {
-    assert(ss != nullptr);
+    assert(ss != NULL);
     assert(Move_IsValid(m));
     const Piece piece = Squares_At(ss, m.from);
     assert(piece.side != SIDE_UNSPECIFIED);
@@ -721,32 +721,32 @@ void Threats_Collect(Threats* dst, const Squares ss, const Pos p) {
     }
 }
 bool Step_Equals(const Step* a, const Step* b) {
-    assert(a != nullptr);
-    assert(b != nullptr);
+    assert(a != NULL);
+    assert(b != NULL);
     return Move_Equals(a->move, b->move) && Piece_Equals(a->pice, b->pice);
 }
 
 Steps Arena_AllocSteps(Arena* a, const size_t len, size_t cap, bool autoGrow) {
-    assert(a != nullptr);
+    assert(a != NULL);
     assert(len <= cap);
     Step* arr = Arena_Alloc(a, cap * sizeof(Step));
-    return (Steps){.arr = arr, .len = len, .cap = cap, .a = autoGrow ? a : nullptr};
+    return (Steps){.arr = arr, .len = len, .cap = cap, .a = autoGrow ? a : NULL};
 }
 
 Step* Steps_AtRef(Steps* s, const size_t i) {
-    assert(s != nullptr);
+    assert(s != NULL);
     assert(i < s->len);
     return &s->arr[i];
 }
 
 const Step* Steps_At(const Steps* s, const size_t i) {
-    assert(s != nullptr);
+    assert(s != NULL);
     assert(i < s->len);
     return &s->arr[i];
 }
 
 Steps Steps_Slice(const Steps* s, const size_t start, const size_t end) {
-    assert(s != nullptr);
+    assert(s != NULL);
     assert(start <= end);
     assert(end <= s->len);
     const size_t len = end - start;
@@ -759,17 +759,17 @@ Steps Steps_Slice(const Steps* s, const size_t start, const size_t end) {
 }
 
 Step* Steps_Append(Steps* dst, const size_t len) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     Step* const result = &dst->arr[dst->len];
     if (!Steps_Resize(dst, dst->len + len)) {
-        return nullptr;
+        return NULL;
     };
 
     return result;
 }
 bool Steps_Resize(Steps* dst, size_t len) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     const bool needToGrow = len > dst->cap;
 
     if (!needToGrow) {
@@ -781,13 +781,13 @@ bool Steps_Resize(Steps* dst, size_t len) {
         return true;
     }
 
-    if (dst->a == nullptr) {
+    if (dst->a == NULL) {
         return false;
     }
 
     const size_t newCap = dst->cap * MOVE_SLICE_GROW_FACTOR;
     Step*        newArr = Arena_Alloc(dst->a, newCap * sizeof(Step));
-    if (newArr == nullptr) {
+    if (newArr == NULL) {
         return false;
     }
 

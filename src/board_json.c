@@ -7,8 +7,8 @@
 // Interpret
 
 bool Piece_InterpretJson(Piece* dst, JsonSrc* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     if (JsonSrc_Type(src) != JSON_TYPE_OBJECT) {
         return false;
@@ -53,8 +53,8 @@ bool Piece_InterpretJson(Piece* dst, JsonSrc* src) {
 }
 
 bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSrc* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     if (JsonSrc_Type(src) != JSON_TYPE_ARRAY) {
         return false;
@@ -81,8 +81,8 @@ bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSrc* src) {
 }
 
 bool Board_InterpretJson(Board* dst, JsonSrc* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     if (JsonSrc_Type(src) != JSON_TYPE_OBJECT) {
         return false;
@@ -138,8 +138,8 @@ bool Board_InterpretJson(Board* dst, JsonSrc* src) {
     return true;
 }
 bool Step_InterpretJson(Step* dst, JsonSrc* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     if (JsonSrc_Type(src) != JSON_TYPE_OBJECT) {
         return false;
@@ -185,8 +185,8 @@ bool Step_InterpretJson(Step* dst, JsonSrc* src) {
 }
 
 bool Steps_InterpretJson(Steps* dst, JsonSrc* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     if (JsonSrc_Type(src) != JSON_TYPE_ARRAY) {
         return false;
@@ -207,8 +207,8 @@ bool Steps_InterpretJson(Steps* dst, JsonSrc* src) {
 }
 
 size_t CharBuff_WriteMoveAsJson(CharBuff* dst, JsonStack* js, Move m) {
-    assert(dst != nullptr);
-    assert(js != nullptr);
+    assert(dst != NULL);
+    assert(js != NULL);
 
     CharBuff buff = CharBuff_OnStack(0, 8);
     CharBuff_WriteMove(&buff, m);
@@ -227,8 +227,8 @@ size_t CharBuff_WriteSideAsJson(CharBuff* dst, JsonStack* js, Side s) {
 }
 
 bool SideState_InterpretJson(SideState* dst, JsonSrc* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     if (JsonSrc_Type(src) != JSON_TYPE_OBJECT) {
         return false;
@@ -262,8 +262,8 @@ bool SideState_InterpretJson(SideState* dst, JsonSrc* src) {
 }
 
 bool Squares_InterpretJson(Squares dst, JsonSrc* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     if (JsonSrc_Type(src) != JSON_TYPE_OBJECT) {
         return false;
@@ -297,8 +297,8 @@ bool Squares_InterpretJson(Squares dst, JsonSrc* src) {
 // Write
 
 size_t CharBuff_WritePieceAsJson(CharBuff* dst, JsonStack* js, const Piece p) {
-    assert(dst != nullptr);
-    assert(js != nullptr);
+    assert(dst != NULL);
+    assert(js != NULL);
 
     size_t written = 0;
     written += CharBuff_WriteJsonStart(dst, js, '{');
@@ -310,8 +310,8 @@ size_t CharBuff_WritePieceAsJson(CharBuff* dst, JsonStack* js, const Piece p) {
     return written;
 }
 size_t CharBuff_WritePieceTypeAsJson(CharBuff* dst, JsonStack* js, const PieceType t) {
-    assert(dst != nullptr);
-    assert(js != nullptr);
+    assert(dst != NULL);
+    assert(js != NULL);
 
     switch (t) {
         case PIECE_TYPE_PAWN:
@@ -332,7 +332,7 @@ size_t CharBuff_WritePieceTypeAsJson(CharBuff* dst, JsonStack* js, const PieceTy
 }
 
 size_t CharBuff_WriteSquaresAsJson(CharBuff* dst, JsonStack* js, const Squares src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     size_t written = 0;
 
     written += CharBuff_WriteJsonStart(dst, js, '{');
@@ -353,9 +353,9 @@ size_t CharBuff_WriteSquaresAsJson(CharBuff* dst, JsonStack* js, const Squares s
 }
 
 size_t CharBuff_WritePieceTypesAsJson(CharBuff* dst, JsonStack* js, const PieceTypes* src) {
-    assert(dst != nullptr);
-    assert(js != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(js != NULL);
+    assert(src != NULL);
 
     size_t written = 0;
     written += CharBuff_WriteJsonStart(dst, js, '[');
@@ -368,11 +368,11 @@ size_t CharBuff_WritePieceTypesAsJson(CharBuff* dst, JsonStack* js, const PieceT
 }
 
 size_t CharBuff_WriteSideStateAsJson(CharBuff* dst, JsonStack* js, const SideState* src) {
-    assert(dst != nullptr);
-    assert(js != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(js != NULL);
+    assert(src != NULL);
 
-    if (src == nullptr) {
+    if (src == NULL) {
         return CharBuff_WriteJsonNull(dst, js);
     }
 
@@ -387,10 +387,10 @@ size_t CharBuff_WriteSideStateAsJson(CharBuff* dst, JsonStack* js, const SideSta
 }
 
 size_t CharBuff_WriteBoardAsJson(CharBuff* dst, JsonStack* js, const Board* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
-    if (src == nullptr) {
+    if (src == NULL) {
         return CharBuff_WriteJsonNull(dst, js);
     }
 
@@ -412,10 +412,10 @@ size_t CharBuff_WriteBoardAsJson(CharBuff* dst, JsonStack* js, const Board* src)
     return written;
 }
 size_t CharBuff_WriteStepAsJson(CharBuff* dst, JsonStack* js, const Step* src) {
-    assert(dst != nullptr);
-    assert(js != nullptr);
+    assert(dst != NULL);
+    assert(js != NULL);
 
-    if (src == nullptr) {
+    if (src == NULL) {
         return CharBuff_WriteJsonNull(dst, js);
     }
 
@@ -432,11 +432,11 @@ size_t CharBuff_WriteStepAsJson(CharBuff* dst, JsonStack* js, const Step* src) {
     return written;
 }
 size_t CharBuff_WriteStepsAsJson(CharBuff* dst, JsonStack* js, const Steps* src) {
-    assert(dst != nullptr);
-    assert(js != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(js != NULL);
+    assert(src != NULL);
 
-    if (src == nullptr) {
+    if (src == NULL) {
         return CharBuff_WriteJsonNull(dst, js);
     }
 
@@ -449,8 +449,8 @@ size_t CharBuff_WriteStepsAsJson(CharBuff* dst, JsonStack* js, const Steps* src)
     return written;
 }
 size_t CharBuff_WriteBoardStateAsJson(CharBuff* dst, JsonStack* js, BoardState s) {
-    assert(dst != nullptr);
-    assert(js != nullptr);
+    assert(dst != NULL);
+    assert(js != NULL);
 
     switch (s) {
         case BOARD_STATE_IN_PROGRESS:

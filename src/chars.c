@@ -8,7 +8,7 @@
 #include "func.h"
 
 Str Str_FromCStr(const char* s, const size_t maxLen) {
-    assert(s != nullptr);
+    assert(s != NULL);
     assert(maxLen > 0);
     const size_t len = strnlen(s, maxLen);
     return (Str){s, len};
@@ -41,18 +41,18 @@ bool Str_StartsWith(const Str s, const Str prefix) {
     return memcmp(s.arr, prefix.arr, prefix.len) == 0;
 }
 bool Str_IsValid(const Str s) {
-    if (s.arr == nullptr && s.len == 0) {
+    if (s.arr == NULL && s.len == 0) {
         return true;
     }
-    return s.arr != nullptr;
+    return s.arr != NULL;
 }
 bool CharBuff_Alloc(CharBuff* dst, size_t cap, Arena* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
     assert(cap > 0);
 
     char* buff = Arena_Alloc(src, cap);
-    if (buff == nullptr) {
+    if (buff == NULL) {
         return false;
     }
 
@@ -109,7 +109,7 @@ Str CharBuff_View(const CharBuff s, const size_t start, const size_t end) {
 Str CharBuff_ToStr(const CharBuff s) { return CharBuff_View(s, 0, s.len); }
 
 size_t CharBuff_WriteCharAt(CharBuff* dst, const size_t i, const char v) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     if (i > dst->len || i >= dst->cap) {
         return 0;
     }
@@ -121,7 +121,7 @@ size_t CharBuff_WriteCharAt(CharBuff* dst, const size_t i, const char v) {
 }
 
 size_t CharBuff_WriteAt(CharBuff* dst, const size_t offset, const CharBuff src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     if (offset > dst->len || offset >= dst->cap) {
         return 0;
     }
@@ -137,7 +137,7 @@ size_t CharBuff_WriteAt(CharBuff* dst, const size_t offset, const CharBuff src) 
 }
 
 size_t CharBuff_WriteStrAt(CharBuff* dst, const size_t offset, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     if (offset > dst->len || offset >= dst->cap) {
         return 0;
     }
@@ -155,11 +155,11 @@ size_t CharBuff_WriteStrAt(CharBuff* dst, const size_t offset, const Str src) {
 size_t CharBuff_WriteChar(CharBuff* dst, const char v) { return CharBuff_WriteCharAt(dst, dst->len, v); }
 
 size_t CharBuff_Write(CharBuff* dst, const CharBuff other) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     return CharBuff_WriteAt(dst, dst->len, other);
 }
 size_t CharBuff_WriteStr(CharBuff* dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     if (src.len == 0 || dst->len == dst->cap) {
         return 0;
@@ -185,8 +185,8 @@ bool CharBuff_StartsWith(const CharBuff s, const CharBuff prefix) {
 }
 
 size_t CharBuff_WriteLineFromFile(CharBuff* dst, FILE* src, const char separator) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
     assert(CharBuff_IsValid(*dst));
 
     const int remaining = (int)(dst->cap - dst->len);
@@ -195,7 +195,7 @@ size_t CharBuff_WriteLineFromFile(CharBuff* dst, FILE* src, const char separator
     }
 
     char* const s = fgets(dst->arr + dst->len, remaining, src);
-    if (s == nullptr) {
+    if (s == NULL) {
         return 0;
     }
 
@@ -214,8 +214,8 @@ size_t CharBuff_WriteLineFromFile(CharBuff* dst, FILE* src, const char separator
 }
 
 size_t CharBuff_WriteFile(CharBuff* dst, FILE* src) {
-    assert(dst != nullptr);
-    assert(src != nullptr);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     const size_t remaining = dst->cap - dst->len;
     if (remaining < 1) {
@@ -228,20 +228,20 @@ size_t CharBuff_WriteFile(CharBuff* dst, FILE* src) {
 }
 
 bool CharBuff_IsValid(const CharBuff s) {
-    if (s.arr == nullptr && s.len == 0 && s.cap == 0) {
+    if (s.arr == NULL && s.len == 0 && s.cap == 0) {
         return true;
     }
-    return s.arr != nullptr && s.len <= s.cap;
+    return s.arr != NULL && s.len <= s.cap;
 }
 
 size_t File_WriteCharBuff(FILE* dst, const CharBuff src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     return fwrite(src.arr, sizeof(char), src.len, dst);
 }
 
 size_t CharBuff_WriteF(CharBuff* dst, const char* format, ...) {
-    assert(dst != nullptr);
-    assert(format != nullptr);
+    assert(dst != NULL);
+    assert(format != NULL);
     assert(CharBuff_IsValid(*dst));
 
     const size_t remaining = dst->cap - dst->len;
