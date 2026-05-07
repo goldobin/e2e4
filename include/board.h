@@ -189,7 +189,7 @@ const Step*           Steps_At(const Steps* s, size_t i);
 Step*                 Steps_Append(Steps* dst, size_t len);
 bool                  Steps_Resize(Steps* dst, size_t len);
 bool                  Steps_Equals(Steps a, Steps b);
-Steps                 Arena_AllocSteps(Arena* a, size_t len, size_t cap, bool autoGrow);
+Steps                 Arena_AllocSteps(Arena* a, size_t len, size_t cap, bool canGrow);
 
 #define Steps_OnStack(len1, cap1) ((Steps){.arr = (Step[(cap1)]){0}, .len = (len1), .cap = (cap1)})
 #endif  // BOARD_H

@@ -6,22 +6,27 @@
 
 #include "func.h"
 
-Arena Arena_OnHeap(const size_t cap, const bool autoGrow) {
+Arena* Arena_OnHeap(const size_t cap, const bool canGrow) {
     assert(cap > 0);
-    return (Arena){
-        .buff     = NULL,
-        .cap      = cap,
-        .offset   = 0,
-        .autoGrow = autoGrow,
+    Arena* result = malloc(sizeof(Arena));
+    if (result == NULL) {
+        return NULL;
+    }
+    *result = (Arena){
+        .buff    = NULL,
+        .cap     = cap,
+        .offset  = 0,
+        .canGrow = canGrow,
     };
+    return result;
 }
 
 void* Arena_Alloc(Arena* a, const size_t size) {
     assert(a != NULL);
     assert(size > 0);
 
-    if (!a->autoGrow) {
-        if (a->offset + size > a->cap) {
+    if (a->onStack) {
+        if (size > a->cap - a->offset) {
             return NULL;
         }
 
@@ -37,8 +42,11 @@ void* Arena_Alloc(Arena* a, const size_t size) {
     Arena* cur      = a;
     size_t totalCap = 0;
     while (cur != NULL) {
-        if (cur->offset + size <= cur->cap) {
+        if (size <= cur->cap - cur->offset) {
             break;
+        }
+        if (!cur->canGrow) {
+            return NULL;
         }
         totalCap += cur->cap;
         if (cur->next != NULL) {
@@ -46,19 +54,18 @@ void* Arena_Alloc(Arena* a, const size_t size) {
             continue;
         }
 
-        Arena* newBlock = malloc(sizeof(Arena));
-        if (newBlock == NULL) {
+        const size_t nextBlockCap = MaxSizeT(totalCap * ARENA_GROW_FACTOR, size);
+        Arena*       nextBlock    = Arena_OnHeap(nextBlockCap, cur->canGrow);
+        if (nextBlock == NULL) {
             return NULL;
         }
-
-        const size_t newBlockCap = MaxSizeT(totalCap * ARENA_GROW_FACTOR, size);
-        *newBlock                = Arena_OnHeap(newBlockCap, cur->autoGrow);
-        cur->next                = newBlock;
-        cur                      = newBlock;
+        cur->next = nextBlock;
+        cur       = nextBlock;
     }
 
+    assert(cur != NULL);
     if (cur->buff == NULL) {
-        cur->buff = malloc(cur->cap);
+        cur->buff = calloc(1, cur->cap);
         if (cur->buff == NULL) {
             return NULL;
         }
@@ -71,11 +78,12 @@ void* Arena_Alloc(Arena* a, const size_t size) {
 
 void Arena_Reset(Arena* a) {
     assert(a != NULL);
-    a->offset = 0;
 
     Arena* cur = a;
     while (cur != NULL) {
-        memset(cur->buff, 0, cur->cap);
+        if (cur->buff != NULL) {
+            memset(cur->buff, 0, cur->cap);
+        }
         cur->offset = 0;
         cur         = cur->next;
     }
@@ -83,26 +91,14 @@ void Arena_Reset(Arena* a) {
 
 void Arena_Free(Arena* a) {
     assert(a != NULL);
-
-    if (!a->autoGrow) {
-        // Noop
+    if (a->onStack) {
         return;
     }
-
-    Arena* parent = a;
-    Arena* child  = a->next;
-    while (child != NULL) {
-        Arena* const block = child;
-        parent->next       = NULL;
-        parent             = child;
-        child              = child->next;
-
-        free(block->buff);
-        free(block);
+    Arena* cur = a;
+    while (cur != NULL) {
+        Arena* prev = cur;
+        cur         = cur->next;
+        free(prev->buff);
+        free(prev);
     }
-
-    free(a->buff);
-    a->buff   = NULL;
-    a->cap    = 0;
-    a->offset = 0;
 }

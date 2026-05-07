@@ -728,11 +728,11 @@ bool Step_Equals(const Step* a, const Step* b) {
     return Move_Equals(a->move, b->move) && Piece_Equals(a->pice, b->pice);
 }
 
-Steps Arena_AllocSteps(Arena* a, const size_t len, size_t cap, bool autoGrow) {
+Steps Arena_AllocSteps(Arena* a, const size_t len, size_t cap, bool canGrow) {
     assert(a != NULL);
     assert(len <= cap);
     Step* arr = Arena_Alloc(a, cap * sizeof(Step));
-    return (Steps){.arr = arr, .len = len, .cap = cap, .a = autoGrow ? a : NULL};
+    return (Steps){.arr = arr, .len = len, .cap = cap, .a = canGrow ? a : NULL};
 }
 
 Step* Steps_AtRef(Steps* s, const size_t i) {
