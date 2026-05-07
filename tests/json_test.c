@@ -7,10 +7,10 @@
 
 #include "arena.h"
 
-auto mem = Arena_OnStack(1024 * 32);
+Arena mem = Arena_OnStack(1024 * 32);
 
-void setUp() {}
-void tearDown() {}
+void setUp(void) {}
+void tearDown(void) {}
 
 typedef struct {
     Str value;
@@ -36,7 +36,7 @@ typedef struct {
     };
 } NodeMatchingRule;
 
-constexpr size_t         NODE_MATCH_RULES_CAP = 16;
+#define NODE_MATCH_RULES_CAP ((size_t)16)
 typedef NodeMatchingRule NodeMatchingRules[NODE_MATCH_RULES_CAP];
 
 bool NodeMatchingRule_Empty(const NodeMatchingRule r) { return r.type == JSON_NODE_TYPE_UNSPECIFIED; }
@@ -48,15 +48,15 @@ void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const Str sr
     }
 
     for (size_t i = 0; i < nodes.len; i++) {
-        const auto rule = rules[i];
+        const NodeMatchingRule rule = rules[i];
         if (NodeMatchingRule_Empty(rule)) {
             continue;
         }
-        const auto n = JsonNodes_At(nodes, i);
+        const JsonNode* const n = JsonNodes_At(nodes, i);
         TEST_ASSERT_EQUAL_MESSAGE(rule.type, n->type, "node type doesn't match");
 
         if (rule.type == JSON_NODE_TYPE_STRING) {
-            const auto v = Str_View(src, n->offset, n->offset + n->len);
+            const Str v = Str_View(src, n->offset, n->offset + n->len);
             TEST_ASSERT_TRUE_MESSAGE(Str_Equals(rule.string.value, v), "string content doesn't match");
             TEST_ASSERT_EQUAL_MESSAGE(
                 rule.string.childrenCount, n->childrenCount, "string children count doesn't match"
@@ -65,7 +65,7 @@ void NodeMatchingRules_AssertMatches(const NodeMatchingRules rules, const Str sr
         }
 
         if (rule.type == JSON_NODE_TYPE_PRIMITIVE) {
-            const auto v = Str_View(src, n->offset, n->offset + n->len);
+            const Str v = Str_View(src, n->offset, n->offset + n->len);
             TEST_ASSERT_TRUE_MESSAGE(Str_Equals(rule.primitive.value, v), "primitive content doesn't match");
             continue;
         }
@@ -93,7 +93,7 @@ void ParseTest_Run(const ParseTest tt) {
         .arr = Arena_Alloc(&mem, tt.poolSize * sizeof(JsonNode)),
         .cap = tt.poolSize,
     };
-    const auto r = JsonNodes_Parse(&nodes, tt.src);
+    const JsonParseResult r = JsonNodes_Parse(&nodes, tt.src);
     TEST_ASSERT_EQUAL_MESSAGE(tt.wantErr, r.err, "error doesn't match");
     if (tt.wantErr != JSON_PARSE_ERROR_OK) {
         return;
@@ -106,7 +106,7 @@ void ParseTest_Run(const ParseTest tt) {
     NodeMatchingRules_AssertMatches(tt.rules, tt.src, nodes);
 }
 
-void Test_Empty() {
+void Test_Empty(void) {
     const ParseTest tests[] = {
         {
             .src           = STR("{}"),
@@ -136,13 +136,13 @@ void Test_Empty() {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(ParseTest); i++) {
-        const auto tt = tests[i];
+        const ParseTest tt = tests[i];
         TEST_MESSAGE(tt.src.arr);
         ParseTest_Run(tt);
     }
 }
 
-void Test_Object() {
+void Test_Object(void) {
     const ParseTest tests[] = {
         {
             .src           = STR("{\"a\":0}"),
@@ -266,7 +266,7 @@ void Test_Object() {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(ParseTest); i++) {
-        const auto tt = tests[i];
+        const ParseTest tt = tests[i];
         TEST_MESSAGE(tt.src.arr);
         ParseTest_Run(tt);
     }
@@ -307,13 +307,13 @@ void Test_Array(void) {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(ParseTest); i++) {
-        const auto tt = tests[i];
+        const ParseTest tt = tests[i];
         TEST_MESSAGE(tt.src.arr);
         ParseTest_Run(tt);
     }
 }
 
-void Test_Primitive() {
+void Test_Primitive(void) {
     const ParseTest tests[] = {
         {.src           = STR("{\"boolVar\" : true }"),
          .poolSize      = 3,
@@ -373,7 +373,7 @@ void Test_Primitive() {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(ParseTest); i++) {
-        const auto tt = tests[i];
+        const ParseTest tt = tests[i];
         TEST_MESSAGE(tt.src.arr);
         ParseTest_Run(tt);
     }
@@ -491,7 +491,7 @@ void Test_String(void) {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(ParseTest); i++) {
-        const auto tt = tests[i];
+        const ParseTest tt = tests[i];
         TEST_MESSAGE(tt.src.arr);
         ParseTest_Run(tt);
     }
@@ -548,27 +548,29 @@ void Test_String(void) {
 
 void Test_ArrayNodesExhausted(void) {
     for (int i = 0; i < 6; i++) {
-        constexpr size_t arrLen      = 10;
-        JsonNode         arr[arrLen] = {};
-        JsonNodes        dst         = {.arr = arr, .cap = i};
-        const auto       src         = STR("  [ 1, true, [123, \"hello\"]]");
-        const auto       r1          = JsonNodes_Parse(&dst, src);
+        enum {
+            arrLen = 10
+        };
+        JsonNode              arr[arrLen] = {0};
+        JsonNodes             dst         = {.arr = arr, .cap = i};
+        const Str             src         = STR("  [ 1, true, [123, \"hello\"]]");
+        const JsonParseResult r1          = JsonNodes_Parse(&dst, src);
         TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_NODE_POOL_EXHAUSTED, r1.err);
     }
 }
 
 void Test_UnquotedKeys(void) {
-    JsonNode   arr[10];
-    JsonNodes  dst = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
-    const auto src = STR("key1: \"value\"\nkey2 : 123");
-    const auto r   = JsonNodes_Parse(&dst, src);
+    JsonNode              arr[10];
+    JsonNodes             dst = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
+    const Str             src = STR("key1: \"value\"\nkey2 : 123");
+    const JsonParseResult r   = JsonNodes_Parse(&dst, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_INVALID, r.err);
 }
 
 void Test_Issue22(void) {
-    JsonNode   arr[128] = {};
-    JsonNodes  dst      = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
-    const auto src =
+    JsonNode  arr[128] = {0};
+    JsonNodes dst      = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
+    const Str src =
         STR("{ \"height\":10, \"layers\":[ { \"data\":[6,6], \"height\":10, "
             "\"name\":\"Calque de Tile 1\", \"opacity\":1, \"type\":\"tilelayer\", "
             "\"visible\":true, \"width\":10, \"x\":0, \"y\":0 }], "
@@ -579,7 +581,7 @@ void Test_Issue22(void) {
             "\"properties\":{}, \"spacing\":0, \"tileheight\":32, \"tilewidth\":32 "
             "}], "
             "\"tilewidth\":32, \"version\":1, \"width\":10 }");
-    const auto r = JsonNodes_Parse(&dst, src);
+    const JsonParseResult r = JsonNodes_Parse(&dst, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r.err);
 }
 
@@ -617,19 +619,19 @@ void Test_Issue27(void) {
 }
 
 void Test_InputLength(void) {
-    JsonNode  arr[10] = {};
+    JsonNode  arr[10] = {0};
     JsonNodes dst     = {
         .arr = arr,
         .cap = sizeof(arr) / sizeof(JsonNode),
     };
-    const auto              src   = STR("{\"a\": 0}garbage");
+    const Str               src   = STR("{\"a\": 0}garbage");
     const NodeMatchingRules rules = {
         {.type = JSON_NODE_TYPE_OBJECT, .other = {.childrenCount = 1}},
         {.type = JSON_NODE_TYPE_STRING, .string = {.value = STR("a"), .childrenCount = 1}},
         {.type = JSON_NODE_TYPE_PRIMITIVE, .primitive = {.value = STR("0")}},
 
     };
-    const auto r = JsonNodes_Parse(&dst, src);
+    const JsonParseResult r = JsonNodes_Parse(&dst, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r.err);
     TEST_ASSERT_EQUAL(8, r.offset);
     TEST_ASSERT_EQUAL(3, dst.len);
@@ -692,13 +694,13 @@ void Test_Count(void) {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
-        const auto tt      = tests[i];
-        JsonNode   arr[10] = {};
+        const test tt      = tests[i];
+        JsonNode   arr[10] = {0};
         JsonNodes  dst     = {.arr = arr, .cap = sizeof(arr) / sizeof(JsonNode)};
         const Str  src     = {.arr = tt.src, .len = strlen(tt.src)};
 
         TEST_MESSAGE(tt.name);
-        const auto r = JsonNodes_Parse(&dst, src);
+        const JsonParseResult r = JsonNodes_Parse(&dst, src);
         TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, r.err);
         TEST_ASSERT_EQUAL(tt.wantLen, dst.len);
     }
@@ -724,7 +726,7 @@ void Test_NonStrict(void) {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(ParseTest); i++) {
-        const auto tt = tests[i];
+        const ParseTest tt = tests[i];
         TEST_MESSAGE(tt.src.arr);
         ParseTest_Run(tt);
     }
@@ -781,7 +783,7 @@ void Test_UnmatchedBrackets(void) {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(ParseTest); i++) {
-        const auto tt = tests[i];
+        const ParseTest tt = tests[i];
         TEST_MESSAGE(tt.src.arr);
         ParseTest_Run(tt);
     }
@@ -825,14 +827,14 @@ void Test_ObjectKey(void) {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(ParseTest); i++) {
-        const auto tt = tests[i];
+        const ParseTest tt = tests[i];
         TEST_MESSAGE(tt.src.arr);
         ParseTest_Run(tt);
     }
 }
 
-void Example_JsonParse() {
-    const auto src =
+void Example_JsonParse(void) {
+    const Str src =
         STR("{"
             "\"testStr\": \"Foo\", "
             "\"testNumber\": 1, "
@@ -842,12 +844,12 @@ void Example_JsonParse() {
             "    \"prop2\": 1.0"
             "}"
             "}");
-    JsonNode  nodes[100] = {};
+    JsonNode  nodes[100] = {0};
     JsonNodes dst        = {
         .arr = nodes,
         .cap = sizeof(nodes) / sizeof(JsonNode),
     };
-    const auto r = JsonNodes_Parse(&dst, src);
+    const JsonParseResult r = JsonNodes_Parse(&dst, src);
 
     if (r.err != JSON_PARSE_ERROR_OK) {
         char msg[128];
@@ -871,7 +873,7 @@ void Example_JsonParse() {
     }
 
     for (size_t i = 0; i < sizeof(nodes) / sizeof(nodes[0]); i++) {
-        const auto n = nodes[i];
+        const JsonNode n = nodes[i];
         if (n.type == JSON_NODE_TYPE_UNSPECIFIED) {
             break;
         }
@@ -897,7 +899,7 @@ void Example_JsonParse() {
                 typeStr = "Unknown";
         }
 
-        const auto content = Str_View(src, n.offset, n.offset + n.len);
+        const Str content = Str_View(src, n.offset, n.offset + n.len);
         printf(
             "%-10s| %4zd, %4zd, %4zd| \"%.*s\"\n", typeStr, n.offset, n.len, n.childrenCount, (int)content.len,
             content.arr
@@ -905,12 +907,12 @@ void Example_JsonParse() {
     }
 }
 
-void Test_JsonWrite() {
-    auto      dst = CharBuff_OnStack(0, 1024);
+void Test_JsonWrite(void) {
+    CharBuff  dst = CharBuff_OnStack(0, 1024);
     JsonStack s   = {
         .cap = 16,
         .len = 0,
-        .arr = (JsonStackEntry[16]){},
+        .arr = (JsonStackEntry[16]){0},
     };
 
     CharBuff_WriteJsonStart(&dst, &s, '{');
@@ -921,7 +923,7 @@ void Test_JsonWrite() {
     CharBuff_WriteJsonKey(&dst, &s, STR("strField"));
     CharBuff_WriteJsonStr(&dst, &s, STR("Foo"));
     CharBuff_WriteJsonKey(&dst, &s, STR("timeField"));
-    CharBuff_WriteTimeAsJson(&dst, &s, 10);
+    CharBuff_WriteJsonTime(&dst, &s, 10);
     CharBuff_WriteJsonEnd(&dst, &s);
 
     CharBuff_WriteJsonKey(&dst, &s, STR("arrField"));
@@ -946,7 +948,7 @@ void Test_JsonWrite() {
     );
 }
 
-void Test_JsonWriteValue() {
+void Test_JsonWriteValue(void) {
     typedef struct {
         const char* name;
         Str         input;
@@ -967,11 +969,11 @@ void Test_JsonWriteValue() {
     };
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(test); i++) {
-        auto      dst = CharBuff_OnStack(0, 256);
+        CharBuff  dst = CharBuff_OnStack(0, 256);
         JsonStack s   = {
             .cap = 4,
             .len = 0,
-            .arr = (JsonStackEntry[4]){},
+            .arr = (JsonStackEntry[4]){0},
         };
 
         CharBuff_WriteJsonStart(&dst, &s, '[');
@@ -985,12 +987,12 @@ void Test_JsonWriteValue() {
     }
 }
 
-void Test_TimeFormat() {
+void Test_TimeFormat(void) {
     const time_t t = 10;
 
-    auto dst = CharBuff_OnStack(0, 64);
+    CharBuff dst = CharBuff_OnStack(0, 64);
     CharBuff_WriteTimeISO8601(&dst, t);
-    const auto want = STR("1970-01-01T00:00:10.000Z");
+    const Str want = STR("1970-01-01T00:00:10.000Z");
     TEST_ASSERT_EQUAL_STRING_LEN(want.arr, dst.arr, want.len);
 }
 

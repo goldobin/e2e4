@@ -6,13 +6,13 @@
 
 // Interpret
 
-bool Piece_InterpretJson(Piece* dst, JsonSource* src);
-bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSource* src);
-bool SideState_InterpretJson(SideState* dst, JsonSource* src);
-bool Squares_InterpretJson(Squares dst, JsonSource* src);
-bool Board_InterpretJson(Board* dst, JsonSource* src);
-bool Step_InterpretJson(Step* dst, JsonSource* src);
-bool Steps_InterpretJson(Steps* dst, JsonSource* src);
+bool Piece_InterpretJson(Piece* dst, JsonSrc* src);
+bool PieceTypes_InterpretJson(PieceTypes* dst, JsonSrc* src);
+bool SideState_InterpretJson(SideState* dst, JsonSrc* src);
+bool Squares_InterpretJson(Squares dst, JsonSrc* src);
+bool Board_InterpretJson(Board* dst, JsonSrc* src);
+bool Step_InterpretJson(Step* dst, JsonSrc* src);
+bool Steps_InterpretJson(Steps* dst, JsonSrc* src);
 
 // Write
 

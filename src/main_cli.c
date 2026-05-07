@@ -15,16 +15,16 @@
 #define RESET_COLOUR     "\x1b[0m"      // Reset color
 
 void printBoard(const Board* b) {
-    assert(b != nullptr);
+    assert(b != NULL);
     printf(HEADER_COLOUR "   a  b  c  d  e  f  g  h " RESET_COLOUR "\n");
 
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; ++j) {
-            const Pos  pos       = {.row = i, .col = j};
-            const auto piece     = Squares_At(b->squares, pos);
-            const char rowChar   = (char)(ROW_CHAR_MIN + (BOARD_SIDE_LEN - i - 1));
-            const auto pieceChar = Piece_ToUnicodeChar(piece);
-            const auto bg        = (i + j) % 2 == 0 ? BLACK_BG_COLOUR : WHITE_BG_COLOUR;
+            const Pos         pos       = {.row = i, .col = j};
+            const Piece       piece     = Squares_At(b->squares, pos);
+            const char        rowChar   = (char)(ROW_CHAR_MIN + (BOARD_SIDE_LEN - i - 1));
+            const char* const pieceChar = Piece_ToUnicodeChar(piece);
+            const char* const bg        = (i + j) % 2 == 0 ? BLACK_BG_COLOUR : WHITE_BG_COLOUR;
 
             if (j == 0) {
                 printf(HEADER_COLOUR "%c ", rowChar);
@@ -33,10 +33,10 @@ void printBoard(const Board* b) {
         }
 
         if (i < b->steps.len) {
-            const auto s         = Steps_At(&b->steps, b->steps.len - i - 1);
-            const auto pieceChar = Piece_ToUnicodeChar(s->pice);
-            const auto bg2       = s->pice.side == SIDE_BLACK ? BLACK_BG_COLOUR : WHITE_BG_COLOUR;
-            auto       moveStr   = CharBuff_OnStack(0, 16);
+            const Step* const s         = Steps_At(&b->steps, b->steps.len - i - 1);
+            const char* const pieceChar = Piece_ToUnicodeChar(s->pice);
+            const char* const bg2       = s->pice.side == SIDE_BLACK ? BLACK_BG_COLOUR : WHITE_BG_COLOUR;
+            CharBuff          moveStr   = CharBuff_OnStack(0, 16);
 
             CharBuff_WritePos(&moveStr, s->move.from);
             CharBuff_WriteStr(&moveStr, STR(" \u2192 "));
@@ -51,19 +51,19 @@ void printBoard(const Board* b) {
 }
 
 bool readBoardFromFile(Board* dst, const Str filePath) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Str_IsValid(filePath));
 
     // TODO: Convert to zero terminated string. Will require copy.
-    const auto f = fopen(filePath.arr, "r");
-    if (f == nullptr) {
+    FILE* const f = fopen(filePath.arr, "r");
+    if (f == NULL) {
         fprintf(stderr, "Failed to open file %s to load the board: %s\n", filePath.arr, strerror(errno));
         return false;
     }
 
-    CharBuff   buff = CharBuff_OnStack(0, 1024 * 10);
-    const auto read = CharBuff_WriteFile(&buff, f);
-    auto       str  = CharBuff_ToStr(buff);
+    CharBuff     buff = CharBuff_OnStack(0, 1024 * 10);
+    const size_t read = CharBuff_WriteFile(&buff, f);
+    Str          str  = CharBuff_ToStr(buff);
 
     if (fclose(f) != 0) {
         fprintf(stderr, "Failed to close file %s: %s\n", filePath.arr, strerror(errno));
@@ -75,18 +75,18 @@ bool readBoardFromFile(Board* dst, const Str filePath) {
         return false;
     }
 
-    JsonNodes  nodes           = JsonNodes_Make(0, 1024);
-    const auto jsonParseResult = JsonNodes_Parse(&nodes, str);
+    JsonNodes             nodes           = JsonNodes_Make(0, 1024);
+    const JsonParseResult jsonParseResult = JsonNodes_Parse(&nodes, str);
     if (jsonParseResult.err != JSON_PARSE_ERROR_OK) {
-        auto parseResultStr = CharBuff_OnStack(0, 128);
+        CharBuff parseResultStr = CharBuff_OnStack(0, 128);
         CharBuff_WriteJsonParseResult(&parseResultStr, &jsonParseResult);
 
         printf("Failed to parse JSON file %s: %s\n", filePath.arr, parseResultStr.arr);
         return false;
     }
 
-    JsonSource jsonSrc         = {.str = str, .nodes = nodes};
-    const auto interpretResult = Board_InterpretJson(dst, &jsonSrc);
+    JsonSrc    src             = {.str = str, .nodes = nodes};
+    const bool interpretResult = Board_InterpretJson(dst, &src);
     if (!interpretResult) {
         printf("Failed to interpret JSON. JSON has unexpected structure");
         return false;
@@ -97,19 +97,19 @@ bool readBoardFromFile(Board* dst, const Str filePath) {
 
 bool writeBoardToFile(const Str filePath, const Board* board) {
     assert(Str_IsValid(filePath));
-    assert(board != nullptr);
+    assert(board != NULL);
 
-    auto buff = CharBuff_OnStack(0, 1024 * 10);
-    auto js   = JsonStack_Make(0, 128);
+    CharBuff  buff = CharBuff_OnStack(0, 1024 * 10);
+    JsonStack js   = JsonStack_Make(0, 128);
     CharBuff_WriteBoardAsJson(&buff, &js, board);
 
     // TODO: Convert to zero terminated string. Will require copy.
-    const auto f = fopen(filePath.arr, "w");
-    if (f == nullptr) {
+    FILE* const f = fopen(filePath.arr, "w");
+    if (f == NULL) {
         fprintf(stderr, "Failed to open file %s save the board: %s\n", filePath.arr, strerror(errno));
         return false;
     }
-    const auto written = File_WriteCharBuff(f, buff);
+    const size_t written = File_WriteCharBuff(f, buff);
     if (fclose(f) != 0) {
         fprintf(stderr, "Failed to close file %s: %s\n", filePath.arr, strerror(errno));
         return false;
@@ -128,8 +128,8 @@ bool writeBoardToFile(const Str filePath, const Board* board) {
 void printUsage(const char* progName) { printf("Usage: %s [file]\n", progName); }
 
 int main(const int argc, char* argv[]) {
-    const auto steps = Steps_OnStack(0, 128);
-    Board      b     = {};
+    const Steps steps = Steps_OnStack(0, 128);
+    Board       b     = {0};
     Board_Init(&b, steps);
 
     switch (argc) {
@@ -137,12 +137,13 @@ int main(const int argc, char* argv[]) {
         case 1:
             Board_StartNewGame(&b);
             break;
-        case 2:
+        case 2: {
             const Str filePath = Str_FromCStr(argv[1], 64);
             if (!readBoardFromFile(&b, filePath)) {
                 return EXIT_FAILURE;
             }
             break;
+        }
 
         default:
             printUsage(argv[0]);
@@ -155,15 +156,15 @@ int main(const int argc, char* argv[]) {
         const char* sideStr = b.side == SIDE_WHITE ? "white" : "black";
         printf("Next turn for" HIGHLIGHT_COLOUR " %s " RESET_COLOUR "or command (save <path> | quit): ", sideStr);
 
-        auto in = CharBuff_OnStack(0, 128);
+        CharBuff in = CharBuff_OnStack(0, 128);
         if (CharBuff_WriteLineFromFile(&in, stdin, '\n') < 4) {
             printf("No move or command entered\n");
             break;
         };
 
-        const auto inStr = CharBuff_ToStr(in);
+        const Str inStr = CharBuff_ToStr(in);
         if (Str_StartsWith(inStr, STR("save "))) {
-            const auto filePath = CharBuff_View(in, 5, in.len);
+            const Str filePath = CharBuff_View(in, 5, in.len);
             if (!writeBoardToFile(filePath, &b)) {
                 printf("Failed to save board to %s\n", filePath.arr);
                 continue;
@@ -178,16 +179,16 @@ int main(const int argc, char* argv[]) {
             return 0;
         }
 
-        Move       m               = {};
-        const auto moveParseResult = Move_Parse(&m, inStr);
+        Move                  m               = {0};
+        const MoveParseResult moveParseResult = Move_Parse(&m, inStr);
         if (moveParseResult.err != MOVE_PARSE_ERR_OK) {
-            auto moveParseResultStr = CharBuff_OnStack(0, 128);
+            CharBuff moveParseResultStr = CharBuff_OnStack(0, 128);
             CharBuff_WriteMoveParseResult(&moveParseResultStr, moveParseResult);
             printf("Failed to parse move: %s\n", moveParseResultStr.arr);
             continue;
         }
 
-        const auto p = Squares_At(b.squares, m.from);
+        const Piece p = Squares_At(b.squares, m.from);
         if (p.type == PIECE_TYPE_UNSPECIFIED) {
             printf("No piece to move\n");
             continue;
@@ -199,8 +200,8 @@ int main(const int argc, char* argv[]) {
             continue;
         }
 
-        const auto moveResult    = Board_MakeMove(&b, m);
-        auto       moveResultStr = CharBuff_OnStack(0, 32);
+        const MoveResult moveResult    = Board_MakeMove(&b, m);
+        CharBuff         moveResultStr = CharBuff_OnStack(0, 32);
         CharBuff_WriteMoveResult(&moveResultStr, &moveResult);
 
         if (moveResult.err != MOVE_ERR_OK) {

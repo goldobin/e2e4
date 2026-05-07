@@ -7,7 +7,7 @@ project(e2e4
         DESCRIPTION "E2E4 Game"
         LANGUAGES C)
 
-set(C_STANDARD c_std_23)
+set(C_STANDARD c_std_17)
 set(CC_PARAMS
         -v
         -Wall

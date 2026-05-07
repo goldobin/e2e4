@@ -41,20 +41,20 @@ char PieceType_ToLowerCaseChar(const PieceType t) {
 }
 
 // White pieces
-constexpr char UNICODE_WHITE_KING[4]   = "\u2654";
-constexpr char UNICODE_WHITE_QUEEN[4]  = "\u2655";
-constexpr char UNICODE_WHITE_ROOK[4]   = "\u2656";
-constexpr char UNICODE_WHITE_BISHOP[4] = "\u2657";
-constexpr char UNICODE_WHITE_KNIGHT[4] = "\u2658";
-constexpr char UNICODE_WHITE_PAWN[4]   = "\u2659";
+static const char UNICODE_WHITE_KING[4]   = "\u2654";
+static const char UNICODE_WHITE_QUEEN[4]  = "\u2655";
+static const char UNICODE_WHITE_ROOK[4]   = "\u2656";
+static const char UNICODE_WHITE_BISHOP[4] = "\u2657";
+static const char UNICODE_WHITE_KNIGHT[4] = "\u2658";
+static const char UNICODE_WHITE_PAWN[4]   = "\u2659";
 
 // Black pieces
-constexpr char UNICODE_BLACK_KING[4]   = "\u265A";
-constexpr char UNICODE_BLACK_QUEEN[4]  = "\u265B";
-constexpr char UNICODE_BLACK_ROOK[4]   = "\u265C";
-constexpr char UNICODE_BLACK_BISHOP[4] = "\u265D";
-constexpr char UNICODE_BLACK_KNIGHT[4] = "\u265E";
-constexpr char UNICODE_BLACK_PAWN[4]   = "\u265F";
+static const char UNICODE_BLACK_KING[4]   = "\u265A";
+static const char UNICODE_BLACK_QUEEN[4]  = "\u265B";
+static const char UNICODE_BLACK_ROOK[4]   = "\u265C";
+static const char UNICODE_BLACK_BISHOP[4] = "\u265D";
+static const char UNICODE_BLACK_KNIGHT[4] = "\u265E";
+static const char UNICODE_BLACK_PAWN[4]   = "\u265F";
 
 const char* Piece_ToUnicodeChar(Piece p) {
     if (p.side == SIDE_WHITE) {
@@ -94,7 +94,7 @@ const char* Piece_ToUnicodeChar(Piece p) {
 }
 
 size_t CharBuff_WritePiece(CharBuff* dst, const Piece p) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     size_t written = 0;
     written += CharBuff_WriteChar(dst, '{');
@@ -106,7 +106,7 @@ size_t CharBuff_WritePiece(CharBuff* dst, const Piece p) {
 }
 
 PieceTypeParseResult PieceType_Parse(PieceType* dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Str_IsValid(src));
     assert(src.len > 0);
 
@@ -131,11 +131,11 @@ PieceTypeParseResult PieceType_Parse(PieceType* dst, const Str src) {
 }
 
 SideParseResult Side_Parse(Side* dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(src.len > 0);
 
-    constexpr auto BLACK_STR = STR("BLACK");
-    constexpr auto WHITE_STR = STR("WHITE");
+    const Str BLACK_STR = STR("BLACK");
+    const Str WHITE_STR = STR("WHITE");
 
     if (Str_Equals(src, BLACK_STR)) {
         *dst = SIDE_BLACK;
@@ -152,7 +152,7 @@ SideParseResult Side_Parse(Side* dst, const Str src) {
 }
 
 size_t CharBuff_WritePieceType(CharBuff* dst, const PieceType t) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     switch (t) {
         case PIECE_TYPE_PAWN:
             return CharBuff_WriteStr(dst, STR("PAWN"));
@@ -174,7 +174,7 @@ size_t CharBuff_WritePieceType(CharBuff* dst, const PieceType t) {
 }
 
 size_t CharBuff_WriteSide(CharBuff* dst, const Side s) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     switch (s) {
         case SIDE_WHITE:
             return CharBuff_WriteStr(dst, STR("WHITE"));
@@ -187,14 +187,14 @@ size_t CharBuff_WriteSide(CharBuff* dst, const Side s) {
 }
 
 PosParseResult Pos_Parse(Pos* dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     if (src.len < POS_STR_LEN) {
         return (PosParseResult){.err = POS_PARSE_ERR_TOO_SHORT};
     }
 
-    const auto colChar = Str_At(src, 0);
-    const auto rowChar = Str_At(src, 1);
+    const char colChar = Str_At(src, 0);
+    const char rowChar = Str_At(src, 1);
     if (colChar < COL_CHAR_MIN || colChar > COL_CHAR_MAX || rowChar < ROW_CHAR_MIN || rowChar > ROW_CHAR_MAX) {
         return (PosParseResult){.err = POS_PARSE_ERR_INVALID_FORMAT};
     }
@@ -223,7 +223,7 @@ bool PosParseResult_Equals(const PosParseResult a, const PosParseResult b) {
 }
 
 size_t CharBuff_WritePosParseResult(CharBuff* dst, const PosParseResult a) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     size_t written = 0;
     written += CharBuff_WriteChar(dst, '{');
     written += CharBuff_WritePosParseErr(dst, a.err);
@@ -234,7 +234,7 @@ size_t CharBuff_WritePosParseResult(CharBuff* dst, const PosParseResult a) {
 }
 
 size_t CharBuff_WritePos(CharBuff* dst, const Pos a) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Pos_IsValid(a));
     const char col = (char)(COL_CHAR_MIN + a.col);
     const char row = (char)(ROW_CHAR_MIN + BOARD_SIDE_LEN - a.row - 1);
@@ -261,7 +261,7 @@ bool MoveParseResult_Equals(const MoveParseResult a, const MoveParseResult b) {
 }
 
 size_t CharBuff_WriteMoveParseResult(CharBuff* dst, const MoveParseResult a) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     size_t written = 0;
     written += CharBuff_WriteChar(dst, '{');
     written += CharBuff_WriteMoveParseErr(dst, a.err);
@@ -272,20 +272,20 @@ size_t CharBuff_WriteMoveParseResult(CharBuff* dst, const MoveParseResult a) {
 }
 
 MoveParseResult Move_Parse(Move* dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     if (src.len < MOVE_STR_LEN) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_TOO_SHORT};
     }
 
-    Pos        from, to;
-    const auto fromParseResult = Pos_Parse(&from, src);
+    Pos                  from, to;
+    const PosParseResult fromParseResult = Pos_Parse(&from, src);
     if (fromParseResult.err != POS_PARSE_ERR_OK) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_INVALID_FROM_FORMAT};
     }
 
-    const auto toPosStr      = Str_View(src, fromParseResult.offset, src.len);
-    const auto toParseResult = Pos_Parse(&to, toPosStr);
+    const Str            toPosStr      = Str_View(src, fromParseResult.offset, src.len);
+    const PosParseResult toParseResult = Pos_Parse(&to, toPosStr);
     if (toParseResult.err != POS_PARSE_ERR_OK) {
         return (MoveParseResult){.err = MOVE_PARSE_ERR_INVALID_TO_FORMAT};
     }
@@ -298,7 +298,7 @@ MoveParseResult Move_Parse(Move* dst, const Str src) {
 }
 
 size_t CharBuff_WriteMove(CharBuff* dst, const Move a) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     assert(Move_IsValid(a));
 
     size_t written = 0;
@@ -325,7 +325,7 @@ bool SquaresParseResult_Equals(const SquaresParseResult a, const SquaresParseRes
 }
 
 size_t CharBuff_WriteBoardParseResult(CharBuff* dst, const SquaresParseResult err) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
     size_t written = 0;
     written += CharBuff_WriteChar(dst, '{');
     written += CharBuff_WriteBoardParseErr(dst, err.err);
@@ -416,8 +416,8 @@ bool Piece_FromChar(Piece* t, const char ch) {
 }
 
 size_t CharBuff_WriteMoveResult(CharBuff* dst, const MoveResult* a) {
-    assert(dst != nullptr);
-    assert(a != nullptr);
+    assert(dst != NULL);
+    assert(a != NULL);
 
     size_t written = 0;
 
@@ -439,7 +439,7 @@ size_t CharBuff_WriteMoveResult(CharBuff* dst, const MoveResult* a) {
 }
 
 SquaresParseResult Squares_Parse(Squares dst, const Str src) {
-    assert(dst != nullptr);
+    assert(dst != NULL);
 
     size_t i      = 0;
     size_t offset = 0;
@@ -451,12 +451,12 @@ SquaresParseResult Squares_Parse(Squares dst, const Str src) {
             };
         }
 
-        const auto ch = Str_At(src, offset++);
+        const char ch = Str_At(src, offset++);
         if (ch == '\n' || ch == '\r' || ch == ' ' || ch == '\t') {
             continue;
         }
 
-        Piece piece = {};
+        Piece piece = {0};
         if (!Piece_FromChar(&piece, ch)) {
             return (SquaresParseResult){
                 .err            = SQUARES_PARSE_ERR_UNEXPECTED_CHAR,
@@ -477,9 +477,9 @@ size_t CharBuff_WriteSquares(CharBuff* dst, const Squares ss) {
     size_t written = 0;
     for (size_t i = 0; i < BOARD_SIDE_LEN; ++i) {
         for (size_t j = 0; j < BOARD_SIDE_LEN; ++j) {
-            const Pos  pos   = {.row = i, .col = j};
-            const auto piece = Squares_At(ss, pos);
-            char       pieceChar;
+            const Pos   pos   = {.row = i, .col = j};
+            const Piece piece = Squares_At(ss, pos);
+            char        pieceChar;
             if (piece.side == SIDE_WHITE) {
                 pieceChar = PieceType_ToUpperCaseChar(piece.type);
             } else {

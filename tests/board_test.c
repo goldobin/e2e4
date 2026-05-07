@@ -7,25 +7,22 @@
 #include "board_json.h"
 #include "board_repr.h"
 
-constexpr Piece WHITE_PAWN   = {.side = SIDE_WHITE, .type = PIECE_TYPE_PAWN};
-constexpr Piece BLACK_PAWN   = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN};
-constexpr Piece WHITE_ROOK   = {.side = SIDE_WHITE, .type = PIECE_TYPE_ROOK};
-constexpr Piece BLACK_ROOK   = {.side = SIDE_BLACK, .type = PIECE_TYPE_ROOK};
-constexpr Piece WHITE_KNIGHT = {.side = SIDE_WHITE, .type = PIECE_TYPE_KNIGHT};
-constexpr Piece BLACK_KNIGHT = {.side = SIDE_BLACK, .type = PIECE_TYPE_KNIGHT};
-constexpr Piece WHITE_BISHOP = {.side = SIDE_WHITE, .type = PIECE_TYPE_BISHOP};
-constexpr Piece BLACK_BISHOP = {.side = SIDE_BLACK, .type = PIECE_TYPE_BISHOP};
-constexpr Piece WHITE_QUEEN  = {.side = SIDE_WHITE, .type = PIECE_TYPE_QUEEN};
-constexpr Piece BLACK_QUEEN  = {.side = SIDE_BLACK, .type = PIECE_TYPE_QUEEN};
-constexpr Piece WHITE_KING   = {.side = SIDE_WHITE, .type = PIECE_TYPE_KING};
-constexpr Piece BLACK_KING   = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING};
+static const Piece WHITE_PAWN   = {.side = SIDE_WHITE, .type = PIECE_TYPE_PAWN};
+static const Piece BLACK_PAWN   = {.side = SIDE_BLACK, .type = PIECE_TYPE_PAWN};
+static const Piece WHITE_ROOK   = {.side = SIDE_WHITE, .type = PIECE_TYPE_ROOK};
+static const Piece WHITE_KNIGHT = {.side = SIDE_WHITE, .type = PIECE_TYPE_KNIGHT};
+static const Piece WHITE_BISHOP = {.side = SIDE_WHITE, .type = PIECE_TYPE_BISHOP};
+static const Piece WHITE_QUEEN  = {.side = SIDE_WHITE, .type = PIECE_TYPE_QUEEN};
+static const Piece BLACK_QUEEN  = {.side = SIDE_BLACK, .type = PIECE_TYPE_QUEEN};
+static const Piece WHITE_KING   = {.side = SIDE_WHITE, .type = PIECE_TYPE_KING};
+static const Piece BLACK_KING   = {.side = SIDE_BLACK, .type = PIECE_TYPE_KING};
 
 void setUp(void) {}
 void tearDown(void) {}
 
 Board parseBoard(const Str src) {
-    Board      b   = {};
-    const auto res = Squares_Parse(b.squares, src);
+    Board                    b   = {0};
+    const SquaresParseResult res = Squares_Parse(b.squares, src);
     assert(res.err == SQUARES_PARSE_ERR_OK);
     b.state = BOARD_STATE_IN_PROGRESS;
     b.side  = SIDE_WHITE;
@@ -33,16 +30,16 @@ Board parseBoard(const Str src) {
 }
 
 Move parseMove(const Str src) {
-    Move       m   = {};
-    const auto res = Move_Parse(&m, src);
+    Move                  m   = {0};
+    const MoveParseResult res = Move_Parse(&m, src);
 
     assert(res.err == MOVE_PARSE_ERR_OK);
     return m;
 }
 
 Pos parsePos(const Str src) {
-    Pos        p   = {};
-    const auto res = Pos_Parse(&p, src);
+    Pos                  p   = {0};
+    const PosParseResult res = Pos_Parse(&p, src);
     assert(res.err == POS_PARSE_ERR_OK);
     return p;
 }
@@ -118,17 +115,17 @@ void Test_Pos_Parse(void) {
         },
     };
 
-    bool             failed    = false;
-    constexpr size_t testsSize = sizeof(tests) / sizeof(test);
+    bool         failed    = false;
+    const size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
 
-        Pos        gotPos = {};
-        const auto got    = Pos_Parse(&gotPos, tt.str);
+        Pos                  gotPos = {0};
+        const PosParseResult got    = Pos_Parse(&gotPos, tt.str);
 
         if (!PosParseResult_Equals(got, tt.want)) {
-            auto wantStr = CharBuff_OnStack(0, 128);
-            auto gotStr  = CharBuff_OnStack(0, 128);
+            CharBuff wantStr = CharBuff_OnStack(0, 128);
+            CharBuff gotStr  = CharBuff_OnStack(0, 128);
 
             CharBuff_WritePosParseResult(&wantStr, tt.want);
             CharBuff_WritePosParseResult(&gotStr, got);
@@ -138,8 +135,8 @@ void Test_Pos_Parse(void) {
         }
 
         if (!Pos_Equals(gotPos, tt.wantPos)) {
-            auto wantStr = CharBuff_OnStack(0, 128);
-            auto gotStr  = CharBuff_OnStack(0, 128);
+            CharBuff wantStr = CharBuff_OnStack(0, 128);
+            CharBuff gotStr  = CharBuff_OnStack(0, 128);
 
             CharBuff_WritePos(&wantStr, tt.wantPos);
             CharBuff_WritePos(&gotStr, gotPos);
@@ -168,25 +165,25 @@ void Test_Move_Parse(void) {
             .name     = "case 0.1",
             .str      = STR("a"),
             .want     = {.err = MOVE_PARSE_ERR_TOO_SHORT, .offset = 0},
-            .wantMove = {},
+            .wantMove = {0},
         },
         {
             .name     = "case 0.2",
             .str      = STR("a1"),
             .want     = {.err = MOVE_PARSE_ERR_TOO_SHORT, .offset = 0},
-            .wantMove = {},
+            .wantMove = {0},
         },
         {
             .name     = "case 0.3",
             .str      = STR("k1h1"),
             .want     = {.err = MOVE_PARSE_ERR_INVALID_FROM_FORMAT, .offset = 0},
-            .wantMove = {},
+            .wantMove = {0},
         },
         {
             .name     = "case 0.4",
             .str      = STR("b1i1"),
             .want     = {.err = MOVE_PARSE_ERR_INVALID_TO_FORMAT, .offset = 0},
-            .wantMove = {},
+            .wantMove = {0},
         },
         {
 
@@ -204,17 +201,17 @@ void Test_Move_Parse(void) {
         },
     };
 
-    bool             failed    = false;
-    constexpr size_t testsSize = sizeof(tests) / sizeof(test);
+    bool         failed    = false;
+    const size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
 
-        Move       gotMove = {};
-        const auto got     = Move_Parse(&gotMove, tt.str);
+        Move                  gotMove = {0};
+        const MoveParseResult got     = Move_Parse(&gotMove, tt.str);
 
         if (!MoveParseResult_Equals(got, tt.want)) {
-            auto wantStr = CharBuff_OnStack(0, 128);
-            auto gotStr  = CharBuff_OnStack(0, 128);
+            CharBuff wantStr = CharBuff_OnStack(0, 128);
+            CharBuff gotStr  = CharBuff_OnStack(0, 128);
 
             CharBuff_WriteMoveParseResult(&wantStr, tt.want);
             CharBuff_WriteMoveParseResult(&gotStr, got);
@@ -224,8 +221,8 @@ void Test_Move_Parse(void) {
         }
 
         if (!Move_Equals(gotMove, tt.wantMove)) {
-            auto wantStr = CharBuff_OnStack(0, 128);
-            auto gotStr  = CharBuff_OnStack(0, 128);
+            CharBuff wantStr = CharBuff_OnStack(0, 128);
+            CharBuff gotStr  = CharBuff_OnStack(0, 128);
 
             CharBuff_WriteMove(&wantStr, tt.wantMove);
             CharBuff_WriteMove(&gotStr, gotMove);
@@ -253,7 +250,7 @@ void Test_Board_Parse(void) {
             .name      = "case 0.1",
             .str       = STR("."),
             .want      = {.err = SQUARES_PARSE_ERR_TOO_SHORT, .offset = 1},
-            .wantBoard = {},
+            .wantBoard = {0},
         },
         {
             .name      = "case 0.2",
@@ -273,7 +270,7 @@ void Test_Board_Parse(void) {
                     "........"
                     "........"),
             .want      = {.err = SQUARES_PARSE_ERR_UNEXPECTED_CHAR, .offset = 22, .unexpectedChar = 'i'},
-            .wantBoard = {},
+            .wantBoard = {0},
         },
         {
             .name = "case 1.1 empty",
@@ -287,7 +284,7 @@ void Test_Board_Parse(void) {
                     "........"
                     "........"),
             .want      = {.err = SQUARES_PARSE_ERR_OK, .offset = 64},
-            .wantBoard = {},
+            .wantBoard = {0},
         },
         {
             .name = "case 1.2 empty empty with end lines",
@@ -301,22 +298,22 @@ void Test_Board_Parse(void) {
                     "........\n"
                     "........\n"),
             .want      = {.err = SQUARES_PARSE_ERR_OK, .offset = 64 + 7},
-            .wantBoard = {},
+            .wantBoard = {0},
         },
 
     };
 
-    bool             failed    = false;
-    constexpr size_t testsSize = sizeof(tests) / sizeof(test);
+    bool         failed    = false;
+    const size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
 
-        Board      gotBoard = {};
-        const auto got      = Squares_Parse(gotBoard.squares, tt.str);
+        Board                    gotBoard = {0};
+        const SquaresParseResult got      = Squares_Parse(gotBoard.squares, tt.str);
 
         if (!SquaresParseResult_Equals(got, tt.want)) {
-            auto wantStr = CharBuff_OnStack(0, 128);
-            auto gotStr  = CharBuff_OnStack(0, 128);
+            CharBuff wantStr = CharBuff_OnStack(0, 128);
+            CharBuff gotStr  = CharBuff_OnStack(0, 128);
 
             CharBuff_WriteBoardParseResult(&wantStr, tt.want);
             CharBuff_WriteBoardParseResult(&gotStr, got);
@@ -326,8 +323,8 @@ void Test_Board_Parse(void) {
         }
 
         if (!Board_Equals(&gotBoard, &tt.wantBoard)) {
-            auto wantStr = CharBuff_OnStack(0, 128);
-            auto gotStr  = CharBuff_OnStack(0, 128);
+            CharBuff wantStr = CharBuff_OnStack(0, 128);
+            CharBuff gotStr  = CharBuff_OnStack(0, 128);
 
             CharBuff_WriteSquares(&wantStr, tt.wantBoard.squares);
             CharBuff_WriteSquares(&gotStr, gotBoard.squares);
@@ -863,7 +860,7 @@ void Test_Board_MakeMove(void) {
             },
         };
 
-    constexpr size_t testsSize = sizeof(tests) / sizeof(test);
+    const size_t testsSize = sizeof(tests) / sizeof(test);
     for (size_t i = 0; i < testsSize; i++) {
         const test tt = tests[i];
         // if (strncmp("case 7.8 king, checkmate", tt.name, 64) != 0) {
@@ -871,8 +868,8 @@ void Test_Board_MakeMove(void) {
         // }
 
         TEST_MESSAGE(tt.name);
-        Board      gotBoard = tt.b;
-        const auto got      = Board_MakeMove(&gotBoard, tt.m);
+        Board            gotBoard = tt.b;
+        const MoveResult got      = Board_MakeMove(&gotBoard, tt.m);
         TEST_ASSERT_TRUE_MESSAGE(MoveResult_Equals(&tt.want, &got), "incorrect move result");
 
         if (tt.want.err != MOVE_ERR_OK) {
@@ -884,8 +881,8 @@ void Test_Board_MakeMove(void) {
     }
 }
 
-void Test_WriteAsJson() {
-    auto src = parseBoard(
+void Test_WriteAsJson(void) {
+    Board src = parseBoard(
         STR("...k...."
             "........"
             "........"
@@ -901,14 +898,14 @@ void Test_WriteAsJson() {
     src.white.taken = (PieceTypes){.arr = {[0] = PIECE_TYPE_KNIGHT}, .len = 1};
     src.steps       = Steps_OnStack(0, 8);
 
-    auto step = Steps_Append(&src.steps, 1);
-    *step     = (Step){
+    Step* const step = Steps_Append(&src.steps, 1);
+    *step            = (Step){
         .move = parseMove(STR("a1b2")),
         .pice = {.type = PIECE_TYPE_PAWN, .side = SIDE_WHITE},
         .time = 20,
     };
 
-    const auto want =
+    const Str want =
         STR("{"
             "\"state\":\"IN_PROGRESS\","
             "\"next_move_side\":\"BLACK\","
@@ -924,36 +921,36 @@ void Test_WriteAsJson() {
             "\"time\":\"1970-01-01T00:00:20.000Z\""
             "}]"
             "}");
-    auto       dst     = CharBuff_OnStack(0, 1024);
-    auto       js      = JsonStack_Make(0, 128);
-    const auto written = CharBuff_WriteBoardAsJson(&dst, &js, &src);
+    CharBuff     dst     = CharBuff_OnStack(0, 1024);
+    JsonStack    js      = JsonStack_Make(0, 128);
+    const size_t written = CharBuff_WriteBoardAsJson(&dst, &js, &src);
 
     TEST_ASSERT_GREATER_THAN(0, written);
     TEST_ASSERT_EQUAL_STRING_LEN(want.arr, dst.arr, want.len);
 }
 
-void Test_InterpretJson() {
-    const auto src = STR(
+void Test_InterpretJson(void) {
+    const Str src = STR(
         "{\"state\": \"IN_PROGRESS\","
         "\"next_move_side\":\"BLACK\",\"squares\":{\"e2\":{\"type\":\"PAWN\",\"side\":\"WHITE\"}},\"black\":{\"king_"
         "castled\":false,\"taken\":[]},\"white\":{\"king_castled\":false,\"taken\":[\"KNIGHT\"]},\"steps\":[{\"move\":"
         "\"e2e4\",\"piece\":{\"type\":\"PAWN\",\"side\":\"WHITE\"},\"time\":\"2025-09-06T08:45:27.000Z\"}]"
         "}"
     );
-    auto      steps = Steps_OnStack(0, 8);
-    Board     dst   = {};
+    Steps     steps = Steps_OnStack(0, 8);
+    Board     dst   = {0};
     JsonNodes nodes = JsonNodes_Make(0, 128);
 
     Board_Init(&dst, steps);
-    const auto jsonParseResult = JsonNodes_Parse(&nodes, src);
+    const JsonParseResult jsonParseResult = JsonNodes_Parse(&nodes, src);
     TEST_ASSERT_EQUAL(JSON_PARSE_ERROR_OK, jsonParseResult.err);
 
-    JsonSource jsonSrc = {
+    JsonSrc jsonSrc = {
         .str   = src,
         .nodes = nodes,
     };
 
-    const auto boardParseResult = Board_InterpretJson(&dst, &jsonSrc);
+    const bool boardParseResult = Board_InterpretJson(&dst, &jsonSrc);
     TEST_ASSERT_TRUE(boardParseResult);
     TEST_ASSERT_EQUAL(BOARD_STATE_IN_PROGRESS, dst.state);
     TEST_ASSERT_EQUAL(SIDE_BLACK, dst.side);
